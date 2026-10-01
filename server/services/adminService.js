@@ -135,6 +135,7 @@ function presentProperty(property) {
   return {
     id: String(property.id),
     title: property.title,
+    imageUrl: property.imageUrl || '',
     location: property.location,
     description: property.description || '',
     status: property.status,

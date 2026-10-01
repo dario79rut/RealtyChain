@@ -9,6 +9,7 @@ import { useProperties } from '../hooks/useProperties';
 import { AdminAccount, AdminDesk, AdminPoint, adminAction, fetchAdmin } from '../utils/api';
 import { DocumentVaultModal } from '../components/modals/DocumentVaultModal';
 import { GrowthChart } from '../components/admin/GrowthChart';
+import { PropertyThumb } from '../components/ui/PropertyThumb';
 import { formatUsd } from '../utils/ops';
 
 const SECTIONS = ['dashboard', 'properties', 'tokens', 'owners', 'investors', 'market', 'lending', 'distributions', 'financials', 'compliance'] as const;
@@ -349,13 +350,25 @@ function Dashboard({ desk, onOpen }: { desk: AdminDesk; onOpen: (id: (typeof SEC
 
 function PropertySelect({ desk, value, onChange }: { desk: AdminDesk; value: string; onChange: (id: string) => void }) {
   return (
-    <label className="block text-sm text-cream-400 mb-4 max-w-md">Property
-      <select value={value} onChange={(event) => onChange(event.target.value)} className={fieldClass}>
-        {desk.properties.map((row) => (
-          <option key={row.id} value={row.id}>{row.title}</option>
-        ))}
-      </select>
-    </label>
+    <div className="mb-4">
+      <p className="text-sm text-cream-400 mb-2">Property</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
+        {desk.properties.map((row) => {
+          const active = row.id === value;
+          return (
+            <button
+              key={row.id}
+              type="button"
+              onClick={() => onChange(row.id)}
+              className={`flex items-center gap-3 text-left rounded-xl border px-3 py-2 ${active ? 'border-accent bg-accent/10' : 'border-void-700 bg-void-800/40 hover:border-void-600'}`}
+            >
+              <PropertyThumb title={row.title} imageUrl={row.imageUrl} className="h-12 w-16" />
+              <span className="text-sm text-cream-100 font-medium min-w-0 truncate">{row.title}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -385,8 +398,13 @@ function Console(props: {
   if (section === 'properties') {
     return (
       <div>
-        <h2 className="font-display text-xl font-semibold text-cream-100 mb-1">Property management</h2>
-        <p className="text-cream-400 text-sm mb-4">Draft, review, approved, tokenized, funded, then active. Suspend a listing or open a sale from here.</p>
+        <div className="flex items-start gap-4 mb-4">
+          <PropertyThumb title={property.title} imageUrl={property.imageUrl} className="h-16 w-24" />
+          <div>
+            <h2 className="font-display text-xl font-semibold text-cream-100 mb-1">Property management</h2>
+            <p className="text-cream-400 text-sm">Draft, review, approved, tokenized, funded, then active. Suspend a listing or open a sale from here.</p>
+          </div>
+        </div>
         <PropertySelect desk={desk} value={property.id} onChange={onSelect} />
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <Badge color={stageColor(property.stage)}>{property.stage}</Badge>

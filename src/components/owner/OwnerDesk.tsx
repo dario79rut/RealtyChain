@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useProperties } from '../../hooks/useProperties';
 import { mediaUrl, uploadAvatar } from '../../utils/api';
 import { Property } from '../../utils/types';
+import { PropertyThumb } from '../ui/PropertyThumb';
 import { formatUsd } from '../../utils/ops';
 import { AddProperty } from './AddProperty';
 import { OwnerFinance } from './OwnerFinance';
@@ -133,15 +134,20 @@ export function OwnerDesk() {
                       key={property.id}
                       type="button"
                       onClick={() => open(property.offering?.campaign ? 'funding' : 'tokenize')}
-                      className="w-full text-left rounded-2xl border border-void-700 bg-void-800/40 px-4 py-3 hover:border-accent/40"
+                      className="w-full text-left rounded-2xl border border-void-700 bg-void-800/40 px-3 py-3 hover:border-accent/40"
                     >
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <span className="text-cream-100 font-medium">{property.title}</span>
-                        <span className="text-accent text-sm">{statusLine(property)}</span>
+                      <div className="flex items-center gap-3">
+                        <PropertyThumb title={property.title} imageUrl={property.imageUrl} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-baseline justify-between gap-2">
+                            <span className="text-cream-100 font-medium truncate">{property.title}</span>
+                            <span className="text-accent text-sm">{statusLine(property)}</span>
+                          </div>
+                          <p className="text-cream-400 text-sm mt-1">
+                            ${formatUsd(valuationOf(property))} · {Math.round(occupancy)}% occupied
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-cream-400 text-sm mt-1">
-                        ${formatUsd(valuationOf(property))} · {Math.round(occupancy)}% occupied
-                      </p>
                     </button>
                   );
                 })}

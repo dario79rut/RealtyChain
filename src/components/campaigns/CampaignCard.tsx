@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
 import { pledgeCampaign } from '../../utils/api';
 import { Property } from '../../utils/types';
+import { PropertyThumb } from '../ui/PropertyThumb';
 import { formatUsd } from '../../utils/ops';
 
 export function CampaignCard({ property, pledge = false }: { property: Property; pledge?: boolean }) {
@@ -22,10 +23,13 @@ export function CampaignCard({ property, pledge = false }: { property: Property;
   return (
     <article className="rounded-2xl border border-void-700 bg-void-800/50 p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="text-xs uppercase tracking-wider text-accent">Funding campaign</div>
-          <h3 className="font-display text-xl font-semibold text-cream-100 mt-1">{property.title}</h3>
-          <p className="text-cream-400 text-sm mt-1">{property.location}</p>
+        <div className="flex items-start gap-3 min-w-0">
+          <PropertyThumb title={property.title} imageUrl={property.imageUrl} className="h-16 w-24" />
+          <div className="min-w-0">
+            <div className="text-xs uppercase tracking-wider text-accent">Funding campaign</div>
+            <h3 className="font-display text-xl font-semibold text-cream-100 mt-1">{property.title}</h3>
+            <p className="text-cream-400 text-sm mt-1">{property.location}</p>
+          </div>
         </div>
         <div className="text-right">
           <div className="text-cream-100 font-medium">${formatUsd(campaign.raised)} raised</div>

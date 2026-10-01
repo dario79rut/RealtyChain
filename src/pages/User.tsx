@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CoinsIcon, HistoryIcon, BuildingIcon, SettingsIcon, LogOutIcon, ShieldCheckIcon, TrendingUpIcon } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { PropertyThumb } from '../components/ui/PropertyThumb';
 import { Badge } from '../components/ui/Badge';
 import { useWallet } from '../context/WalletContext';
 import { useAuth } from '../context/AuthContext';
@@ -291,6 +292,7 @@ export default function User() {
       yieldRate,
       income: marketValue * (yieldRate / 100),
       change: quote?.change || 0,
+      imageUrl: property?.imageUrl || '',
     };
   });
   const investedValue = financeRows.reduce((sum, row) => sum + row.marketValue, 0);
@@ -546,8 +548,13 @@ export default function User() {
                             {ownedProperties.map((property) => (
                               <tr key={property.id}>
                                 <td className="px-4 py-3">
-                                  <div className="text-cream-100 font-medium">{property.title}</div>
-                                  <div className="text-cream-400 text-xs">{property.location}</div>
+                                  <div className="flex items-center gap-3">
+                                    <PropertyThumb title={property.title} imageUrl={property.imageUrl} className="h-12 w-16" />
+                                    <div>
+                                      <div className="text-cream-100 font-medium">{property.title}</div>
+                                      <div className="text-cream-400 text-xs">{property.location}</div>
+                                    </div>
+                                  </div>
                                 </td>
                                 <td className="px-4 py-3 text-right text-cream-100">${formatUsd(property.price)}</td>
                                 <td className="px-4 py-3 text-right text-cream-300">{property.tokensSold}/{property.totalTokens}</td>
@@ -616,10 +623,15 @@ export default function User() {
                           {financeRows.map((row) => (
                             <tr key={row.propertyId}>
                               <td className="px-4 py-4">
-                                <div className="text-cream-100 font-medium">{row.title}</div>
-                                <div className="text-cream-400 text-xs">
-                                  Cost ${formatUsd(row.cost)} · {row.available} free to sell
-                                  {row.locked ? ` · ${row.locked} locked as collateral` : ''}
+                                <div className="flex items-center gap-3">
+                                  <PropertyThumb title={row.title} imageUrl={row.imageUrl} className="h-12 w-16" />
+                                  <div>
+                                    <div className="text-cream-100 font-medium">{row.title}</div>
+                                    <div className="text-cream-400 text-xs">
+                                      Cost ${formatUsd(row.cost)} · {row.available} free to sell
+                                      {row.locked ? ` · ${row.locked} locked as collateral` : ''}
+                                    </div>
+                                  </div>
                                 </div>
                               </td>
                               <td className="px-4 py-4 text-right text-cream-100">{row.shares}</td>

@@ -6,6 +6,7 @@ import { formatUnits } from 'viem';
 import { useAccount, usePublicClient, useReadContract, useWriteContract } from 'wagmi';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { PropertyThumb } from '../components/ui/PropertyThumb';
 import { CandleChart } from '../components/market/CandleChart';
 import { FillAskModal } from '../components/modals/FillAskModal';
 import { useAsks, ShareAsk } from '../hooks/useAsks';
@@ -134,6 +135,7 @@ export default function Market() {
   const quote = book?.quotes.find((row) => row.propertyId === selectedId) || book?.quotes[0];
   const position = book?.positions.find((row) => row.propertyId === quote?.propertyId);
   const titleById = new Map(properties.map((property) => [String(property.id), property.title]));
+  const imageById = new Map(properties.map((property) => [String(property.id), property.imageUrl]));
 
   const shareCount = () => {
     const size = Math.floor(Number(shares));
@@ -286,7 +288,9 @@ export default function Market() {
                       <div className="px-4 py-4 border-b border-void-700 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                         <div ref={propertyMenuRef} className="relative w-full sm:max-w-md">
                           <label className="text-xs uppercase tracking-wider text-cream-400" htmlFor="property-search">Property</label>
-                          <div className="relative mt-1">
+                          <div className="flex items-center gap-3 mt-1">
+                            <PropertyThumb title={quote.title} imageUrl={imageById.get(quote.propertyId)} className="h-12 w-16" />
+                            <div className="relative flex-1 min-w-0">
                             <SearchIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-cream-400 pointer-events-none" />
                             <input
                               id="property-search"
@@ -308,6 +312,7 @@ export default function Market() {
                               className={`${fieldClass} pl-9 pr-9`}
                             />
                             <ChevronDownIcon size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-cream-400 pointer-events-none" />
+                            </div>
                           </div>
                           {propertyMenu && (
                             <ul
@@ -334,13 +339,18 @@ export default function Market() {
                                       }}
                                       className={`w-full text-left px-3 py-2.5 border-b border-void-700/80 last:border-b-0 ${active ? 'bg-void-700' : 'hover:bg-void-700/70'}`}
                                     >
-                                      <span className="flex items-start justify-between gap-2">
-                                        <span className="text-cream-100 text-sm font-medium">{row.title}</span>
-                                        <span className={`font-mono text-xs ${row.change >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>{signed(row.change)}</span>
-                                      </span>
-                                      <span className="flex justify-between text-xs text-cream-400 mt-0.5">
-                                        <span>{row.location}</span>
-                                        <span>${money(row.last)}{held?.shares ? ` · ${held.shares} held` : ''}</span>
+                                      <span className="flex items-center gap-3">
+                                        <PropertyThumb title={row.title} imageUrl={imageById.get(row.propertyId)} className="h-10 w-14" />
+                                        <span className="min-w-0 flex-1">
+                                          <span className="flex items-start justify-between gap-2">
+                                            <span className="text-cream-100 text-sm font-medium">{row.title}</span>
+                                            <span className={`font-mono text-xs ${row.change >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>{signed(row.change)}</span>
+                                          </span>
+                                          <span className="flex justify-between text-xs text-cream-400 mt-0.5">
+                                            <span>{row.location}</span>
+                                            <span>${money(row.last)}{held?.shares ? ` · ${held.shares} held` : ''}</span>
+                                          </span>
+                                        </span>
                                       </span>
                                     </button>
                                   </li>

@@ -396,6 +396,7 @@ export type AdminDesk = {
   properties: {
     id: string;
     title: string;
+    imageUrl?: string;
     location: string;
     description: string;
     status: string;
