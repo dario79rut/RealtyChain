@@ -12,6 +12,7 @@ router.patch('/mine/:id', requireAuth, ownerController.update);
 router.post('/mine/:id/documents', requireAuth, ownerController.uploadDocument);
 router.post('/mine/:id/verify', requireAuth, ownerController.verify);
 router.post('/mine/:id/progress', requireAuth, ownerController.progress);
+router.post('/mine/:id/photos', requireAuth, ownerController.photo);
 router.post('/mine/:id/campaign', requireAuth, ownerController.campaign);
 router.post('/mine/:id/tokenize', requireAuth, ownerController.tokenize);
 router.post('/mine/:id/finance/apply', requireAuth, ownerController.financeApply);

@@ -46,6 +46,14 @@ function progress(req, res) {
   }
 }
 
+function photo(req, res) {
+  try {
+    return res.status(201).json({ property: ownerService.addPhoto(req.user.sub, req.params.id, req.body || {}) });
+  } catch (err) {
+    return sendError(res, err);
+  }
+}
+
 function campaign(req, res) {
   try {
     return res.json({ property: ownerService.saveCampaign(req.user.sub, req.params.id, req.body || {}) });
@@ -100,6 +108,7 @@ module.exports = {
   uploadDocument,
   verify,
   progress,
+  photo,
   campaign,
   tokenize,
   financeApply,

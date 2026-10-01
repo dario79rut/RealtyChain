@@ -1,6 +1,7 @@
 const persistence = require('../mock/persistence');
 const propertyService = require('./propertyService');
 const vault = require('./vaultService');
+const images = require('./imageService');
 
 const STATUSES = new Set(['Available', 'Sold Out', 'Coming Soon']);
 const REQUIRED = [
@@ -133,6 +134,7 @@ function offeringFrom(input) {
   const source = input && typeof input === 'object' ? input : {};
   const name = note(source.name, 'Property name', 2, 160);
   const address = note(source.address, 'Address', 4, 160);
+  const description = note(source.description, 'Description', 20, 4000);
   const propertyType = String(source.propertyType || '');
   if (!PROPERTY_TYPES.has(propertyType)) fail('Choose a property type.', 400);
   const purchasePrice = amount(source.purchasePrice, 'Purchase price', 1);
@@ -149,6 +151,7 @@ function offeringFrom(input) {
   return {
     name,
     address,
+    description,
     propertyType,
     purchasePrice,
     valuation,
@@ -175,7 +178,7 @@ function register(userId, input) {
   const property = propertyService.create({
     title: offering.name,
     location: offering.address,
-    description: offering.campaign ? offering.campaign.useOfFunds : offering.ownership.structure,
+    description: offering.description,
     price: offering.valuation,
     totalTokens: supply,
     sharePriceUsdc: sharePrice,
@@ -216,6 +219,24 @@ function ensureOffering(property) {
   }
   if (!property.offering.financing) property.offering.financing = emptyFinance(property.offering.valuation || property.price);
   return property.offering;
+}
+
+function addPhoto(userId, id, input) {
+  const user = ownerAccount(userId);
+  const property = ownedProperty(user, id);
+  const source = input && typeof input === 'object' ? input : {};
+  const saved = images.saveBuffer(images.decodeUpload(source.data), source.filename || 'photo.jpg');
+  const gallery = Array.isArray(property.galleryUrls) ? property.galleryUrls : [];
+  const coverIsDefault = !property.imageUrl || property.imageUrl === images.defaultUrl();
+  if (coverIsDefault) {
+    property.imageUrl = saved.url;
+  } else if (gallery.length >= 7) {
+    fail('A listing can have 8 photos.', 400);
+  } else {
+    property.galleryUrls = [...gallery, saved.url];
+  }
+  persistence.save();
+  return property;
 }
 
 function saveCampaign(userId, id, input) {
@@ -404,6 +425,7 @@ module.exports = {
   addDocument,
   verifyDocuments,
   addProgress,
+  addPhoto,
   saveCampaign,
   tokenize,
   applyFinance,

@@ -1,12 +1,20 @@
 import React, { useMemo, useState } from 'react';
 import { CheckIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { registerOwnedProperty, uploadOwnedDocument, verifyOwnedDocuments } from '../../utils/api';
+import { registerOwnedProperty, uploadOwnedDocument, uploadOwnedPhoto, verifyOwnedDocuments } from '../../utils/api';
 import { Property } from '../../utils/types';
 import { formatUsd } from '../../utils/ops';
 import { OWNER_DOCUMENTS, PROPERTY_TYPES, fieldClass, readFile } from './ownerForm';
 
-const STEPS = ['Property', 'Financials', 'Documents', 'Ownership', 'Funding', 'Submit'] as const;
+const STEPS = [
+  { label: 'Property', detail: 'Address, type, price, valuation, units, occupancy, and rent' },
+  { label: 'Photos', detail: 'Listing photos and a description investors will read' },
+  { label: 'Financials', detail: 'Revenue, expenses, mortgage, tax, insurance, and NOI' },
+  { label: 'Documents', detail: 'Deed, appraisal, inspection, insurance, and tax documents' },
+  { label: 'Ownership', detail: 'Share you keep and the economic structure' },
+  { label: 'Funding', detail: 'A capital campaign, tokenization, or both' },
+  { label: 'Submit', detail: 'Review the listing and send it in' },
+] as const;
 
 type Draft = {
   name: string;
@@ -17,6 +25,7 @@ type Draft = {
   units: string;
   occupancy: string;
   monthlyRent: string;
+  description: string;
   annualRevenue: string;
   operatingExpenses: string;
   mortgage: string;
@@ -44,6 +53,7 @@ const EMPTY: Draft = {
   units: '',
   occupancy: '',
   monthlyRent: '',
+  description: '',
   annualRevenue: '',
   operatingExpenses: '',
   mortgage: '',
@@ -71,6 +81,7 @@ export function AddProperty({ onCreated }: { onCreated: (property: Property) => 
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [files, setFiles] = useState<Record<string, File | null>>({});
+  const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const set = (patch: Partial<Draft>) => setDraft((current) => ({ ...current, ...patch }));
@@ -85,7 +96,7 @@ export function AddProperty({ onCreated }: { onCreated: (property: Property) => 
 
   const next = () => {
     setError('');
-    const missing = validate(step, draft, files, preview.offered);
+    const missing = validate(step, draft, files, preview.offered, photos.length);
     if (missing) {
       setError(missing);
       return;
@@ -95,7 +106,7 @@ export function AddProperty({ onCreated }: { onCreated: (property: Property) => 
 
   const submit = async () => {
     setError('');
-    const missing = validate(4, draft, files, preview.offered);
+    const missing = validate(5, draft, files, preview.offered, photos.length);
     if (missing) {
       setError(missing);
       return;
@@ -111,6 +122,7 @@ export function AddProperty({ onCreated }: { onCreated: (property: Property) => 
         units: num(draft.units),
         occupancy: num(draft.occupancy),
         monthlyRent: num(draft.monthlyRent),
+        description: draft.description,
         ownerPercent: retained,
         structure: draft.structure,
         financials: {
@@ -136,6 +148,11 @@ export function AddProperty({ onCreated }: { onCreated: (property: Property) => 
         } : null,
       });
       let property = created.property;
+      for (const photo of photos) {
+        const data = await readFile(photo.file);
+        const uploaded = await uploadOwnedPhoto(property.id, { filename: photo.file.name, data });
+        property = uploaded.property;
+      }
       for (const doc of OWNER_DOCUMENTS) {
         const file = files[doc.kind];
         if (!file) continue;
@@ -153,14 +170,43 @@ export function AddProperty({ onCreated }: { onCreated: (property: Property) => 
   };
 
   return (
-    <div>
-      <ol className="flex flex-wrap gap-2 mb-6">
-        {STEPS.map((label, index) => (
-          <li key={label} className={`text-xs uppercase tracking-wider px-2 py-1 rounded-full border ${index === step ? 'border-accent text-accent' : index < step ? 'border-emerald-500/40 text-emerald-300' : 'border-void-600 text-cream-400'}`}>
-            {index + 1}. {label}
-          </li>
-        ))}
+    <div className="grid grid-cols-1 lg:grid-cols-[17rem_minmax(0,1fr)] gap-8">
+      <ol className="space-y-0">
+        {STEPS.map((item, index) => {
+          const done = index < step;
+          const current = index === step;
+          return (
+            <li key={item.label} className="relative flex gap-3 pb-5 last:pb-0">
+              {index < STEPS.length - 1 && (
+                <span className={`absolute left-4 top-8 bottom-0 w-px ${done ? 'bg-emerald-400/70' : 'bg-void-600'}`} />
+              )}
+              <button
+                type="button"
+                disabled={index > step}
+                onClick={() => {
+                  if (index < step) {
+                    setError('');
+                    setStep(index);
+                  }
+                }}
+                className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold disabled:cursor-default ${
+                  current ? 'border-accent bg-accent/15 text-accent-light' : done ? 'border-emerald-400 text-emerald-300' : 'border-void-600 text-cream-400'
+                }`}
+              >
+                {done ? <CheckIcon size={14} /> : index + 1}
+              </button>
+              <div className="pt-0.5">
+                <div className={`text-sm font-medium ${current ? 'text-cream-100' : done ? 'text-emerald-200' : 'text-cream-400'}`}>{item.label}</div>
+                <p className="text-cream-400 text-xs mt-0.5 leading-snug">{item.detail}</p>
+              </div>
+            </li>
+          );
+        })}
       </ol>
+      <div>
+      <h2 className="font-display text-xl font-semibold text-cream-100 mb-4">
+        Step {step + 1} of {STEPS.length} · {STEPS[step].label}
+      </h2>
       {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
       {step === 0 && (
@@ -181,6 +227,76 @@ export function AddProperty({ onCreated }: { onCreated: (property: Property) => 
       )}
 
       {step === 1 && (
+        <div className="space-y-4">
+          <Field label="Description">
+            <textarea
+              value={draft.description}
+              onChange={(event) => set({ description: event.target.value })}
+              rows={5}
+              className={fieldClass}
+              placeholder="The building, the location, and what an investor is buying into."
+            />
+          </Field>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-cream-400 text-sm">The first photo is the cover. Add up to 6.</p>
+            <label className="inline-flex items-center px-3 py-2 rounded-xl border border-void-600 text-sm text-cream-100 cursor-pointer">
+              Upload photos
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                className="sr-only"
+                onChange={(event) => {
+                  const list = event.target.files;
+                  event.target.value = '';
+                  if (!list) return;
+                  setPhotos((current) => {
+                    const next = current.slice();
+                    for (const file of Array.from(list)) {
+                      if (next.length >= 6) {
+                        setError('Upload up to 6 photos.');
+                        break;
+                      }
+                      if (file.size > 1_500_000) {
+                        setError('Each photo must be 1.5 MB or smaller.');
+                        continue;
+                      }
+                      next.push({ file, preview: URL.createObjectURL(file) });
+                    }
+                    return next;
+                  });
+                }}
+              />
+            </label>
+          </div>
+          {photos.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {photos.map((photo, index) => (
+                <figure key={photo.preview} className="relative rounded-xl overflow-hidden border border-void-700">
+                  <img src={photo.preview} alt="" className="h-28 w-full object-cover" />
+                  <figcaption className="absolute top-2 left-2 rounded bg-void-950/80 px-2 py-0.5 text-xs text-cream-100">
+                    {index === 0 ? 'Cover' : `Photo ${index + 1}`}
+                  </figcaption>
+                  <button
+                    type="button"
+                    className="absolute top-2 right-2 rounded bg-void-950/80 px-2 py-0.5 text-xs text-cream-100"
+                    onClick={() => setPhotos((current) => {
+                      const copy = current.slice();
+                      URL.revokeObjectURL(copy[index].preview);
+                      copy.splice(index, 1);
+                      return copy;
+                    })}
+                  >
+                    Remove
+                  </button>
+                </figure>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {step === 2 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="Annual revenue"><input type="number" min="0" value={draft.annualRevenue} onChange={(event) => set({ annualRevenue: event.target.value })} className={fieldClass} /></Field>
           <Field label="Operating expenses"><input type="number" min="0" value={draft.operatingExpenses} onChange={(event) => set({ operatingExpenses: event.target.value })} className={fieldClass} /></Field>
@@ -223,7 +339,7 @@ export function AddProperty({ onCreated }: { onCreated: (property: Property) => 
         </div>
       )}
 
-      {step === 3 && (
+      {step === 4 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="Owner retains %"><input type="number" min="0" max="99" value={draft.ownerPercent} onChange={(event) => set({ ownerPercent: event.target.value })} className={fieldClass} /></Field>
           <div className="rounded-xl border border-void-700 px-4 py-3">
@@ -267,7 +383,7 @@ export function AddProperty({ onCreated }: { onCreated: (property: Property) => 
         </div>
       )}
 
-      {step === 5 && (
+      {step === 6 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <Stat label="Property" value={`${draft.name} · ${draft.propertyType}`} />
           <Stat label="Address" value={draft.address} />
@@ -287,6 +403,7 @@ export function AddProperty({ onCreated }: { onCreated: (property: Property) => 
         ) : (
           <Button type="button" disabled={busy} onClick={submit}>{busy ? 'Submitting…' : 'Submit property'}</Button>
         )}
+      </div>
       </div>
     </div>
   );

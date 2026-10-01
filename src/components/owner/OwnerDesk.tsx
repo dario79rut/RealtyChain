@@ -119,7 +119,7 @@ export function OwnerDesk() {
                 <PlusIcon size={22} />
                 Add property
               </span>
-              <p className="text-cream-400 text-sm mt-2">Property, financials, documents, ownership, then funding or tokenization.</p>
+              <p className="text-cream-400 text-sm mt-2">Property, photos, financials, documents, ownership, then funding or tokenization.</p>
             </button>
             <h2 className="font-display text-lg font-semibold text-cream-100 mb-3">My properties</h2>
             {owned.length === 0 ? (

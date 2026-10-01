@@ -576,6 +576,13 @@ export function updateOwnedSaleStatus(id: string, status: import('./types').Prop
   });
 }
 
+export function uploadOwnedPhoto(id: string, payload: { filename: string; data: string }) {
+  return apiFetch<{ property: import('./types').Property }>(`/api/properties/mine/${id}/photos`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export function uploadOwnedDocument(id: string, payload: { kind: string; filename: string; data: string }) {
   return apiFetch<{ property: import('./types').Property }>(`/api/properties/mine/${id}/documents`, {
     method: 'POST',
