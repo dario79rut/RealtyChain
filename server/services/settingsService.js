@@ -130,6 +130,7 @@ function isIpAllowed(ip, settings) {
 }
 
 async function isRequestIpAllowed(req) {
+  if (process.env.LOGIN_OPEN === 'true') return true;
   const s = await load();
   return isIpAllowed(getClientIp(req), s);
 }

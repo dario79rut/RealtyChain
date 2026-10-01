@@ -194,7 +194,7 @@ async function snapshot() {
 }
 
 function startupBlockers() {
-  if (!isProduction()) return [];
+  if (!isProduction() || isDemo()) return [];
   const blockers = [];
   if (!jwtConfigured()) blockers.push('Set JWT_SECRET to a long random value before production.');
   if (!process.env.CHAIN_RPC_URL) blockers.push('Set CHAIN_RPC_URL for production.');

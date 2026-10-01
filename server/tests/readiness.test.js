@@ -23,7 +23,9 @@ test('production startup blockers require jwt, rpc, and factory', () => {
     PROPERTY_FACTORY_ADDRESS: process.env.PROPERTY_FACTORY_ADDRESS,
     VITE_PROPERTY_FACTORY_ADDRESS: process.env.VITE_PROPERTY_FACTORY_ADDRESS,
   };
+  const prevDemo = process.env.DEMO_MODE;
   process.env.APP_ENV = 'production';
+  process.env.DEMO_MODE = 'false';
   delete process.env.JWT_SECRET;
   delete process.env.CHAIN_RPC_URL;
   delete process.env.PROPERTY_FACTORY_ADDRESS;
@@ -32,6 +34,8 @@ test('production startup blockers require jwt, rpc, and factory', () => {
     const blockers = readiness.startupBlockers();
     assert.ok(blockers.length >= 3);
   } finally {
+    if (prevDemo === undefined) delete process.env.DEMO_MODE;
+    else process.env.DEMO_MODE = prevDemo;
     if (prev.APP_ENV === undefined) delete process.env.APP_ENV;
     else process.env.APP_ENV = prev.APP_ENV;
     if (prev.JWT_SECRET === undefined) delete process.env.JWT_SECRET;

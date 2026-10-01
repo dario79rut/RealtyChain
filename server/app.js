@@ -1,4 +1,6 @@
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 
@@ -83,6 +85,16 @@ app.use('/api/market', marketRoutes);
 app.use('/api/lend', lendingRoutes);
 app.use('/api/admin', adminRoutes);
 
+const distDir = path.join(__dirname, '..', 'dist');
+if (fs.existsSync(path.join(distDir, 'index.html'))) {
+  app.use(express.static(distDir, { index: false }));
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    if (req.path.startsWith('/api') || req.path === '/health' || req.path === '/ready') return next();
+    res.sendFile(path.join(distDir, 'index.html'), (err) => (err ? next(err) : undefined));
+  });
+}
+
 // Start the HTTP listener only when run directly (node server/app.js).
 // When imported (e.g. by a Netlify Function via serverless-http) the app is
 // exported instead and the platform owns the listener.
@@ -93,7 +105,7 @@ if (require.main === module) {
     for (const line of blockers) console.error(`- ${line}`);
     process.exit(1);
   }
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server listening on port ${PORT}`);
   });
 }
