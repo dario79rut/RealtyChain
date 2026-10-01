@@ -46,4 +46,64 @@ function progress(req, res) {
   }
 }
 
-module.exports = { register, update, uploadDocument, verify, progress };
+function campaign(req, res) {
+  try {
+    return res.json({ property: ownerService.saveCampaign(req.user.sub, req.params.id, req.body || {}) });
+  } catch (err) {
+    return sendError(res, err);
+  }
+}
+
+function tokenize(req, res) {
+  try {
+    return res.json({ property: ownerService.tokenize(req.user.sub, req.params.id, req.body || {}) });
+  } catch (err) {
+    return sendError(res, err);
+  }
+}
+
+function financeApply(req, res) {
+  try {
+    return res.json({ property: ownerService.applyFinance(req.user.sub, req.params.id, req.body || {}) });
+  } catch (err) {
+    return sendError(res, err);
+  }
+}
+
+function financeAccept(req, res) {
+  try {
+    return res.json({ property: ownerService.acceptFinance(req.user.sub, req.params.id) });
+  } catch (err) {
+    return sendError(res, err);
+  }
+}
+
+function financeRepay(req, res) {
+  try {
+    return res.json({ property: ownerService.repayFinance(req.user.sub, req.params.id, req.body || {}) });
+  } catch (err) {
+    return sendError(res, err);
+  }
+}
+
+function pledge(req, res) {
+  try {
+    return res.json({ property: ownerService.pledge(req.user.sub, req.params.id, req.body || {}) });
+  } catch (err) {
+    return sendError(res, err);
+  }
+}
+
+module.exports = {
+  register,
+  update,
+  uploadDocument,
+  verify,
+  progress,
+  campaign,
+  tokenize,
+  financeApply,
+  financeAccept,
+  financeRepay,
+  pledge,
+};

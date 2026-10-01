@@ -520,17 +520,52 @@ export function reviewKyc(userId: number, decision: 'approved' | 'rejected', not
   });
 }
 
-export function registerOwnedProperty(payload: {
-  title: string;
-  location: string;
-  description?: string;
-  price: number;
-  totalTokens: number;
-  returnRate?: number;
-}) {
+export function registerOwnedProperty(payload: Record<string, unknown>) {
   return apiFetch<{ property: import('./types').Property }>('/api/properties/mine', {
     method: 'POST',
     body: JSON.stringify(payload),
+  });
+}
+
+export function saveOwnedCampaign(id: string, payload: Record<string, unknown>) {
+  return apiFetch<{ property: import('./types').Property }>(`/api/properties/mine/${id}/campaign`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function tokenizeOwnedProperty(id: string, payload: Record<string, unknown>) {
+  return apiFetch<{ property: import('./types').Property }>(`/api/properties/mine/${id}/tokenize`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function applyOwnerFinance(id: string, amount: number) {
+  return apiFetch<{ property: import('./types').Property }>(`/api/properties/mine/${id}/finance/apply`, {
+    method: 'POST',
+    body: JSON.stringify({ amount }),
+  });
+}
+
+export function acceptOwnerFinance(id: string) {
+  return apiFetch<{ property: import('./types').Property }>(`/api/properties/mine/${id}/finance/accept`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+}
+
+export function repayOwnerFinance(id: string, amount: number) {
+  return apiFetch<{ property: import('./types').Property }>(`/api/properties/mine/${id}/finance/repay`, {
+    method: 'POST',
+    body: JSON.stringify({ amount }),
+  });
+}
+
+export function pledgeCampaign(id: string, amount: number) {
+  return apiFetch<{ property: import('./types').Property }>(`/api/properties/${id}/campaign/pledge`, {
+    method: 'POST',
+    body: JSON.stringify({ amount }),
   });
 }
 

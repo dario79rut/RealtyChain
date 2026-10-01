@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
   GovernanceBalance,
   GovernanceProposal,
@@ -110,6 +111,8 @@ export function ProposalCard({
 }
 
 export default function Governance() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [params] = useSearchParams();
   const propertyId = params.get('property') || '';
   const [proposals, setProposals] = useState<GovernanceProposal[]>([]);
@@ -177,6 +180,20 @@ export default function Governance() {
       setSaving(false);
     }
   };
+
+  if (user?.role === 'owner' || user?.role === 'admin') {
+    return (
+      <div className="min-h-screen w-full">
+        <div className="max-w-xl mx-auto px-4 py-20 text-center">
+          <h1 className="font-display text-3xl font-bold text-cream-100 mb-3">Governance</h1>
+          <p className="text-cream-400 mb-6">Shareholder votes are an investor action.</p>
+          <Button onClick={() => navigate(user.role === 'admin' ? '/admin' : '/user')}>
+            {user.role === 'admin' ? 'Open admin' : 'Open owner desk'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full">

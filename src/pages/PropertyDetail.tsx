@@ -21,6 +21,7 @@ import { OnrampModal } from '../components/modals/OnrampModal';
 import { useWallet } from '../context/WalletContext';
 import { useAuth } from '../context/AuthContext';
 import { useProperty } from '../hooks/useProperties';
+import { CampaignCard } from '../components/campaigns/CampaignCard';
 import { canInvest, downloadVaultFile, mediaUrl } from '../utils/api';
 import { formatUsd, latestAppraisal, navPerShare, navValueUsd, waterfall } from '../utils/ops';
 import { useOfferingAddress, useOfferingStats } from '../hooks/useOffering';
@@ -196,6 +197,11 @@ export default function PropertyDetail() {
                     )}
                   </div>
                   <InteriorTour property={property} />
+                  {property.offering?.campaign && (
+                    <div className="mb-8">
+                      <CampaignCard property={property} pledge />
+                    </div>
+                  )}
                   <div className="mb-8">
                     <h2 className="font-display text-lg font-semibold text-cream-100 mb-3">
                       About this property
@@ -461,8 +467,12 @@ export default function PropertyDetail() {
                     </p>
                   </div>
                 )}
-                {user?.role === 'admin' ? (
-                  <p className="text-cream-400 text-sm">Buying and selling tokens is for investors. Manage this listing from the admin console.</p>
+                {user?.role === 'admin' || user?.role === 'owner' ? (
+                  <p className="text-cream-400 text-sm">
+                    {user?.role === 'owner'
+                      ? 'Investors buy tokens and join funding campaigns. Raise, tokenize, and finance this property from the owner desk.'
+                      : 'Buying and selling tokens is for investors. Manage this listing from the admin console.'}
+                  </p>
                 ) : (
                 <>
                 <Button

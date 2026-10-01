@@ -226,6 +226,18 @@ export default function Market() {
     }
   };
 
+  if (user?.role === 'owner') {
+    return (
+      <div className="min-h-screen w-full">
+        <div className="max-w-xl mx-auto px-4 py-20 text-center">
+          <h1 className="font-display text-3xl font-bold text-cream-100 mb-3">Exchange</h1>
+          <p className="text-cream-400 mb-6">Buying and selling tokens is for investors. Owners raise capital, tokenize a share, and finance the property from the owner desk.</p>
+          <Button onClick={() => navigate('/user')}>Open owner desk</Button>
+        </div>
+      </div>
+    );
+  }
+
   if (user?.role === 'admin') {
     return (
       <div className="min-h-screen w-full">

@@ -21,6 +21,7 @@ import { useWallet } from '../../context/WalletContext';
 import { AuthUser, mediaUrl } from '../../utils/api';
 import { Logo } from '../ui/Logo';
 import { AdminBar } from './AdminBar';
+import { OwnerBar } from './OwnerBar';
 
 function initials(user: AuthUser) {
   const source = (user.name || user.email || '?').trim();
@@ -149,6 +150,10 @@ export function Navbar() {
 
   if (user?.role === 'admin') {
     return <AdminBar />;
+  }
+
+  if (user?.role === 'owner') {
+    return <OwnerBar />;
   }
 
   const navLinks = [

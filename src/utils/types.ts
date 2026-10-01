@@ -62,6 +62,63 @@ export type Property = {
     valueUsd: number;
     note?: string;
   }[];
+  offering?: OwnerOffering | null;
+};
+
+export type OwnerOffering = {
+  name: string;
+  address: string;
+  propertyType: string;
+  purchasePrice: number;
+  valuation: number;
+  units: number;
+  occupancy: number;
+  monthlyRent: number;
+  financials: {
+    annualRevenue: number;
+    operatingExpenses: number;
+    mortgage: number;
+    propertyTax: number;
+    insurance: number;
+    noi: number;
+  };
+  ownership: { ownerPercent: number; offeredPercent: number; structure: string };
+  campaign: {
+    target: number;
+    minimum: number;
+    deadline: string;
+    structure: string;
+    expectedDistributions: string;
+    useOfFunds: string;
+    projections: string;
+    raised: number;
+    status: 'open' | 'funded';
+  } | null;
+  tokenization: {
+    propertyValue: number;
+    ownerPercent: number;
+    offeredPercent: number;
+    target: number;
+    supply: number;
+    price: number;
+    status: 'live';
+  } | null;
+  financing: {
+    collateralValue: number;
+    outstanding: number;
+    apr: number;
+    termMonths: number;
+    monthlyPayment: number;
+    maxLtv: number;
+    status: 'none' | 'offered' | 'active';
+    offer: {
+      amount: number;
+      apr: number;
+      termMonths: number;
+      monthlyPayment: number;
+      ltv: number;
+    } | null;
+  };
 };
 
 export type ActivityLot = {

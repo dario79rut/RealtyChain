@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDownIcon, FilterIcon, MapIcon, MapPinIcon, SearchIcon, XIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { CampaignCard } from '../components/campaigns/CampaignCard';
 import { PropertyCard } from '../components/ui/PropertyCard';
 import { useProperties } from '../hooks/useProperties';
 import { Button } from '../components/ui/Button';
@@ -552,6 +553,17 @@ export default function Browse() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {properties.some((property) => property.offering?.campaign?.status === 'open') && (
+          <section className="mb-8">
+            <h2 className="font-display text-lg font-semibold text-cream-100 mb-3">Open funding campaigns</h2>
+            <div className="space-y-3">
+              {properties.filter((property) => property.offering?.campaign?.status === 'open').map((property) => (
+                <CampaignCard key={property.id} property={property} />
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <p className="text-cream-100 font-medium">
