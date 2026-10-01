@@ -1,485 +1,91 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { PlusIcon, TrashIcon, ShieldIcon, BuildingIcon, CoinsIcon, UsersIcon, BarChart2Icon } from 'lucide-react';
-import { ConnectWalletButton } from '../components/ui/ConnectWalletButton';
-import { useAccount, usePublicClient, useReadContract, useReadContracts, useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { BanknoteIcon, Building2Icon, CoinsIcon, HandCoinsIcon, KeyRoundIcon, LandmarkIcon, LineChartIcon, ShieldIcon, UsersIcon, type LucideIcon } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { useAuth } from '../context/AuthContext';
 import { useProperties } from '../hooks/useProperties';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchInvestors, reviewKyc, deleteProperty, updateProperty, syncActivity, fetchReadiness, mediaUrl, AuthUser } from '../utils/api';
-import {
-  IDENTITY_REGISTRY_ADDRESS,
-  CLAIM_ISSUER_ADDRESS,
-  INVESTOR_ONBOARDER_ADDRESS,
-  PROPERTY_FACTORY_ADDRESS,
-  SHARE_MARKET_ADDRESS,
-  USDC_ADDRESS,
-  identityRegistryAbi,
-  investorOnboarderAbi,
-  offeringAbi,
-  isClaimIssuerConfigured,
-  isFactoryConfigured,
-  isHexAddress,
-  isIdentityConfigured,
-  isMarketConfigured,
-  isOnboarderConfigured,
-  propertyFactoryAbi,
-  shareMarketAbi,
-  redemptionAbi,
-} from '../contracts/config';
-import { InvestorComplianceModal, ComplianceListing } from '../components/modals/InvestorComplianceModal';
-import { listingFromResult } from '../hooks/useListing';
-import { sharePriceUsdc } from '../utils/pricing';
-import { AddPropertyModal } from '../components/modals/AddPropertyModal';
-import { CreateListingModal } from '../components/modals/CreateListingModal';
-import { DepositDistributionModal } from '../components/modals/DepositDistributionModal';
-import { OpenExitModal } from '../components/modals/OpenExitModal';
-import { OpsPropertyModal } from '../components/modals/OpsPropertyModal';
-import { ListingCmsModal } from '../components/modals/ListingCmsModal';
+import { AdminAccount, AdminDesk, AdminPoint, adminAction, fetchAdmin } from '../utils/api';
 import { DocumentVaultModal } from '../components/modals/DocumentVaultModal';
-import { Property } from '../utils/types';
-import { appraisalDue, formatUsd, navPerShare, waterfall } from '../utils/ops';
+import { GrowthChart } from '../components/admin/GrowthChart';
+import { formatUsd } from '../utils/ops';
 
-const ZERO = '0x0000000000000000000000000000000000000000';
+const SECTIONS = ['dashboard', 'properties', 'tokens', 'owners', 'investors', 'market', 'lending', 'distributions', 'financials', 'compliance'] as const;
 
-function shortAddr(value: string) {
-  return `${value.slice(0, 6)}…${value.slice(-4)}`;
+const STAGES = ['draft', 'review', 'approved', 'tokenized', 'funded', 'active'];
+const fieldClass = 'mt-1 w-full bg-void-700 border border-void-600 rounded-xl px-3 py-2 text-cream-100 text-sm';
+
+function pct(value: number) {
+  return `${(value * 100).toFixed(1)}%`;
+}
+
+function stageColor(stage: string): 'green' | 'yellow' | 'red' | 'accent' | 'blue' {
+  if (stage === 'active' || stage === 'funded') return 'green';
+  if (stage === 'review' || stage === 'draft') return 'yellow';
+  if (stage === 'tokenized' || stage === 'approved') return 'blue';
+  return 'accent';
 }
 
 export default function Admin() {
   const { user } = useAuth();
-  const { address, isConnected } = useAccount();
-  const publicClient = usePublicClient();
-  const { data: properties = [], isLoading } = useProperties();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('properties');
-  const [reviewingId, setReviewingId] = useState<number | null>(null);
-  const [registeringId, setRegisteringId] = useState<number | null>(null);
-  const [registerError, setRegisterError] = useState('');
-  const [addOpen, setAddOpen] = useState(false);
-  const [deployProperty, setDeployProperty] = useState<Property | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [pausingId, setPausingId] = useState<string | null>(null);
-  const [pauseError, setPauseError] = useState('');
-  const [finalizingId, setFinalizingId] = useState<string | null>(null);
-  const [enablingDistId, setEnablingDistId] = useState<string | null>(null);
-  const [distError, setDistError] = useState('');
-  const [depositTarget, setDepositTarget] = useState<{ title: string; distributor: `0x${string}` } | null>(null);
-  const [pausingMarket, setPausingMarket] = useState(false);
-  const [opsProperty, setOpsProperty] = useState<Property | null>(null);
-  const [cmsProperty, setCmsProperty] = useState<Property | null>(null);
-  const [enablingExitId, setEnablingExitId] = useState<string | null>(null);
-  const [exitError, setExitError] = useState('');
-  const [exitTarget, setExitTarget] = useState<{ title: string; redemption: `0x${string}` } | null>(null);
-  const [vaultProperty, setVaultProperty] = useState<Property | null>(null);
-  const [syncingActivity, setSyncingActivity] = useState(false);
-  const [activitySyncNote, setActivitySyncNote] = useState('');
-  const [freezingWallet, setFreezingWallet] = useState<string | null>(null);
-  const [compliance, setCompliance] = useState<{
-    mode: 'recover' | 'force';
-    wallet: `0x${string}`;
-    label: string;
-  } | null>(null);
+  const queryClient = useQueryClient();
+  const { data: catalog = [] } = useProperties();
   const isAdmin = user?.role === 'admin';
-
-  const tabs = [
-    {
-      id: 'properties',
-      label: 'Properties',
-      icon: <BuildingIcon size={16} />,
-    },
-    {
-      id: 'ops',
-      label: 'Ops',
-      icon: <BarChart2Icon size={16} />,
-    },
-    {
-      id: 'investors',
-      label: 'Investors',
-      icon: <UsersIcon size={16} />,
-    },
-    {
-      id: 'contracts',
-      label: 'Contracts',
-      icon: <CoinsIcon size={16} />,
-    },
-    {
-      id: 'production',
-      label: 'Production',
-      icon: <ShieldIcon size={16} />,
-    },
-  ];
-
-  const { data: investorData, isLoading: investorsLoading } = useQuery({
-    queryKey: ['kyc-investors'],
-    queryFn: fetchInvestors,
+  const { data: desk, isLoading } = useQuery({
+    queryKey: ['admin-desk'],
+    queryFn: fetchAdmin,
     enabled: isAdmin,
   });
-  const investors = investorData?.investors || [];
-  const pendingCount = investors.filter((i) => i.kycStatus === 'pending').length;
+  const [params, setParams] = useSearchParams();
+  const requested = params.get('section');
+  const section = (SECTIONS as readonly string[]).includes(requested || '') ? (requested as (typeof SECTIONS)[number]) : 'dashboard';
+  const setSection = (id: (typeof SECTIONS)[number]) => {
+    if (id === 'dashboard') setParams({});
+    else setParams({ section: id });
+  };
+  const [propertyId, setPropertyId] = useState('');
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState('');
+  const [vaultId, setVaultId] = useState<string | null>(null);
+  const [edit, setEdit] = useState({ title: '', location: '', description: '' });
+  const [valuation, setValuation] = useState('');
+  const [token, setToken] = useState({ supply: '', price: '', ownerPercent: '30' });
+  const [mintShares, setMintShares] = useState('100');
+  const [feeBps, setFeeBps] = useState('100');
 
-  const { data: readiness, isFetching: readinessLoading } = useQuery({
-    queryKey: ['ops-readiness'],
-    queryFn: fetchReadiness,
-    enabled: isAdmin,
-  });
-
-  const { data: listingResults, isFetching: listingsLoading, refetch: refetchListings } = useReadContracts({
-    contracts: properties.map((p) => ({
-      address: PROPERTY_FACTORY_ADDRESS as `0x${string}`,
-      abi: propertyFactoryAbi,
-      functionName: 'getListing' as const,
-      args: [BigInt(p.id)] as const,
-    })),
-    query: { enabled: isAdmin && isFactoryConfigured && properties.length > 0 },
-  });
-
-  const listingById = new Map(
-    properties.map((p, i) => [p.id, listingFromResult(listingResults?.[i]?.result)])
-  );
-
-  const factoryListings = properties
-    .map((p) => ({ property: p, listing: listingById.get(p.id) || null }))
-    .filter(
-      (row) =>
-        row.listing?.exists &&
-        row.listing.token &&
-        row.listing.token.toLowerCase() !== ZERO
-    );
-
-  const { data: pauseResults, refetch: refetchPaused } = useReadContracts({
-    contracts: factoryListings.map((row) => ({
-      address: row.listing!.offering,
-      abi: offeringAbi,
-      functionName: 'paused' as const,
-    })),
-    query: { enabled: isAdmin && factoryListings.length > 0 },
-  });
-
-  const { data: offeringFinalizedResults, refetch: refetchOfferingFinalized } = useReadContracts({
-    contracts: factoryListings.map((row) => ({
-      address: row.listing!.offering,
-      abi: offeringAbi,
-      functionName: 'finalized' as const,
-    })),
-    query: { enabled: isAdmin && factoryListings.length > 0 },
-  });
-
-  const { data: offeringClosesResults } = useReadContracts({
-    contracts: factoryListings.map((row) => ({
-      address: row.listing!.offering,
-      abi: offeringAbi,
-      functionName: 'closesAt' as const,
-    })),
-    query: { enabled: isAdmin && factoryListings.length > 0 },
-  });
-
-  const { data: offeringSuccessResults, refetch: refetchOfferingSuccess } = useReadContracts({
-    contracts: factoryListings.map((row) => ({
-      address: row.listing!.offering,
-      abi: offeringAbi,
-      functionName: 'successful' as const,
-    })),
-    query: { enabled: isAdmin && factoryListings.length > 0 },
-  });
-
-  const { data: distributorResults, refetch: refetchDistributors } = useReadContracts({
-    contracts: factoryListings.map((row) => ({
-      address: PROPERTY_FACTORY_ADDRESS as `0x${string}`,
-      abi: propertyFactoryAbi,
-      functionName: 'getDistributor' as const,
-      args: [BigInt(row.property.id)] as const,
-    })),
-    query: { enabled: isAdmin && isFactoryConfigured && factoryListings.length > 0 },
-  });
-
-  const { data: redemptionResults, refetch: refetchRedemptions } = useReadContracts({
-    contracts: factoryListings.map((row) => ({
-      address: PROPERTY_FACTORY_ADDRESS as `0x${string}`,
-      abi: propertyFactoryAbi,
-      functionName: 'getRedemption' as const,
-      args: [BigInt(row.property.id)] as const,
-    })),
-    query: { enabled: isAdmin && isFactoryConfigured && factoryListings.length > 0 },
-  });
-
-  const exitRows = factoryListings
-    .map((row, i) => {
-      const raw = redemptionResults?.[i]?.result;
-      const redemption =
-        typeof raw === 'string' && raw.toLowerCase() !== ZERO ? (raw as `0x${string}`) : null;
-      return { id: row.property.id, redemption };
-    })
-    .filter((row): row is { id: string; redemption: `0x${string}` } => Boolean(row.redemption));
-
-  const { data: exitOpenedResults, refetch: refetchExitOpened } = useReadContracts({
-    contracts: exitRows.map((row) => ({
-      address: row.redemption,
-      abi: redemptionAbi,
-      functionName: 'opened' as const,
-    })),
-    query: { enabled: isAdmin && exitRows.length > 0 },
-  });
-  const exitOpenedById = new Map(exitRows.map((row, i) => [row.id, exitOpenedResults?.[i]?.result === true]));
-
-  const investorsWithWallet = investors.filter((inv) => isHexAddress(inv.walletAddress));
-  const {
-    data: verifiedResults,
-    refetch: refetchVerified,
-    isFetching: verifiedLoading,
-  } = useReadContracts({
-    contracts: investorsWithWallet.map((inv) => ({
-      address: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
-      abi: identityRegistryAbi,
-      functionName: 'isVerified' as const,
-      args: [inv.walletAddress as `0x${string}`] as const,
-    })),
-    query: { enabled: isAdmin && isIdentityConfigured && investorsWithWallet.length > 0 },
-  });
-
-  const onChainVerified = new Set(
-    investorsWithWallet
-      .filter((_, i) => verifiedResults?.[i]?.result === true)
-      .map((inv) => inv.walletAddress!.toLowerCase())
-  );
-
-  const {
-    data: frozenResults,
-    refetch: refetchFrozen,
-    isFetching: frozenLoading,
-  } = useReadContracts({
-    contracts: investorsWithWallet.map((inv) => ({
-      address: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
-      abi: identityRegistryAbi,
-      functionName: 'isFrozen' as const,
-      args: [inv.walletAddress as `0x${string}`] as const,
-    })),
-    query: { enabled: isAdmin && isIdentityConfigured && investorsWithWallet.length > 0 },
-  });
-
-  const onChainFrozen = new Set(
-    investorsWithWallet
-      .filter((_, i) => frozenResults?.[i]?.result === true)
-      .map((inv) => inv.walletAddress!.toLowerCase())
-  );
-
-  const { data: identityResults, refetch: refetchIdentities } = useReadContracts({
-    contracts: investorsWithWallet.map((inv) => ({
-      address: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
-      abi: identityRegistryAbi,
-      functionName: 'identity' as const,
-      args: [inv.walletAddress as `0x${string}`] as const,
-    })),
-    query: { enabled: isAdmin && isIdentityConfigured && investorsWithWallet.length > 0 },
-  });
-
-  const identityByWallet = new Map(
-    investorsWithWallet.map((inv, i) => {
-      const raw = identityResults?.[i]?.result;
-      const id =
-        typeof raw === 'string' && raw.toLowerCase() !== ZERO ? (raw as `0x${string}`) : null;
-      return [inv.walletAddress!.toLowerCase(), id] as const;
-    })
-  );
-
-  const complianceListings: ComplianceListing[] = factoryListings
-    .filter((row) => isHexAddress(row.listing?.token))
-    .map((row) => ({
-      id: row.property.id,
-      title: row.property.title,
-      token: row.listing!.token as `0x${string}`,
-    }));
-
-  const { data: marketPaused, refetch: refetchMarketPaused } = useReadContract({
-    address: isMarketConfigured ? (SHARE_MARKET_ADDRESS as `0x${string}`) : undefined,
-    abi: shareMarketAbi,
-    functionName: 'paused',
-    query: { enabled: isAdmin && isMarketConfigured },
-  });
-  const { writeContractAsync, data: registerHash, reset: resetRegister } = useWriteContract();
-  const { writeContractAsync: writeOfferingAsync } = useWriteContract();
-  const { writeContractAsync: writeFactoryAsync } = useWriteContract();
-  const { writeContractAsync: writeMarketAsync } = useWriteContract();
-  const { isLoading: registerConfirming, isSuccess: registerSuccess } = useWaitForTransactionReceipt({
-    hash: registerHash,
-  });
+  const selected = desk?.properties.find((row) => row.id === propertyId) || desk?.properties[0] || null;
 
   useEffect(() => {
-    if (!registerSuccess) return;
-    refetchVerified();
-    refetchFrozen();
-    refetchIdentities();
-    setRegisteringId(null);
-    resetRegister();
-  }, [registerSuccess, refetchVerified, refetchFrozen, refetchIdentities, resetRegister]);
+    if (!propertyId && desk?.properties[0]) setPropertyId(desk.properties[0].id);
+  }, [desk, propertyId]);
 
-  const handleRegister = async (inv: AuthUser) => {
-    if (!isOnboarderConfigured || !isHexAddress(inv.walletAddress)) return;
-    setRegisterError('');
-    setRegisteringId(inv.id);
-    try {
-      await writeContractAsync({
-        address: INVESTOR_ONBOARDER_ADDRESS as `0x${string}`,
-        abi: investorOnboarderAbi,
-        functionName: 'onboardIso',
-        args: [inv.walletAddress, (inv.kyc?.country || 'US').trim() || 'US', Boolean(inv.accredited)],
-      } as never);
-    } catch (err) {
-      const anyErr = err as { shortMessage?: string; message?: string };
-      setRegisterError(anyErr.shortMessage || anyErr.message || 'Could not register wallet on-chain.');
-      setRegisteringId(null);
-    }
-  };
+  useEffect(() => {
+    if (!selected) return;
+    setEdit({ title: selected.title, location: selected.location, description: selected.description });
+    setValuation(String(selected.valuationUsd || ''));
+    setToken({
+      supply: String(selected.token.totalSupply || ''),
+      price: String(selected.token.price || ''),
+      ownerPercent: String(selected.token.ownerPercent ?? 30),
+    });
+    setFeeBps(String(selected.feeBps || 0));
+  }, [selected?.id]);
 
-  const handleFreeze = async (wallet: `0x${string}`, frozen: boolean) => {
-    if (!isIdentityConfigured) return;
-    setRegisterError('');
-    setFreezingWallet(wallet.toLowerCase());
+  const run = async (key: string, payload: Record<string, unknown>, message: string) => {
+    setError('');
+    setNotice('');
+    setBusy(key);
     try {
-      const hash = await writeContractAsync({
-        address: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
-        abi: identityRegistryAbi,
-        functionName: 'setAddressFrozen',
-        args: [wallet, frozen],
-      } as never);
-      if (publicClient) await publicClient.waitForTransactionReceipt({ hash });
-      await refetchFrozen();
+      const next = await adminAction(payload);
+      queryClient.setQueryData(['admin-desk'], next);
+      setNotice(message);
     } catch (err) {
-      const anyErr = err as { shortMessage?: string; message?: string };
-      setRegisterError(anyErr.shortMessage || anyErr.message || 'Could not update freeze state.');
+      setError(err instanceof Error ? err.message : 'Request failed.');
     } finally {
-      setFreezingWallet(null);
-    }
-  };
-
-  const handlePause = async (propertyId: string, offering: `0x${string}`, currentlyPaused: boolean) => {
-    setPauseError('');
-    setPausingId(propertyId);
-    try {
-      const hash = await writeOfferingAsync({
-        address: offering,
-        abi: offeringAbi,
-        functionName: 'setPaused',
-        args: [!currentlyPaused],
-      } as never);
-      if (publicClient) await publicClient.waitForTransactionReceipt({ hash });
-      await refetchPaused();
-    } catch (err) {
-      const anyErr = err as { shortMessage?: string; message?: string };
-      setPauseError(anyErr.shortMessage || anyErr.message || 'Could not update pause state.');
-    } finally {
-      setPausingId(null);
-    }
-  };
-
-  const handleFinalize = async (propertyId: string, offering: `0x${string}`) => {
-    setPauseError('');
-    setFinalizingId(propertyId);
-    try {
-      const hash = await writeOfferingAsync({
-        address: offering,
-        abi: offeringAbi,
-        functionName: 'finalize',
-      } as never);
-      if (publicClient) await publicClient.waitForTransactionReceipt({ hash });
-      await refetchOfferingFinalized();
-      await refetchOfferingSuccess();
-      await refetchPaused();
-    } catch (err) {
-      const anyErr = err as { shortMessage?: string; message?: string };
-      setPauseError(anyErr.shortMessage || anyErr.message || 'Could not finalize the offering.');
-    } finally {
-      setFinalizingId(null);
-    }
-  };
-
-  const handleEnableDistributor = async (propertyId: string) => {
-    setDistError('');
-    setEnablingDistId(propertyId);
-    try {
-      const hash = await writeFactoryAsync({
-        address: PROPERTY_FACTORY_ADDRESS as `0x${string}`,
-        abi: propertyFactoryAbi,
-        functionName: 'createDistributor',
-        args: [BigInt(propertyId)],
-      } as never);
-      if (publicClient) {
-        await publicClient.waitForTransactionReceipt({ hash });
-        const dist = await publicClient.readContract({
-          address: PROPERTY_FACTORY_ADDRESS as `0x${string}`,
-          abi: propertyFactoryAbi,
-          functionName: 'getDistributor',
-          args: [BigInt(propertyId)],
-        } as never);
-        if (typeof dist === 'string' && dist.toLowerCase() !== ZERO) {
-          await updateProperty(propertyId, { distributorAddress: dist });
-          await queryClient.invalidateQueries({ queryKey: ['properties'] });
-        }
-      }
-      await refetchDistributors();
-    } catch (err) {
-      const anyErr = err as { shortMessage?: string; message?: string };
-      setDistError(anyErr.shortMessage || anyErr.message || 'Could not create distributor.');
-    } finally {
-      setEnablingDistId(null);
-    }
-  };
-
-  const handleEnableExit = async (propertyId: string) => {
-    setExitError('');
-    setEnablingExitId(propertyId);
-    try {
-      const hash = await writeFactoryAsync({
-        address: PROPERTY_FACTORY_ADDRESS as `0x${string}`,
-        abi: propertyFactoryAbi,
-        functionName: 'createRedemption',
-        args: [BigInt(propertyId)],
-      } as never);
-      if (publicClient) {
-        await publicClient.waitForTransactionReceipt({ hash });
-        const redemption = await publicClient.readContract({
-          address: PROPERTY_FACTORY_ADDRESS as `0x${string}`,
-          abi: propertyFactoryAbi,
-          functionName: 'getRedemption',
-          args: [BigInt(propertyId)],
-        } as never);
-        if (typeof redemption === 'string' && redemption.toLowerCase() !== ZERO) {
-          await updateProperty(propertyId, { redemptionAddress: redemption, status: 'Sold Out' });
-          await queryClient.invalidateQueries({ queryKey: ['properties'] });
-        }
-      }
-      await refetchRedemptions();
-      await refetchPaused();
-    } catch (err) {
-      const anyErr = err as { shortMessage?: string; message?: string };
-      setExitError(anyErr.shortMessage || anyErr.message || 'Could not enable exit. Shares must be outstanding.');
-    } finally {
-      setEnablingExitId(null);
-    }
-  };
-
-  const handlePauseMarket = async () => {
-    if (!isMarketConfigured) return;
-    setPauseError('');
-    setPausingMarket(true);
-    try {
-      const hash = await writeMarketAsync({
-        address: SHARE_MARKET_ADDRESS as `0x${string}`,
-        abi: shareMarketAbi,
-        functionName: 'setPaused',
-        args: [!marketPaused],
-      } as never);
-      if (publicClient) await publicClient.waitForTransactionReceipt({ hash });
-      await refetchMarketPaused();
-    } catch (err) {
-      const anyErr = err as { shortMessage?: string; message?: string };
-      setPauseError(anyErr.shortMessage || anyErr.message || 'Could not pause the market.');
-    } finally {
-      setPausingMarket(false);
+      setBusy('');
     }
   };
 
@@ -487,15 +93,8 @@ export default function Admin() {
     return (
       <div className="min-h-screen w-full flex items-center justify-center px-4">
         <div className="text-center max-w-md w-full p-10 rounded-2xl border border-void-700 bg-void-800/80">
-          <div className="w-16 h-16 rounded-2xl bg-accent-muted border border-accent/20 flex items-center justify-center mx-auto mb-6">
-            <ShieldIcon size={32} className="text-accent" />
-          </div>
-          <h2 className="font-display text-2xl font-semibold text-cream-100 mb-3">
-            Admin access required
-          </h2>
-          <p className="text-cream-400 mb-8">
-            You need admin privileges to access this dashboard.
-          </p>
+          <ShieldIcon size={32} className="text-accent mx-auto mb-4" />
+          <h2 className="font-display text-2xl font-semibold text-cream-100 mb-3">Admin access required</h2>
           <Button onClick={() => navigate('/home')}>Back to Home</Button>
         </div>
       </div>
@@ -504,841 +103,610 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen w-full">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
-            <div>
-              <h1 className="font-display text-3xl md:text-4xl font-bold text-cream-100 mb-2">
-                Admin Dashboard
-              </h1>
-              <p className="text-cream-400">
-                Create catalog listings, deploy USDC offerings, review KYC, and register wallets on-chain.
-              </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+        {notice && <p className="text-emerald-300 text-sm mb-3">{notice}</p>}
+        <div>
+          <div className="min-w-0">
+            {isLoading || !desk ? (
+              <p className="text-cream-400">Loading the console…</p>
+            ) : section === 'dashboard' ? (
+              <Dashboard desk={desk} onOpen={setSection} />
+            ) : (
+              <Console
+                section={section}
+                desk={desk}
+                selectedId={selected?.id || ''}
+                onSelect={setPropertyId}
+                edit={edit}
+                setEdit={setEdit}
+                valuation={valuation}
+                setValuation={setValuation}
+                token={token}
+                setToken={setToken}
+                mintShares={mintShares}
+                setMintShares={setMintShares}
+                feeBps={feeBps}
+                setFeeBps={setFeeBps}
+                busy={busy}
+                run={run}
+                onDocs={setVaultId}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+      <DocumentVaultModal
+        isOpen={Boolean(vaultId)}
+        property={catalog.find((row) => row.id === vaultId) || null}
+        onClose={() => setVaultId(null)}
+        onUpdated={async () => {
+          await queryClient.invalidateQueries({ queryKey: ['admin-desk'] });
+          await queryClient.invalidateQueries({ queryKey: ['properties'] });
+        }}
+      />
+    </div>
+  );
+}
+
+function sum(values: number[]) {
+  return values.reduce((total, value) => total + value, 0);
+}
+
+function changeLabel(points: AdminPoint[]) {
+  if (points.length < 2 || points[0].value === 0) return null;
+  const delta = ((points[points.length - 1].value - points[0].value) / Math.abs(points[0].value)) * 100;
+  return { text: `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%`, up: delta >= 0 };
+}
+
+function Dashboard({ desk, onOpen }: { desk: AdminDesk; onOpen: (id: (typeof SECTIONS)[number]) => void }) {
+  const rent = sum(desk.properties.map((row) => row.flow.rent));
+  const expenses = sum(desk.properties.map((row) => row.flow.expenses));
+  const fees = sum(desk.properties.map((row) => row.flow.fee));
+  const net = sum(desk.properties.map((row) => row.flow.net));
+  const investorShare = sum(desk.properties.map((row) => row.flow.investor));
+  const ownerShare = sum(desk.properties.map((row) => row.flow.owner));
+  const aum = sum(desk.properties.map((row) => row.valuationUsd));
+  const debt = sum(desk.lending.loans.map((row) => row.debt));
+  const collateral = sum(desk.lending.loans.map((row) => row.collateral));
+  const pending = [...desk.investors, ...desk.owners].filter((row) => row.kycStatus === 'pending').length;
+  const flagged = [...desk.investors, ...desk.owners].filter((row) => row.suspicious || row.restricted || row.suspended).length;
+  const approved = [...desk.investors, ...desk.owners].filter((row) => row.kycStatus === 'approved').length;
+  const growth = desk.growth;
+  const charts: { title: string; points: AdminPoint[]; kind: 'usd' | 'count' }[] = [
+    { title: 'Portfolio value', points: growth.asset, kind: 'usd' },
+    { title: 'Sold tokens', points: growth.sold, kind: 'usd' },
+    { title: 'Trading volume', points: growth.volume, kind: 'usd' },
+    { title: 'Lending capacity', points: growth.capacity, kind: 'usd' },
+    { title: 'Accrued net income', points: growth.accrued, kind: 'usd' },
+    { title: 'Investors', points: growth.investors, kind: 'count' },
+  ];
+  const departments: {
+    id: (typeof SECTIONS)[number];
+    title: string;
+    icon: LucideIcon;
+    stats: [string, string][];
+  }[] = [
+    {
+      id: 'financials',
+      title: 'Financials',
+      icon: LandmarkIcon,
+      stats: [
+        ['Asset value', `$${formatUsd(aum)}`],
+        ['Monthly rent', `$${formatUsd(rent)}`],
+        ['Expenses', `$${formatUsd(expenses)}`],
+        ['Fees', `$${formatUsd(fees)}`],
+        ['Net income', `$${formatUsd(net)}`],
+      ],
+    },
+    {
+      id: 'properties',
+      title: 'Properties',
+      icon: Building2Icon,
+      stats: [
+        ['Listings', String(desk.properties.length)],
+        ['In review', String(desk.properties.filter((row) => row.stage === 'review').length)],
+        ['Active', String(desk.properties.filter((row) => row.stage === 'active').length)],
+        ['Suspended', String(desk.properties.filter((row) => row.suspended).length)],
+      ],
+    },
+    {
+      id: 'tokens',
+      title: 'Tokens',
+      icon: CoinsIcon,
+      stats: [
+        ['Sold', sum(desk.properties.map((row) => row.tokensSold)).toLocaleString()],
+        ['Supply', sum(desk.properties.map((row) => row.totalTokens)).toLocaleString()],
+        ['Investor value', `$${formatUsd(growth.sold.at(-1)?.value || 0)}`],
+      ],
+    },
+    {
+      id: 'owners',
+      title: 'Owners',
+      icon: KeyRoundIcon,
+      stats: [
+        ['Owners', String(desk.owners.length)],
+        ['Unverified', String(desk.owners.filter((row) => row.kycStatus !== 'approved').length)],
+        ['Distributions', `$${formatUsd(ownerShare)}`],
+      ],
+    },
+    {
+      id: 'investors',
+      title: 'Investors',
+      icon: UsersIcon,
+      stats: [
+        ['Investors', String(desk.investors.length)],
+        ['Pending KYC', String(desk.investors.filter((row) => row.kycStatus === 'pending').length)],
+        ['Distributions', `$${formatUsd(investorShare)}`],
+      ],
+    },
+    {
+      id: 'market',
+      title: 'Market',
+      icon: LineChartIcon,
+      stats: [
+        ['Volume', `$${formatUsd(desk.market.volume)}`],
+        ['Open orders', String(desk.market.orders.length)],
+        ['Rejected', String(desk.market.failures.length)],
+      ],
+    },
+    {
+      id: 'lending',
+      title: 'Lending',
+      icon: HandCoinsIcon,
+      stats: [
+        ['Pool', `$${formatUsd(desk.lending.poolUsdc)}`],
+        ['Debt', `$${formatUsd(debt)}`],
+        ['Collateral', `$${formatUsd(collateral)}`],
+        ['Loans', String(desk.lending.loans.length)],
+      ],
+    },
+    {
+      id: 'distributions',
+      title: 'Distributions',
+      icon: BanknoteIcon,
+      stats: [
+        ['Monthly net', `$${formatUsd(net)}`],
+        ['Investors', `$${formatUsd(investorShare)}`],
+        ['Owners', `$${formatUsd(ownerShare)}`],
+        ['Posted', String(desk.distributions.length)],
+      ],
+    },
+    {
+      id: 'compliance',
+      title: 'Compliance',
+      icon: ShieldIcon,
+      stats: [
+        ['Approved', String(approved)],
+        ['Pending', String(pending)],
+        ['Flagged', String(flagged)],
+      ],
+    },
+  ];
+
+  return (
+    <div>
+      <div className="mb-6">
+        <h1 className="font-display text-3xl font-bold text-cream-100">Dashboard</h1>
+        <p className="text-cream-400 mt-1">Growth for the last 60 sessions, then the current book for each department.</p>
+      </div>
+      <section className="mb-8">
+        <h2 className="font-display text-lg font-semibold text-cream-100 mb-3">Growth</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {charts.map((chart) => {
+            const change = changeLabel(chart.points);
+            return (
+              <div key={chart.title} className="rounded-2xl border border-void-700 bg-void-800/40 p-4">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <h3 className="text-sm font-medium text-cream-100">{chart.title}</h3>
+                  {change && (
+                    <span className={`text-xs font-medium ${change.up ? 'text-emerald-300' : 'text-red-300'}`}>{change.text}</span>
+                  )}
+                </div>
+                <GrowthChart points={chart.points} kind={chart.kind} />
+              </div>
+            );
+          })}
+        </div>
+      </section>
+      <section>
+        <h2 className="font-display text-lg font-semibold text-cream-100 mb-3">Departments</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {departments.map((department) => {
+            const Icon = department.icon;
+            return (
+              <button
+                key={department.id}
+                type="button"
+                onClick={() => onOpen(department.id)}
+                className="text-left rounded-2xl border border-void-700 bg-void-800/40 p-4 hover:border-accent/40"
+              >
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                      <Icon size={16} />
+                    </span>
+                    <span className="font-medium text-cream-100">{department.title}</span>
+                  </div>
+                  <span className="text-xs text-accent">Manage</span>
+                </div>
+                <dl className="space-y-1.5">
+                  {department.stats.map(([label, value]) => (
+                    <div key={label} className="flex items-baseline justify-between gap-3 text-sm">
+                      <dt className="text-cream-400">{label}</dt>
+                      <dd className="text-cream-100 font-medium text-right">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PropertySelect({ desk, value, onChange }: { desk: AdminDesk; value: string; onChange: (id: string) => void }) {
+  return (
+    <label className="block text-sm text-cream-400 mb-4 max-w-md">Property
+      <select value={value} onChange={(event) => onChange(event.target.value)} className={fieldClass}>
+        {desk.properties.map((row) => (
+          <option key={row.id} value={row.id}>{row.title}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function Console(props: {
+  section: string;
+  desk: AdminDesk;
+  selectedId: string;
+  onSelect: (id: string) => void;
+  edit: { title: string; location: string; description: string };
+  setEdit: (value: { title: string; location: string; description: string }) => void;
+  valuation: string;
+  setValuation: (value: string) => void;
+  token: { supply: string; price: string; ownerPercent: string };
+  setToken: (value: { supply: string; price: string; ownerPercent: string }) => void;
+  mintShares: string;
+  setMintShares: (value: string) => void;
+  feeBps: string;
+  setFeeBps: (value: string) => void;
+  busy: string;
+  run: (key: string, payload: Record<string, unknown>, message: string) => Promise<void>;
+  onDocs: (id: string) => void;
+}) {
+  const { section, desk, selectedId, onSelect, run, busy } = props;
+  const property = desk.properties.find((row) => row.id === selectedId) || desk.properties[0];
+  if (!property) return <p className="text-cream-400">No properties on the platform.</p>;
+
+  if (section === 'properties') {
+    return (
+      <div>
+        <h2 className="font-display text-xl font-semibold text-cream-100 mb-1">Property management</h2>
+        <p className="text-cream-400 text-sm mb-4">Draft, review, approved, tokenized, funded, then active. Suspend a listing or open a sale from here.</p>
+        <PropertySelect desk={desk} value={property.id} onChange={onSelect} />
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <Badge color={stageColor(property.stage)}>{property.stage}</Badge>
+          {property.suspended && <Badge color="red">Suspended</Badge>}
+          {property.sale && <Badge color="orange">Sale initiated</Badge>}
+          <Badge color={property.ownershipVerified ? 'green' : 'yellow'}>
+            {property.ownershipVerified ? 'Ownership verified' : 'Documents unverified'}
+          </Badge>
+          <span className="text-cream-400 text-sm">{property.ownerName || 'No owner'} · {property.tokensSold}/{property.totalTokens} sold</span>
+        </div>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {STAGES.map((stage) => (
+            <Button key={stage} size="sm" variant={property.stage === stage ? 'primary' : 'outline'} disabled={busy === 'stage'} onClick={() => run('stage', { type: 'property-stage', id: property.id, stage }, `Stage set to ${stage}.`)}>
+              {stage}
+            </Button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2 mb-6">
+          <Button size="sm" variant="outline" onClick={() => run('review', { type: 'property-review', id: property.id, decision: 'approved' }, 'Property approved.')}>Approve</Button>
+          <Button size="sm" variant="danger" onClick={() => run('review', { type: 'property-review', id: property.id, decision: 'rejected' }, 'Property returned to draft.')}>Reject</Button>
+          <Button size="sm" variant="outline" onClick={() => run('verify', { type: 'property-verify', id: property.id }, 'Ownership documents verified.')}>Verify documents</Button>
+          <Button size="sm" variant="outline" onClick={() => props.onDocs(property.id)}>Upload documents</Button>
+          <Button size="sm" variant="outline" onClick={() => run('suspend', { type: 'property-suspend', id: property.id, suspended: !property.suspended }, property.suspended ? 'Property restored.' : 'Property suspended.')}>
+            {property.suspended ? 'Restore' : 'Freeze'}
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => run('sale', { type: 'property-sale', id: property.id, sale: property.sale ? null : 'initiated' }, property.sale ? 'Sale cleared.' : 'Sale initiated.')}>
+            {property.sale ? 'Clear sale' : 'Initiate sale'}
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form className="space-y-2" onSubmit={(event) => { event.preventDefault(); run('value', { type: 'property-valuation', id: property.id, usd: Number(props.valuation) }, 'Valuation saved.'); }}>
+            <label className="text-sm text-cream-400">Valuation (USD)
+              <input value={props.valuation} onChange={(event) => props.setValuation(event.target.value)} className={fieldClass} />
+            </label>
+            <Button type="submit" size="sm" disabled={busy === 'value'}>Save valuation</Button>
+          </form>
+          <form className="space-y-2" onSubmit={(event) => { event.preventDefault(); run('edit', { type: 'property-edit', id: property.id, ...props.edit }, 'Listing updated.'); }}>
+            <label className="text-sm text-cream-400">Title
+              <input value={props.edit.title} onChange={(event) => props.setEdit({ ...props.edit, title: event.target.value })} className={fieldClass} />
+            </label>
+            <label className="text-sm text-cream-400">Location
+              <input value={props.edit.location} onChange={(event) => props.setEdit({ ...props.edit, location: event.target.value })} className={fieldClass} />
+            </label>
+            <label className="text-sm text-cream-400">Description
+              <textarea value={props.edit.description} onChange={(event) => props.setEdit({ ...props.edit, description: event.target.value })} rows={3} className={fieldClass} />
+            </label>
+            <Button type="submit" size="sm" disabled={busy === 'edit'}>Save listing</Button>
+          </form>
+        </div>
+        <ul className="mt-4 text-sm text-cream-300 space-y-1">
+          {property.documents.length === 0 && <li>No documents on file.</li>}
+          {property.documents.map((doc) => (
+            <li key={doc.name}>{doc.name}{doc.review ? ` · ${doc.review}` : ''}</li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (section === 'tokens') {
+    return (
+      <div>
+        <h2 className="font-display text-xl font-semibold text-cream-100 mb-1">Tokenization</h2>
+        <p className="text-cream-400 text-sm mb-4">Set supply, price, and the owner’s retained percentage. Minting and burning update the catalog supply. Trading pause and transfer limits apply on the market.</p>
+        <PropertySelect desk={desk} value={property.id} onChange={onSelect} />
+        <p className="text-cream-300 text-sm mb-4">
+          Supply {property.token.totalSupply} · price ${formatUsd(property.token.price)} · owner {property.token.ownerPercent}% · minted {property.token.minted} · burned {property.token.burned}
+          {property.token.contract ? ` · ${property.token.contract}` : ' · demo ledger, no contract address yet'}
+        </p>
+        <form className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4" onSubmit={(event) => { event.preventDefault(); run('token', { type: 'token-set', id: property.id, totalSupply: Number(props.token.supply), price: Number(props.token.price), ownerPercent: Number(props.token.ownerPercent) }, 'Token terms saved.'); }}>
+          <label className="text-sm text-cream-400">Total supply
+            <input value={props.token.supply} onChange={(event) => props.setToken({ ...props.token, supply: event.target.value })} className={fieldClass} />
+          </label>
+          <label className="text-sm text-cream-400">Initial price (USDC)
+            <input value={props.token.price} onChange={(event) => props.setToken({ ...props.token, price: event.target.value })} className={fieldClass} />
+          </label>
+          <label className="text-sm text-cream-400">Owner percentage
+            <input value={props.token.ownerPercent} onChange={(event) => props.setToken({ ...props.token, ownerPercent: event.target.value })} className={fieldClass} />
+          </label>
+          <div className="md:col-span-3"><Button type="submit" size="sm" disabled={busy === 'token'}>Save token</Button></div>
+        </form>
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="text-sm text-cream-400">Shares
+            <input value={props.mintShares} onChange={(event) => props.setMintShares(event.target.value)} className={fieldClass} />
+          </label>
+          <Button size="sm" disabled={busy === 'mint'} onClick={() => run('mint', { type: 'token-mint', id: property.id, shares: Number(props.mintShares) }, 'Tokens minted.')}>Mint</Button>
+          <Button size="sm" variant="outline" disabled={busy === 'burn'} onClick={() => run('burn', { type: 'token-burn', id: property.id, shares: Number(props.mintShares) }, 'Tokens burned.')}>Burn</Button>
+          <Button size="sm" variant="outline" onClick={() => run('pause', { type: 'token-pause', id: property.id, paused: !property.tradingPaused }, property.tradingPaused ? 'Trading opened.' : 'Trading paused.')}>
+            {property.tradingPaused ? 'Resume trading' : 'Pause trading'}
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => run('restrict', { type: 'token-restrict', id: property.id, restricted: !property.transfersRestricted }, property.transfersRestricted ? 'Transfers opened.' : 'Transfers restricted.')}>
+            {property.transfersRestricted ? 'Allow transfers' : 'Restrict transfers'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (section === 'owners') return <Accounts title="Owner management" copy="Onboarding, identity, ownership, wallet, listings, and payouts." rows={desk.owners} desk={desk} run={run} busy={busy} kind="owner" />;
+  if (section === 'investors') return <Accounts title="Investor management" copy="Identity, accreditation, wallets, holdings, cash, and restrictions." rows={desk.investors} desk={desk} run={run} busy={busy} kind="investor" />;
+
+  if (section === 'market') {
+    return (
+      <div>
+        <h2 className="font-display text-xl font-semibold text-cream-100 mb-1">Marketplace</h2>
+        <p className="text-cream-400 text-sm mb-4">Open orders, prints, volume, rejected orders, and the per-property trading fee.</p>
+        <p className="text-cream-100 mb-4">Volume ${formatUsd(desk.market.volume)}</p>
+        <PropertySelect desk={desk} value={property.id} onChange={onSelect} />
+        <form className="flex items-end gap-2 mb-6" onSubmit={(event) => { event.preventDefault(); run('fee', { type: 'market-fee', id: property.id, feeBps: Number(props.feeBps) }, 'Fee updated.'); }}>
+          <label className="text-sm text-cream-400">Fee (bps)
+            <input value={props.feeBps} onChange={(event) => props.setFeeBps(event.target.value)} className={fieldClass} />
+          </label>
+          <Button type="submit" size="sm">Save fee</Button>
+          <span className="text-cream-400 text-sm pb-2">{property.tradingPaused ? 'Trading paused' : 'Trading open'}</span>
+        </form>
+        <h3 className="text-cream-100 font-medium mb-2">Open orders</h3>
+        <SimpleTable
+          empty="No open orders."
+          rows={desk.market.orders.map((order) => [order.id, titleOf(desk, order.propertyId), order.side, `$${formatUsd(order.price)}`, String(order.shares)])}
+          headers={['Order', 'Property', 'Side', 'Price', 'Shares']}
+        />
+        <h3 className="text-cream-100 font-medium mt-6 mb-2">Trades</h3>
+        <SimpleTable
+          empty="No trades yet."
+          rows={desk.market.trades.map((trade) => [trade.at.slice(0, 16).replace('T', ' '), titleOf(desk, trade.propertyId), `$${formatUsd(trade.price)}`, String(trade.shares)])}
+          headers={['Time', 'Property', 'Price', 'Shares']}
+        />
+        <h3 className="text-cream-100 font-medium mt-6 mb-2">Failed orders</h3>
+        <SimpleTable
+          empty="No rejected orders."
+          rows={desk.market.failures.map((row) => [row.at.slice(0, 16).replace('T', ' '), row.propertyId || '—', row.error])}
+          headers={['Time', 'Property', 'Reason']}
+        />
+      </div>
+    );
+  }
+
+  if (section === 'lending') {
+    const loans = desk.lending.loans;
+    return (
+      <div>
+        <h2 className="font-display text-xl font-semibold text-cream-100 mb-1">DeFi lending</h2>
+        <p className="text-cream-400 text-sm mb-4">
+          Max LTV {pct(desk.lending.maxLtv)} · liquidation {pct(desk.lending.liquidationLtv)} · borrow {pct(desk.lending.borrowApr)} · supply {pct(desk.lending.supplyApr)} · pool ${formatUsd(desk.lending.poolUsdc)}
+        </p>
+        <SimpleTable
+          empty="No open loans."
+          headers={['Borrower', 'Debt', 'Interest', 'Collateral', 'LTV', 'Health']}
+          rows={loans.map((loan) => [loan.borrower, `$${formatUsd(loan.debt)}`, `$${formatUsd(loan.interest)}`, `$${formatUsd(loan.collateral)}`, pct(loan.ltv), loan.health])}
+        />
+        <p className="text-cream-400 text-sm mt-4">
+          Margin is a loan between 50% and 65% LTV. At 65% another account can liquidate it from the Lend page. Repayments return to the pool. Bad debt appears when collateral no longer covers the balance.
+        </p>
+        <ul className="mt-3 text-sm text-cream-300">
+          {loans.filter((loan) => loan.collateral < loan.debt).map((loan) => (
+            <li key={loan.id}>{loan.borrower} is undercollateralized by ${formatUsd(loan.debt - loan.collateral)}.</li>
+          ))}
+          {loans.every((loan) => loan.collateral >= loan.debt) && <li>No bad debt.</li>}
+        </ul>
+      </div>
+    );
+  }
+
+  if (section === 'distributions' || section === 'financials') {
+    const flow = property.flow;
+    return (
+      <div>
+        <h2 className="font-display text-xl font-semibold text-cream-100 mb-1">
+          {section === 'financials' ? 'Property financials' : 'Rental distributions'}
+        </h2>
+        <PropertySelect desk={desk} value={property.id} onChange={onSelect} />
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4 text-sm">
+          {[
+            ['Monthly rent', flow.rent],
+            ['Property expenses', flow.expenses],
+            ['Management fee', flow.fee],
+            ['Net income', flow.net],
+            ['Investor distribution', flow.investor],
+            ['Owner distribution', flow.owner],
+          ].map(([label, value]) => (
+            <div key={String(label)} className="rounded-xl border border-void-700 p-3">
+              <div className="text-cream-400 text-xs">{label}</div>
+              <div className="text-cream-100 font-medium">${formatUsd(Number(value))}</div>
             </div>
-            <div className="flex gap-2 [&_button]:!rounded-lg">
-              <ConnectWalletButton />
-              <Button icon={<PlusIcon size={18} />} onClick={() => setAddOpen(true)}>
-                Add property
+          ))}
+        </div>
+        <p className="text-cream-400 text-sm mb-4">Owner retains {flow.ownerPercent}% of net income. The rest is the investor distribution.</p>
+        {section === 'distributions' && (
+          <>
+            <Button size="sm" disabled={busy === 'dist'} onClick={() => run('dist', { type: 'distribution-run', id: property.id }, 'Distribution posted.')}>Post distribution</Button>
+            <div className="mt-4">
+              <SimpleTable
+                empty="No distributions posted."
+                headers={['When', 'Property', 'Net', 'Investors', 'Owner', 'Status']}
+                rows={desk.distributions.map((row) => [row.at.slice(0, 10), row.title, `$${formatUsd(row.net)}`, `$${formatUsd(row.investor)}`, `$${formatUsd(row.owner)}`, row.status])}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  const flagged = [...desk.investors, ...desk.owners].filter((row) => row.suspicious || row.restricted || !row.screenedAt || row.kycStatus !== 'approved');
+  return (
+    <div>
+      <h2 className="font-display text-xl font-semibold text-cream-100 mb-1">Compliance</h2>
+      <p className="text-cream-400 text-sm mb-4">Identity status, screening marks, restrictions, and the admin audit trail. Screening here is a platform record, not a licensed AML vendor.</p>
+      <SimpleTable
+        empty="No accounts need attention."
+        headers={['Account', 'Role', 'KYC', 'Country', 'Screened', 'Flags']}
+        rows={flagged.map((row) => [
+          row.email,
+          row.role === 'owner' ? 'Owner' : 'Investor',
+          row.kycStatus,
+          row.country || '—',
+          row.screenedAt ? row.screenedAt.slice(0, 10) : 'Not screened',
+          [row.suspicious ? 'suspicious' : '', row.restricted ? 'restricted' : '', row.suspended ? 'suspended' : ''].filter(Boolean).join(', ') || '—',
+        ])}
+      />
+      <h3 className="text-cream-100 font-medium mt-6 mb-2">Audit trail</h3>
+      <SimpleTable
+        empty="No admin actions yet."
+        headers={['When', 'Action', 'Target', 'Detail']}
+        rows={desk.audit.map((row) => [row.at.slice(0, 16).replace('T', ' '), row.action, row.target || '—', row.detail])}
+      />
+    </div>
+  );
+}
+
+function Accounts({ title, copy, rows, desk, run, busy, kind }: {
+  title: string;
+  copy: string;
+  rows: AdminAccount[];
+  desk: AdminDesk;
+  run: (key: string, payload: Record<string, unknown>, message: string) => Promise<void>;
+  busy: string;
+  kind: 'owner' | 'investor';
+}) {
+  return (
+    <div>
+      <h2 className="font-display text-xl font-semibold text-cream-100 mb-1">{title}</h2>
+      <p className="text-cream-400 text-sm mb-4">{copy}</p>
+      <div className="space-y-3">
+        {rows.map((row) => (
+          <article key={row.id} className="rounded-xl border border-void-700 p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-cream-100 font-medium">{row.name || row.email}</span>
+              <Badge color={row.kycStatus === 'approved' ? 'green' : row.kycStatus === 'rejected' ? 'red' : 'yellow'}>{row.kycStatus}</Badge>
+              {row.accredited && <Badge color="blue">Accredited</Badge>}
+              {row.suspended && <Badge color="red">Suspended</Badge>}
+              {row.restricted && <Badge color="orange">Restricted</Badge>}
+              {row.suspicious && <Badge color="yellow">Suspicious</Badge>}
+            </div>
+            <p className="text-cream-400 text-sm mt-1">{row.email} · {row.country || 'No country'} · {row.walletAddress || 'No wallet'}</p>
+            <p className="text-cream-300 text-sm mt-1">Cash ${formatUsd(row.cashUsdc)} · {row.holdings.map((holding) => `${holding.shares} ${holding.title}`).join(', ') || 'No tokens'}</p>
+            {kind === 'owner' && (
+              <p className="text-cream-300 text-sm">Listings: {row.properties.map((item) => item.title).join(', ') || 'None'}</p>
+            )}
+            <div className="flex flex-wrap gap-2 mt-3">
+              {row.kycStatus === 'pending' && (
+                <>
+                  <Button size="sm" variant="outline" disabled={busy === `kyc-${row.id}`} onClick={() => run(`kyc-${row.id}`, { type: 'account-kyc', id: row.id, decision: 'approved' }, 'Application approved.')}>Approve KYC</Button>
+                  <Button size="sm" variant="danger" disabled={busy === `kyc-${row.id}`} onClick={() => run(`kyc-${row.id}`, { type: 'account-kyc', id: row.id, decision: 'rejected', note: 'Incomplete application.' }, 'Application rejected.')}>Reject</Button>
+                </>
+              )}
+              <Button size="sm" variant="outline" onClick={() => run(`sus-${row.id}`, { type: 'account-suspend', id: row.id, suspended: !row.suspended }, row.suspended ? 'Account restored.' : 'Account suspended.')}>
+                {row.suspended ? 'Restore' : 'Suspend'}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => run(`flag-${row.id}`, { type: 'account-flag', id: row.id, suspicious: !row.suspicious, restricted: row.restricted }, row.suspicious ? 'Flag cleared.' : 'Marked suspicious.')}>
+                {row.suspicious ? 'Clear flag' : 'Flag'}
+              </Button>
+              {kind === 'investor' && (
+                <Button size="sm" variant="outline" onClick={() => run(`rest-${row.id}`, { type: 'account-flag', id: row.id, suspicious: row.suspicious, restricted: !row.restricted }, row.restricted ? 'Restriction lifted.' : 'Account restricted.')}>
+                  {row.restricted ? 'Lift restriction' : 'Restrict'}
+                </Button>
+              )}
+              <Button size="sm" variant="outline" onClick={() => run(`screen-${row.id}`, { type: 'account-screen', id: row.id }, 'Screening recorded.')}>
+                {row.screenedAt ? 'Screened' : 'Mark screened'}
               </Button>
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            {[
-              { icon: BuildingIcon, label: 'Total properties', value: isLoading ? '—' : properties.length },
-              { icon: UsersIcon, label: 'Pending KYC', value: investorsLoading ? '—' : pendingCount, accent: true },
-              {
-                icon: CoinsIcon,
-                label: 'Live offerings',
-                value: !isFactoryConfigured ? '—' : listingsLoading ? '—' : factoryListings.length,
-              },
-            ].map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="p-6 rounded-2xl border border-void-700 bg-void-800/60"
-              >
-                <div className="flex items-center gap-2 text-cream-400 text-sm mb-2">
-                  {stat.icon && <stat.icon size={16} />}
-                  {stat.label}
-                </div>
-                <div className={`font-display text-2xl font-bold ${stat.accent ? 'text-accent' : 'text-cream-100'}`}>
-                  {stat.value}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="rounded-2xl border border-void-700 bg-void-800/40 overflow-hidden">
-            <nav className="flex border-b border-void-700">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-4 flex items-center gap-2 text-sm font-medium transition-colors ${
-                    activeTab === tab.id ? 'border-b-2 border-accent text-accent bg-accent-muted/30' : 'text-cream-400 hover:text-cream-100'
-                  }`}
-                >
-                  {tab.icon}
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-            <div className="p-6">
-              {activeTab === 'properties' && (
-                <div>
-                  <h3 className="font-display text-lg font-semibold text-cream-100 mb-2">Manage properties</h3>
-                  <p className="text-cream-400 text-sm mb-6">
-                    Catalog rows. Use Edit listing for copy, photos, map pin, and comps (polish, not an appraisal). Docs is the file vault. Deploy opens the on-chain offering.
-                  </p>
-                  <div className="overflow-x-auto rounded-xl border border-void-700">
-                    <table className="min-w-full">
-                      <thead>
-                        <tr className="border-b border-void-700">
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Property</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Location</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Share price</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-cream-400 uppercase tracking-wider">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-void-700">
-                        {properties.map((p) => {
-                          const listing = listingById.get(p.id);
-                          const live =
-                            Boolean(listing?.exists) &&
-                            listing?.token &&
-                            listing.token.toLowerCase() !== ZERO;
-                          return (
-                          <tr key={p.id} className="hover:bg-void-700/30 transition-colors">
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-lg overflow-hidden flex-shrink-0">
-                                  <img src={mediaUrl(p.imageUrl)} alt={p.title} className="h-full w-full object-cover" />
-                                </div>
-                                <span className="font-medium text-cream-100">{p.title}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 text-cream-400">{p.location}</td>
-                            <td className="px-6 py-4">
-                              <Badge color={p.status === 'Available' ? 'green' : p.status === 'Sold Out' ? 'red' : 'yellow'}>{p.status}</Badge>
-                            </td>
-                            <td className="px-6 py-4 text-accent">{sharePriceUsdc(p).toLocaleString()} USDC</td>
-                            <td className="px-6 py-4 text-right">
-                              <div className="flex justify-end gap-2">
-                                {live ? (
-                                  <Badge color="green">On-chain</Badge>
-                                ) : (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={!isFactoryConfigured || !isConnected}
-                                    onClick={() => setDeployProperty(p)}
-                                  >
-                                    Deploy
-                                  </Button>
-                                )}
-                                <Button variant="outline" size="sm" onClick={() => setCmsProperty(p)}>
-                                  Edit listing
-                                </Button>
-                                <Button variant="outline" size="sm" onClick={() => setVaultProperty(p)}>
-                                  Docs
-                                </Button>
-                                <Button
-                                  variant="danger"
-                                  size="sm"
-                                  icon={<TrashIcon size={14} />}
-                                  disabled={deletingId === p.id}
-                                  onClick={async () => {
-                                    if (!window.confirm(`Delete ${p.title} from the catalog?`)) return;
-                                    setDeletingId(p.id);
-                                    try {
-                                      await deleteProperty(p.id);
-                                      await queryClient.invalidateQueries({ queryKey: ['properties'] });
-                                    } finally {
-                                      setDeletingId(null);
-                                    }
-                                  }}
-                                >
-                                  Delete
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-              {activeTab === 'ops' && (
-                <div>
-                  <h3 className="font-display text-lg font-semibold text-cream-100 mb-2">Occupancy and NAV</h3>
-                  <p className="text-cream-400 text-sm mb-6">
-                    Monthly waterfall is gross rent × occupancy, then OpEx and reserves. NAV per share uses the latest appraisal, or listed property value if none is on file.
-                  </p>
-                  {(() => {
-                    const rows = properties.map((p) => ({ property: p, flow: waterfall(p), nav: navPerShare(p), due: appraisalDue(p) }));
-                    const withOcc = rows.filter((r) => r.flow.occupancyPercent != null);
-                    const avgOcc =
-                      withOcc.length > 0
-                        ? withOcc.reduce((sum, r) => sum + (r.flow.occupancyPercent || 0), 0) / withOcc.length
-                        : 0;
-                    const dueCount = rows.filter((r) => r.due).length;
-                    const distTotal = rows.reduce((sum, r) => sum + r.flow.distributable, 0);
-                    return (
-                      <>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                          <div className="p-4 rounded-xl border border-void-700 bg-void-800/60">
-                            <div className="text-cream-400 text-xs uppercase tracking-wider mb-1">Avg occupancy</div>
-                            <div className="font-display text-2xl font-bold text-cream-100">{withOcc.length ? `${avgOcc.toFixed(1)}%` : '—'}</div>
-                          </div>
-                          <div className="p-4 rounded-xl border border-void-700 bg-void-800/60">
-                            <div className="text-cream-400 text-xs uppercase tracking-wider mb-1">Appraisals due</div>
-                            <div className="font-display text-2xl font-bold text-cream-100">{dueCount}</div>
-                          </div>
-                          <div className="p-4 rounded-xl border border-void-700 bg-void-800/60">
-                            <div className="text-cream-400 text-xs uppercase tracking-wider mb-1">Distributable / mo</div>
-                            <div className="font-display text-2xl font-bold text-accent">{formatUsd(distTotal)}</div>
-                          </div>
-                        </div>
-                        <div className="overflow-x-auto rounded-xl border border-void-700">
-                          <table className="min-w-full">
-                            <thead>
-                              <tr className="border-b border-void-700">
-                                <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Property</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Occupancy</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">NAV / share</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Distributable</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Next appraisal</th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-cream-400 uppercase tracking-wider">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-void-700">
-                              {rows.map(({ property: p, flow, nav, due }) => (
-                                <tr key={p.id} className="hover:bg-void-700/30 transition-colors">
-                                  <td className="px-6 py-4 text-cream-100 font-medium">{p.title}</td>
-                                  <td className="px-6 py-4">
-                                    {flow.occupancyPercent == null ? (
-                                      <span className="text-cream-400">—</span>
-                                    ) : (
-                                      <div className="min-w-[120px]">
-                                        <div className="flex justify-between text-xs text-cream-300 mb-1">
-                                          <span>{flow.occupancyPercent}%</span>
-                                        </div>
-                                        <div className="h-1.5 bg-void-700 rounded-full overflow-hidden">
-                                          <div className="h-full bg-accent rounded-full" style={{ width: `${Math.min(100, flow.occupancyPercent)}%` }} />
-                                        </div>
-                                      </div>
-                                    )}
-                                  </td>
-                                  <td className="px-6 py-4 text-accent">{formatUsd(nav)}</td>
-                                  <td className="px-6 py-4 text-cream-100">{formatUsd(flow.distributable)}</td>
-                                  <td className="px-6 py-4">
-                                    {p.nextAppraisalAt ? (
-                                      <span className={due ? 'text-amber-200' : 'text-cream-400'}>
-                                        {String(p.nextAppraisalAt).slice(0, 10)}
-                                        {due ? ' due' : ''}
-                                      </span>
-                                    ) : (
-                                      <span className="text-cream-400">—</span>
-                                    )}
-                                  </td>
-                                  <td className="px-6 py-4 text-right">
-                                    <Button variant="outline" size="sm" onClick={() => setOpsProperty(p)}>
-                                      Update
-                                    </Button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-              )}
-              {activeTab === 'investors' && (
-                <div>
-                  <h3 className="font-display text-lg font-semibold text-cream-100 mb-2">Investor verification</h3>
-                  <p className="text-cream-400 text-sm mb-4">
-                    Approve applications in the app, then register the linked wallet. Register deploys an ONCHAINID,
-                    issues KYC (and accredited) claims from the demo ClaimIssuer, and maps the wallet on the identity
-                    registry — one transaction. <span className="text-cream-200">Registered</span> means that identity
-                    still holds valid claims from a trusted issuer, not a boolean whitelist. Freeze blocks buys,
-                    transfers, claims, and redemptions. Recover remaps the same identity onto a replacement wallet;
-                    forced transfer is an agent move (estate / court demo).
-                  </p>
-                  {(!isIdentityConfigured || !isOnboarderConfigured) && (
-                    <p className="text-amber-200 text-sm mb-4">
-                      Set <span className="font-mono">VITE_IDENTITY_REGISTRY_ADDRESS</span> and{' '}
-                      <span className="font-mono">VITE_INVESTOR_ONBOARDER_ADDRESS</span> to enable on-chain
-                      registration.
-                    </p>
-                  )}
-                  {isIdentityConfigured && !isConnected && (
-                    <p className="text-amber-200 text-sm mb-4">
-                      Connect the registrar / agent wallet (the protocol deployer) to register, freeze, recover, or
-                      force-transfer.
-                    </p>
-                  )}
-                  {registerError && <p className="text-red-400 text-sm mb-4">{registerError}</p>}
-                  <div className="overflow-x-auto rounded-xl border border-void-700">
-                    <table className="min-w-full">
-                      <thead>
-                        <tr className="border-b border-void-700">
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Investor</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Country</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">KYC</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Wallet</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">On-chain</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Frozen</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-cream-400 uppercase tracking-wider">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-void-700">
-                        {investorsLoading ? (
-                          <tr>
-                            <td colSpan={7} className="px-6 py-8 text-cream-400 text-sm">Loading investors…</td>
-                          </tr>
-                        ) : investors.length === 0 ? (
-                          <tr>
-                            <td colSpan={7} className="px-6 py-8 text-cream-400 text-sm">No accounts yet.</td>
-                          </tr>
-                        ) : investors.map((inv) => {
-                          const wallet = inv.walletAddress;
-                          const verifiedOnChain = wallet ? onChainVerified.has(wallet.toLowerCase()) : false;
-                          const frozenOnChain = wallet ? onChainFrozen.has(wallet.toLowerCase()) : false;
-                          const onchainIdentity = wallet ? identityByWallet.get(wallet.toLowerCase()) : null;
-                          const canRegister =
-                            inv.kycStatus === 'approved' &&
-                            Boolean(inv.accredited) &&
-                            isHexAddress(wallet) &&
-                            isIdentityConfigured &&
-                            isOnboarderConfigured &&
-                            isConnected &&
-                            !verifiedOnChain &&
-                            !onchainIdentity;
-                          const canAgent =
-                            isHexAddress(wallet) && isIdentityConfigured && isConnected && (verifiedOnChain || frozenOnChain);
-                          return (
-                            <tr key={inv.id} className="hover:bg-void-700/30 transition-colors">
-                              <td className="px-6 py-4">
-                                <div className="text-cream-100 font-medium">{inv.name || '—'}</div>
-                                <div className="text-cream-400 text-xs">{inv.email}</div>
-                              </td>
-                              <td className="px-6 py-4 text-cream-400">{inv.kyc?.country || '—'}</td>
-                              <td className="px-6 py-4">
-                                <Badge
-                                  color={
-                                    inv.kycStatus === 'approved'
-                                      ? 'green'
-                                      : inv.kycStatus === 'pending'
-                                        ? 'yellow'
-                                        : inv.kycStatus === 'rejected'
-                                          ? 'red'
-                                          : 'accent'
-                                  }
-                                >
-                                  {inv.kycStatus}
-                                </Badge>
-                              </td>
-                              <td className="px-6 py-4 text-cream-100 font-mono text-xs">
-                                {wallet ? shortAddr(wallet) : '—'}
-                              </td>
-                              <td className="px-6 py-4">
-                                {!wallet ? (
-                                  <span className="text-cream-400 text-sm">—</span>
-                                ) : !isIdentityConfigured ? (
-                                  <span className="text-cream-400 text-sm">n/a</span>
-                                ) : verifiedLoading && verifiedResults === undefined ? (
-                                  <span className="text-cream-400 text-sm">…</span>
-                                ) : (
-                                  <div>
-                                    <Badge color={verifiedOnChain ? 'green' : 'yellow'}>
-                                      {verifiedOnChain ? 'Registered' : 'Not registered'}
-                                    </Badge>
-                                    {onchainIdentity && (
-                                      <div className="text-cream-400 text-xs font-mono mt-1">
-                                        ID {shortAddr(onchainIdentity)}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </td>
-                              <td className="px-6 py-4">
-                                {!wallet || !isIdentityConfigured ? (
-                                  <span className="text-cream-400 text-sm">—</span>
-                                ) : frozenLoading && frozenResults === undefined ? (
-                                  <span className="text-cream-400 text-sm">…</span>
-                                ) : (
-                                  <Badge color={frozenOnChain ? 'red' : 'green'}>
-                                    {frozenOnChain ? 'Frozen' : 'Active'}
-                                  </Badge>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <div className="flex justify-end flex-wrap gap-2">
-                                  {inv.kycStatus === 'pending' && (
-                                    <>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={reviewingId === inv.id}
-                                        onClick={async () => {
-                                          setReviewingId(inv.id);
-                                          try {
-                                            await reviewKyc(inv.id, 'approved');
-                                            await queryClient.invalidateQueries({ queryKey: ['kyc-investors'] });
-                                          } finally {
-                                            setReviewingId(null);
-                                          }
-                                        }}
-                                      >
-                                        Approve
-                                      </Button>
-                                      <Button
-                                        variant="danger"
-                                        size="sm"
-                                        disabled={reviewingId === inv.id}
-                                        onClick={async () => {
-                                          setReviewingId(inv.id);
-                                          try {
-                                            await reviewKyc(inv.id, 'rejected', 'Incomplete or ineligible application.');
-                                            await queryClient.invalidateQueries({ queryKey: ['kyc-investors'] });
-                                          } finally {
-                                            setReviewingId(null);
-                                          }
-                                        }}
-                                      >
-                                        Reject
-                                      </Button>
-                                    </>
-                                  )}
-                                  {canRegister && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      disabled={registeringId === inv.id || registerConfirming}
-                                      onClick={() => handleRegister(inv)}
-                                    >
-                                      {registeringId === inv.id || (registerConfirming && registeringId === inv.id)
-                                        ? 'Registering…'
-                                        : 'Register on-chain'}
-                                    </Button>
-                                  )}
-                                  {canAgent && (
-                                    <>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={freezingWallet === wallet.toLowerCase()}
-                                        onClick={() => handleFreeze(wallet as `0x${string}`, !frozenOnChain)}
-                                      >
-                                        {freezingWallet === wallet.toLowerCase()
-                                          ? 'Updating…'
-                                          : frozenOnChain
-                                            ? 'Unfreeze'
-                                            : 'Freeze'}
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() =>
-                                          setCompliance({
-                                            mode: 'recover',
-                                            wallet: wallet as `0x${string}`,
-                                            label: inv.name || inv.email,
-                                          })
-                                        }
-                                      >
-                                        Recover
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() =>
-                                          setCompliance({
-                                            mode: 'force',
-                                            wallet: wallet as `0x${string}`,
-                                            label: inv.name || inv.email,
-                                          })
-                                        }
-                                      >
-                                        Move shares
-                                      </Button>
-                                    </>
-                                  )}
-                                  {inv.kycStatus !== 'pending' && !canRegister && !canAgent && (
-                                    <span className="text-cream-400 text-sm">—</span>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                  {address && (
-                    <p className="text-cream-400 text-xs mt-3 font-mono">
-                      Connected registrar: {shortAddr(address)}
-                    </p>
-                  )}
-                </div>
-              )}
-              {activeTab === 'contracts' && (
-                <div>
-                  <h3 className="font-display text-lg font-semibold text-cream-100 mb-2">Protocol deployments</h3>
-                  <p className="text-cream-400 text-sm mb-6">
-                    Listings come from PropertyFactory.getListing. Use Deploy on the Properties tab, or seed with{' '}
-                    <span className="font-mono text-cream-200">npm run deploy:protocol</span>. Enable exit freezes
-                    transfers and pauses the sale; deposit proceeds, then holders redeem from My Dashboard.
-                  </p>
-                  {pauseError && <p className="text-red-400 text-sm mb-4">{pauseError}</p>}
-                  {distError && <p className="text-red-400 text-sm mb-4">{distError}</p>}
-                  {exitError && <p className="text-red-400 text-sm mb-4">{exitError}</p>}
-                  {activitySyncNote && <p className="text-cream-400 text-sm mb-4">{activitySyncNote}</p>}
-                  <div className="flex justify-end mb-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={syncingActivity}
-                      onClick={async () => {
-                        setSyncingActivity(true);
-                        setActivitySyncNote('');
-                        try {
-                          const result = await syncActivity();
-                          setActivitySyncNote(
-                            result.synced
-                              ? `Indexed ${result.added ?? 0} new events.`
-                              : `Sync skipped: ${result.reason || 'RPC unavailable'}. Start Hardhat and set CHAIN_RPC_URL.`
-                          );
-                          await queryClient.invalidateQueries({ queryKey: ['activity'] });
-                        } catch (err) {
-                          setActivitySyncNote(err instanceof Error ? err.message : 'Sync failed.');
-                        } finally {
-                          setSyncingActivity(false);
-                        }
-                      }}
-                    >
-                      {syncingActivity ? 'Syncing…' : 'Sync activity index'}
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                    {[
-                      { label: 'Identity registry', value: IDENTITY_REGISTRY_ADDRESS, ok: isIdentityConfigured },
-                      { label: 'Claim issuer', value: CLAIM_ISSUER_ADDRESS, ok: isClaimIssuerConfigured },
-                      { label: 'Investor onboarder', value: INVESTOR_ONBOARDER_ADDRESS, ok: isOnboarderConfigured },
-                      { label: 'USDC', value: USDC_ADDRESS, ok: isHexAddress(USDC_ADDRESS) },
-                      { label: 'Property factory', value: PROPERTY_FACTORY_ADDRESS, ok: isFactoryConfigured },
-                      { label: 'Share market', value: SHARE_MARKET_ADDRESS, ok: isMarketConfigured },
-                    ].map((row) => (
-                      <div key={row.label} className="p-4 rounded-xl border border-void-700 bg-void-800/60">
-                        <div className="text-cream-400 text-xs uppercase tracking-wider mb-1">{row.label}</div>
-                        <div className={`font-mono text-sm break-all ${row.ok ? 'text-accent' : 'text-cream-400'}`}>
-                          {row.value || 'not set'}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {isMarketConfigured && (
-                    <div className="flex items-center justify-between gap-4 mb-6 p-4 rounded-xl border border-void-700 bg-void-800/60">
-                      <div>
-                        <div className="text-cream-100 font-medium">Secondary market</div>
-                        <p className="text-cream-400 text-sm">
-                          {marketPaused ? 'Asks cannot be listed or filled while paused.' : 'KYC-gated asks are open.'}
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={!isConnected || pausingMarket}
-                        onClick={handlePauseMarket}
-                      >
-                        {pausingMarket ? 'Updating…' : marketPaused ? 'Unpause market' : 'Pause market'}
-                      </Button>
-                    </div>
-                  )}
-                  <div className="overflow-x-auto rounded-xl border border-void-700">
-                    <table className="min-w-full">
-                      <thead>
-                        <tr className="border-b border-void-700">
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Property</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Share token</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Offering</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Sale</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Rent pool</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Exit</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-cream-400 uppercase tracking-wider">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-void-700">
-                        {!isFactoryConfigured ? (
-                          <tr>
-                            <td colSpan={7} className="px-6 py-8 text-cream-400 text-sm">
-                              Set VITE_PROPERTY_FACTORY_ADDRESS after deploying the protocol. The seed deploy creates listings for property ids 1, 3, and 5.
-                            </td>
-                          </tr>
-                        ) : listingsLoading && factoryListings.length === 0 ? (
-                          <tr>
-                            <td colSpan={7} className="px-6 py-8 text-cream-400 text-sm">Reading factory listings…</td>
-                          </tr>
-                        ) : factoryListings.length === 0 ? (
-                          <tr>
-                            <td colSpan={7} className="px-6 py-8 text-cream-400 text-sm">
-                              No listings on this factory yet. Call createListing for a catalog property id.
-                            </td>
-                          </tr>
-                        ) : (
-                          factoryListings.map((row, i) => {
-                            const paused = pauseResults?.[i]?.result === true;
-                            const offeringFinalized = offeringFinalizedResults?.[i]?.result === true;
-                            const offeringSuccessful = offeringSuccessResults?.[i]?.result === true;
-                            const closesAtRaw = offeringClosesResults?.[i]?.result;
-                            const closesAt = typeof closesAtRaw === 'bigint' ? closesAtRaw : 0n;
-                            const escrowOpen = closesAt > 0n && !offeringFinalized;
-                            const distRaw = distributorResults?.[i]?.result;
-                            const distributor =
-                              typeof distRaw === 'string' && distRaw.toLowerCase() !== ZERO
-                                ? (distRaw as `0x${string}`)
-                                : null;
-                            const redRaw = redemptionResults?.[i]?.result;
-                            const redemption =
-                              typeof redRaw === 'string' && redRaw.toLowerCase() !== ZERO
-                                ? (redRaw as `0x${string}`)
-                                : null;
-                            const exitOpen = Boolean(redemption && exitOpenedById.get(row.property.id));
-                            return (
-                            <tr key={row.property.id} className="hover:bg-void-700/30 transition-colors">
-                              <td className="px-6 py-4 text-cream-100">{row.property.title}</td>
-                              <td className="px-6 py-4 text-accent font-mono text-sm">{row.listing?.token ? shortAddr(row.listing.token) : '—'}</td>
-                              <td className="px-6 py-4 text-accent font-mono text-sm">{row.listing?.offering ? shortAddr(row.listing.offering) : '—'}</td>
-                              <td className="px-6 py-4">
-                                {offeringFinalized ? (
-                                  <Badge color={offeringSuccessful ? 'green' : 'red'}>
-                                    {offeringSuccessful ? 'Filled' : 'Failed'}
-                                  </Badge>
-                                ) : (
-                                  <Badge color={paused ? 'yellow' : 'green'}>{paused ? 'Paused' : escrowOpen ? 'Escrow' : 'Open'}</Badge>
-                                )}
-                              </td>
-                              <td className="px-6 py-4">
-                                {distributor ? (
-                                  <span className="text-accent font-mono text-sm">{shortAddr(distributor)}</span>
-                                ) : (
-                                  <span className="text-cream-400 text-sm">Off</span>
-                                )}
-                              </td>
-                              <td className="px-6 py-4">
-                                {exitOpen ? (
-                                  <Badge color="yellow">Open</Badge>
-                                ) : redemption ? (
-                                  <span className="text-cream-400 text-sm">Frozen</span>
-                                ) : (
-                                  <span className="text-cream-400 text-sm">Off</span>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <div className="flex justify-end flex-wrap gap-2">
-                                  {escrowOpen && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      disabled={!isConnected || finalizingId === row.property.id || !row.listing?.offering}
-                                      onClick={() =>
-                                        row.listing && handleFinalize(row.property.id, row.listing.offering)
-                                      }
-                                    >
-                                      {finalizingId === row.property.id ? 'Finalizing…' : 'Finalize'}
-                                    </Button>
-                                  )}
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={!isConnected || pausingId === row.property.id || !row.listing?.offering}
-                                    onClick={() =>
-                                      row.listing &&
-                                      handlePause(row.property.id, row.listing.offering, paused)
-                                    }
-                                  >
-                                    {pausingId === row.property.id ? 'Updating…' : paused ? 'Unpause' : 'Pause'}
-                                  </Button>
-                                  {distributor ? (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() =>
-                                        setDepositTarget({ title: row.property.title, distributor })
-                                      }
-                                    >
-                                      Deposit rent
-                                    </Button>
-                                  ) : (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      disabled={!isConnected || enablingDistId === row.property.id}
-                                      onClick={() => handleEnableDistributor(row.property.id)}
-                                    >
-                                      {enablingDistId === row.property.id ? 'Enabling…' : 'Enable rent'}
-                                    </Button>
-                                  )}
-                                  {exitOpen ? (
-                                    <Badge color="yellow">Exit funded</Badge>
-                                  ) : redemption ? (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setExitTarget({ title: row.property.title, redemption })}
-                                    >
-                                      Deposit proceeds
-                                    </Button>
-                                  ) : (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      disabled={!isConnected || enablingExitId === row.property.id}
-                                      onClick={() => handleEnableExit(row.property.id)}
-                                    >
-                                      {enablingExitId === row.property.id ? 'Enabling…' : 'Enable exit'}
-                                    </Button>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                            );
-                          })
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-              {activeTab === 'production' && (
-                <div>
-                  <h3 className="font-display text-lg font-semibold text-cream-100 mb-2">Production readiness</h3>
-                  <p className="text-cream-400 text-sm mb-6">
-                    Automated checks plus items that stay open until a real audit, bounty, KYC vendor, and first close exist.
-                    See <span className="font-mono text-cream-200">PRODUCTION.md</span>. This tab does not make the demo a live offering.
-                  </p>
-                  {readinessLoading && !readiness ? (
-                    <p className="text-cream-400 text-sm">Reading readiness…</p>
-                  ) : readiness ? (
-                    <>
-                      <div className="flex flex-wrap gap-2 mb-6">
-                        <Badge color={readiness.demo ? 'yellow' : 'green'}>
-                          {readiness.demo ? 'Demo' : 'Production env'}
-                        </Badge>
-                        <Badge color={readiness.ready ? 'green' : 'red'}>
-                          {readiness.ready ? 'Ready probe ok' : 'Ready probe degraded'}
-                        </Badge>
-                        <Badge color={readiness.liveOfferingAllowed ? 'green' : 'yellow'}>
-                          {readiness.liveOfferingAllowed ? 'Live offering flags set' : 'Live offering not allowed'}
-                        </Badge>
-                        <span className="text-cream-400 text-sm self-center">Chain {readiness.chainId}</span>
-                      </div>
-                      <div className="overflow-x-auto rounded-xl border border-void-700">
-                        <table className="min-w-full">
-                          <thead>
-                            <tr className="border-b border-void-700">
-                              <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Check</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Status</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-cream-400 uppercase tracking-wider">Detail</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-void-700">
-                            {readiness.checks.map((row) => (
-                              <tr key={row.id}>
-                                <td className="px-6 py-4 text-cream-100 text-sm">{row.label}</td>
-                                <td className="px-6 py-4">
-                                  <Badge
-                                    color={
-                                      row.status === 'pass'
-                                        ? 'green'
-                                        : row.status === 'fail'
-                                          ? 'red'
-                                          : 'yellow'
-                                    }
-                                  >
-                                    {row.status}
-                                  </Badge>
-                                </td>
-                                <td className="px-6 py-4 text-cream-400 text-sm">{row.detail}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-cream-400 text-sm">Could not load readiness.</p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </motion.div>
+            {kind === 'owner' && (
+              <p className="text-cream-400 text-xs mt-2">
+                Payouts: {desk.distributions.filter((item) => row.properties.some((owned) => owned.title === item.title)).map((item) => `$${formatUsd(item.owner)} on ${item.at.slice(0, 10)}`).join(' · ') || 'None posted'}
+              </p>
+            )}
+          </article>
+        ))}
+        {rows.length === 0 && <p className="text-cream-400 text-sm">No accounts.</p>}
       </div>
-      <AddPropertyModal
-        isOpen={addOpen}
-        onClose={() => setAddOpen(false)}
-        onCreated={async () => {
-          setAddOpen(false);
-          await queryClient.invalidateQueries({ queryKey: ['properties'] });
-        }}
-      />
-      <CreateListingModal
-        isOpen={Boolean(deployProperty)}
-        property={deployProperty}
-        onClose={() => setDeployProperty(null)}
-        onDeployed={async () => {
-          setDeployProperty(null);
-          await queryClient.invalidateQueries({ queryKey: ['properties'] });
-          await refetchListings();
-        }}
-      />
-      <DepositDistributionModal
-        isOpen={Boolean(depositTarget)}
-        propertyTitle={depositTarget?.title || ''}
-        distributor={depositTarget?.distributor || null}
-        onClose={() => setDepositTarget(null)}
-        onDeposited={() => setDepositTarget(null)}
-      />
-      <OpenExitModal
-        isOpen={Boolean(exitTarget)}
-        propertyTitle={exitTarget?.title || ''}
-        redemption={exitTarget?.redemption || null}
-        onClose={() => setExitTarget(null)}
-        onOpened={async () => {
-          setExitTarget(null);
-          await refetchExitOpened();
-        }}
-      />
-      <OpsPropertyModal
-        isOpen={Boolean(opsProperty)}
-        property={opsProperty}
-        onClose={() => setOpsProperty(null)}
-        onSaved={async () => {
-          setOpsProperty(null);
-          await queryClient.invalidateQueries({ queryKey: ['properties'] });
-        }}
-      />
-      <ListingCmsModal
-        isOpen={Boolean(cmsProperty)}
-        property={cmsProperty}
-        onClose={() => setCmsProperty(null)}
-        onSaved={async () => {
-          setCmsProperty(null);
-          await queryClient.invalidateQueries({ queryKey: ['properties'] });
-        }}
-      />
-      <DocumentVaultModal
-        isOpen={Boolean(vaultProperty)}
-        property={vaultProperty}
-        onClose={() => setVaultProperty(null)}
-        onUpdated={async (next) => {
-          setVaultProperty(next);
-          await queryClient.invalidateQueries({ queryKey: ['properties'] });
-        }}
-      />
-      <InvestorComplianceModal
-        isOpen={Boolean(compliance)}
-        mode={compliance?.mode || 'recover'}
-        fromWallet={compliance?.wallet || null}
-        investorLabel={compliance?.label || ''}
-        listings={complianceListings}
-        onClose={() => setCompliance(null)}
-        onDone={async () => {
-          setCompliance(null);
-          await refetchVerified();
-          await refetchFrozen();
-        }}
-      />
+    </div>
+  );
+}
+
+function titleOf(desk: AdminDesk, id: string) {
+  return desk.properties.find((row) => row.id === id)?.title || id;
+}
+
+function SimpleTable({ headers, rows, empty }: { headers: string[]; rows: string[][]; empty: string }) {
+  if (rows.length === 0) return <p className="text-cream-400 text-sm">{empty}</p>;
+  return (
+    <div className="overflow-x-auto rounded-xl border border-void-700">
+      <table className="min-w-full text-sm">
+        <thead>
+          <tr className="border-b border-void-700">
+            {headers.map((header) => (
+              <th key={header} className="px-3 py-2 text-left text-xs font-medium text-cream-400 uppercase">{header}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-void-700">
+          {rows.map((row, index) => (
+            <tr key={`${row[0]}-${index}`}>
+              {row.map((cell, cellIndex) => (
+                <td key={cellIndex} className="px-3 py-2 text-cream-200">{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

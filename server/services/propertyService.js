@@ -55,10 +55,17 @@ function asAddress(value, label) {
 function asDocs(value) {
   if (value === undefined) return undefined;
   if (!Array.isArray(value)) fail('documents must be an array.', 400);
-  return value.slice(0, 20).map((doc) => ({
-    name: String(doc?.name || '').trim().slice(0, 120) || 'Document',
-    url: String(doc?.url || '#').trim().slice(0, 500),
-  }));
+  return value.slice(0, 20).map((doc) => {
+    const row = {
+      name: String(doc?.name || '').trim().slice(0, 120) || 'Document',
+      url: String(doc?.url || '#').trim().slice(0, 500),
+    };
+    const kind = String(doc?.kind || '').trim().slice(0, 40);
+    const review = String(doc?.review || '').trim().slice(0, 20);
+    if (kind) row.kind = kind;
+    if (review) row.review = review;
+    return row;
+  });
 }
 
 function asStrings(value, label) {
@@ -68,6 +75,18 @@ function asStrings(value, label) {
     .map((item) => String(item || '').trim())
     .filter(Boolean)
     .slice(0, 12);
+}
+
+function asInteriors(value) {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) fail('interiors must be an array.', 400);
+  return value.slice(0, 16).map((room) => {
+    const name = String(room?.name || '').trim().slice(0, 80);
+    const imageUrl = String(room?.imageUrl || '').trim().slice(0, 500);
+    const detail = String(room?.detail || '').trim().slice(0, 1500);
+    if (!name || !imageUrl) fail('Each interior needs a name and an image.', 400);
+    return { name, detail, imageUrl };
+  });
 }
 
 function asCount(value, label) {
@@ -158,6 +177,7 @@ function create(input = {}) {
     unitMix: asString(input.unitMix, 'Unit mix', { max: 240 }) || '',
     bedrooms: asCount(input.bedrooms, 'Rooms') ?? null,
     bathrooms: asCount(input.bathrooms, 'WCs') ?? null,
+    interiors: asInteriors(input.interiors) || [],
     comps: asComps(input.comps) || [],
     grossRentMonthly: asNumber(input.grossRentMonthly, 'Gross rent') ?? null,
     opexMonthly: asNumber(input.opexMonthly, 'OpEx') ?? null,
@@ -203,6 +223,7 @@ function update(id, input = {}) {
   assign('unitMix', asString(input.unitMix, 'Unit mix', { max: 240 }));
   assign('bedrooms', asCount(input.bedrooms, 'Rooms'));
   assign('bathrooms', asCount(input.bathrooms, 'WCs'));
+  assign('interiors', asInteriors(input.interiors));
   assign('comps', asComps(input.comps));
   assign('grossRentMonthly', asNumber(input.grossRentMonthly, 'Gross rent', { min: 0 }));
   assign('opexMonthly', asNumber(input.opexMonthly, 'OpEx', { min: 0 }));

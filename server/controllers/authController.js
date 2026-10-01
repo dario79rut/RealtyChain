@@ -1,6 +1,7 @@
 const authService = require('../services/authService');
 const persistence = require('../mock/persistence');
 const settingsService = require('../services/settingsService');
+const images = require('../services/imageService');
 const { sanitizeUser } = require('../models/userModel');
 
 const IP_DENIED = 'IP address is not allowed to log in';
@@ -37,6 +38,22 @@ async function login(req, res) {
   }
 }
 
+function avatar(req, res) {
+  try {
+    const id = req.user && req.user.sub;
+    const user = persistence.data.users.find((row) => String(row.id) === String(id));
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    const saved = images.saveBuffer(images.decodeUpload(req.body?.data), req.body?.filename || 'avatar.png');
+    user.avatarUrl = saved.url;
+    persistence.save();
+    return res.json({ user: sanitizeUser(user) });
+  } catch (err) {
+    const status = err.status || 500;
+    if (status >= 500) console.error('Avatar upload error:', err);
+    return res.status(status).json({ error: err.message || 'Could not save that image.' });
+  }
+}
+
 function me(req, res) {
   const id = req.user && req.user.sub;
   const user = persistence.data.users.find((u) => String(u.id) === String(id));
@@ -44,4 +61,4 @@ function me(req, res) {
   return res.json({ user: sanitizeUser(user) });
 }
 
-module.exports = { register, login, me };
+module.exports = { register, login, me, avatar };

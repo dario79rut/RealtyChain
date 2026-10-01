@@ -1,5 +1,6 @@
 const persistence = require('../mock/persistence');
 const { sanitizeUser } = require('../models/userModel');
+const sumsub = require('./sumsubClient');
 
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 const BLOCKED_COUNTRIES = new Set(['KP', 'IR', 'SY', 'CU']);
@@ -38,15 +39,26 @@ function eligibility(user) {
   };
 }
 
+function profileResponse(user) {
+  return {
+    user: sanitizeUser(user),
+    eligibility: eligibility(user),
+    sumsubConfigured: sumsub.isConfigured(),
+  };
+}
+
 function getProfile(userId) {
   const user = findById(userId);
   if (!user) throw Object.assign(new Error('Unauthorized'), { status: 401 });
-  return { user: sanitizeUser(user), eligibility: eligibility(user) };
+  return profileResponse(user);
 }
 
 function submit(userId, payload) {
   const user = findById(userId);
   if (!user) throw Object.assign(new Error('Unauthorized'), { status: 401 });
+  if (sumsub.isConfigured()) {
+    throw Object.assign(new Error('Identity checks go through Sumsub.'), { status: 409 });
+  }
   if (user.kycStatus === 'pending') {
     throw Object.assign(new Error('Verification is already pending review.'), { status: 409 });
   }
@@ -84,7 +96,103 @@ function submit(userId, payload) {
     provider: 'mock',
   };
   persistence.save();
-  return { user: sanitizeUser(user), eligibility: eligibility(user) };
+  return profileResponse(user);
+}
+
+function beginSumsub(userId, payload) {
+  const user = findById(userId);
+  if (!user) throw Object.assign(new Error('Unauthorized'), { status: 401 });
+  if (user.kycStatus === 'approved') {
+    throw Object.assign(new Error('This account is already verified.'), { status: 409 });
+  }
+
+  const resume = user.kycStatus === 'pending'
+    && user.accredited
+    && user.kyc
+    && user.kyc.provider === 'sumsub';
+  if (!resume) {
+    const accredited = Boolean(payload.accredited);
+    const attested = Boolean(payload.attested);
+    if (!accredited || !attested) {
+      throw Object.assign(new Error('Accredited-investor attestation is required to continue.'), { status: 400 });
+    }
+    user.accredited = true;
+    user.kyc = {
+      legalName: (user.kyc && user.kyc.legalName) || user.name || null,
+      country: (user.kyc && user.kyc.country) || null,
+      submittedAt: (user.kyc && user.kyc.submittedAt) || null,
+      reviewedAt: null,
+      reviewNote: user.kycStatus === 'rejected' && user.kyc ? user.kyc.reviewNote : null,
+      provider: 'sumsub',
+      applicantId: user.kyc && user.kyc.applicantId ? user.kyc.applicantId : null,
+    };
+    persistence.save();
+  }
+  return profileResponse(user);
+}
+
+function reviewNoteFromResult(reviewResult) {
+  const labels = reviewResult && Array.isArray(reviewResult.rejectLabels)
+    ? reviewResult.rejectLabels.filter(Boolean).join(', ')
+    : '';
+  const comment = reviewResult && reviewResult.moderationComment
+    ? String(reviewResult.moderationComment)
+    : '';
+  return `Sumsub: ${labels || comment || 'rejected this applicant.'}`.slice(0, 500);
+}
+
+function applySumsubEvent(payload, profile) {
+  const externalUserId = payload && payload.externalUserId;
+  if (!externalUserId) return { ignored: true };
+  const user = findById(externalUserId);
+  if (!user) return { ignored: true };
+
+  if (!user.kyc) user.kyc = {};
+  user.kyc.provider = 'sumsub';
+  if (payload.applicantId) user.kyc.applicantId = String(payload.applicantId);
+
+  const type = payload.type;
+  if (type === 'applicantPending' || type === 'applicantOnHold') {
+    if (user.kycStatus !== 'approved') {
+      user.kycStatus = 'pending';
+      user.kyc.submittedAt = user.kyc.submittedAt || new Date().toISOString();
+    }
+  } else if (type === 'applicantReviewed') {
+    const answer = payload.reviewResult && payload.reviewResult.reviewAnswer;
+    if (answer === 'GREEN') {
+      const country = profile && profile.country;
+      user.kyc.reviewedAt = new Date().toISOString();
+      if (country && BLOCKED_COUNTRIES.has(country)) {
+        user.kycStatus = 'rejected';
+        user.accredited = false;
+        user.kyc.country = country;
+        user.kyc.reviewNote = 'This jurisdiction is not supported.';
+      } else {
+        user.kycStatus = 'approved';
+        user.kyc.reviewNote = null;
+        if (profile && profile.legalName && String(profile.legalName).trim().length >= 2) {
+          const legalName = String(profile.legalName).trim();
+          user.kyc.legalName = legalName;
+          user.name = legalName;
+        }
+        if (country && /^[A-Z]{2}$/.test(country)) user.kyc.country = country;
+      }
+    } else if (answer === 'RED') {
+      user.kycStatus = 'rejected';
+      user.accredited = false;
+      user.kyc.reviewedAt = new Date().toISOString();
+      user.kyc.reviewNote = reviewNoteFromResult(payload.reviewResult);
+    } else {
+      persistence.save();
+      return { ignored: true };
+    }
+  } else {
+    persistence.save();
+    return { ignored: true };
+  }
+
+  persistence.save();
+  return { ignored: false, ...profileResponse(user) };
 }
 
 function bindWallet(userId, address) {
@@ -103,7 +211,7 @@ function bindWallet(userId, address) {
   }
   user.walletAddress = normalized;
   persistence.save();
-  return { user: sanitizeUser(user), eligibility: eligibility(user) };
+  return profileResponse(user);
 }
 
 function listInvestors() {
@@ -125,7 +233,7 @@ function review(userId, { decision, note }) {
   user.kyc.reviewedAt = new Date().toISOString();
   user.kyc.reviewNote = note ? String(note).slice(0, 500) : null;
   persistence.save();
-  return { user: sanitizeUser(user), eligibility: eligibility(user) };
+  return profileResponse(user);
 }
 
 module.exports = {
@@ -133,6 +241,8 @@ module.exports = {
   eligibility,
   getProfile,
   submit,
+  beginSumsub,
+  applySumsubEvent,
   bindWallet,
   listInvestors,
   review,

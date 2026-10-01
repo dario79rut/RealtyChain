@@ -33,8 +33,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .then((res) => {
         if (active) setUser(res.user);
       })
-      .catch(() => {
-        clearToken();
+      .catch((err) => {
+        const message = err instanceof Error ? err.message : '';
+        if (/unauthorized/i.test(message)) clearToken();
         if (active) setUser(null);
       })
       .finally(() => {

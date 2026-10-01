@@ -11,6 +11,7 @@ function sanitizeUser(user) {
     kycStatus,
     accredited,
     walletAddress,
+    avatarUrl: user.avatarUrl || null,
     kyc: user.kyc
       ? {
           legalName: user.kyc.legalName || null,
@@ -18,6 +19,7 @@ function sanitizeUser(user) {
           submittedAt: user.kyc.submittedAt || null,
           reviewedAt: user.kyc.reviewedAt || null,
           reviewNote: user.kyc.reviewNote || null,
+          provider: user.kyc.provider || null,
         }
       : null,
     user_metadata: { name: user.name || null },

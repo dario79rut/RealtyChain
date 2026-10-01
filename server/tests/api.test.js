@@ -270,6 +270,13 @@ test('admin can create, patch, and delete a property', async () => {
       unitMix: '1× 2,000 sq ft retail',
       bedrooms: 2,
       bathrooms: 1,
+      interiors: [
+        {
+          name: 'Living room',
+          detail: 'Oak floors and a south window.',
+          imageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80',
+        },
+      ],
       comps: [{ address: '100 Congress Ave, Austin, TX', soldDate: '2026-01-15', priceUsd: 490000, sqft: 1900, note: 'Illustrative' }],
       documents: [{ name: 'PPM', url: 'https://example.com/ppm.pdf' }],
     },
@@ -282,6 +289,8 @@ test('admin can create, patch, and delete a property', async () => {
   assert.equal(created.data.property.unitMix, '1× 2,000 sq ft retail');
   assert.equal(created.data.property.bedrooms, 2);
   assert.equal(created.data.property.bathrooms, 1);
+  assert.equal(created.data.property.interiors[0].name, 'Living room');
+  assert.match(created.data.property.interiors[0].detail, /Oak floors/);
   assert.equal(created.data.property.comps.length, 1);
   const id = created.data.property.id;
 
@@ -298,6 +307,13 @@ test('admin can create, patch, and delete a property', async () => {
       lat: 30.27,
       lng: -97.74,
       comps: [{ address: '200 Congress Ave, Austin, TX', soldDate: '2026-04-01', priceUsd: 505000, sqft: 1950 }],
+      interiors: [
+        {
+          name: 'Kitchen',
+          detail: 'Stone counters.',
+          imageUrl: 'https://images.unsplash.com/photo-1556912173-46c336c7fd55?auto=format&fit=crop&w=1200&q=80',
+        },
+      ],
     },
   });
   assert.equal(patched.status, 200);
@@ -307,6 +323,7 @@ test('admin can create, patch, and delete a property', async () => {
   assert.equal(patched.data.property.appraisals[0].valueUsd, 520000);
   assert.equal(patched.data.property.lat, 30.27);
   assert.equal(patched.data.property.comps[0].priceUsd, 505000);
+  assert.equal(patched.data.property.interiors[0].name, 'Kitchen');
 
   const removed = await request(`/api/properties/${id}`, {
     method: 'DELETE',

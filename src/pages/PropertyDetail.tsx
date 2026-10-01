@@ -13,6 +13,8 @@ import {
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { PropertyMap } from '../components/ui/PropertyMap';
+import { InteriorTour } from '../components/ui/InteriorTour';
+import { PropertyVotes } from '../components/governance/PropertyVotes';
 import { TransactionModal } from '../components/modals/TransactionModal';
 import { FillAskModal } from '../components/modals/FillAskModal';
 import { OnrampModal } from '../components/modals/OnrampModal';
@@ -193,12 +195,14 @@ export default function PropertyDetail() {
                       </a>
                     )}
                   </div>
+                  <InteriorTour property={property} />
                   <div className="mb-8">
                     <h2 className="font-display text-lg font-semibold text-cream-100 mb-3">
                       About this property
                     </h2>
                     <p className="text-cream-400 leading-relaxed">{property.description}</p>
                   </div>
+                  <PropertyVotes propertyId={property.id} />
                   <div className="mb-8">
                     <h2 className="font-display text-lg font-semibold text-cream-100 mb-3">
                       Features
@@ -297,6 +301,23 @@ export default function PropertyDetail() {
                             </div>
                           );
                         })}
+                      </div>
+                    </div>
+                  )}
+                  {(property.progressLog || []).length > 0 && (
+                    <div>
+                      <h2 className="font-display text-lg font-semibold text-cream-100 mb-3">Project progress</h2>
+                      <div className="h-2 bg-void-700 rounded-full overflow-hidden mb-2">
+                        <div className="h-full bg-accent rounded-full" style={{ width: `${Math.min(100, property.projectProgress || 0)}%` }} />
+                      </div>
+                      <p className="text-cream-300 text-sm mb-3">{property.projectProgress || 0}% complete</p>
+                      <div className="space-y-2">
+                        {(property.progressLog || []).slice(0, 4).map((entry) => (
+                          <div key={entry.at} className="rounded-xl border border-void-700 bg-void-900/40 p-3">
+                            <div className="text-cream-400 text-xs">{entry.percent}% · {entry.at.slice(0, 10)}</div>
+                            <p className="text-cream-200 text-sm mt-1">{entry.note}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -440,6 +461,10 @@ export default function PropertyDetail() {
                     </p>
                   </div>
                 )}
+                {user?.role === 'admin' ? (
+                  <p className="text-cream-400 text-sm">Buying and selling tokens is for investors. Manage this listing from the admin console.</p>
+                ) : (
+                <>
                 <Button
                   fullWidth
                   size="lg"
@@ -518,6 +543,8 @@ export default function PropertyDetail() {
                       ))}
                     </div>
                   </div>
+                )}
+                </>
                 )}
               </div>
             </motion.div>

@@ -6,6 +6,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { config } from '../wagmi';
 import { WalletProvider } from './context/WalletContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { getToken } from './utils/api';
 import { Layout } from './components/layout/Layout';
 
 import Home from './pages/Home';
@@ -17,6 +18,8 @@ import PropertyDetail from './pages/PropertyDetail';
 import Login from './pages/Login';
 import Kyc from './pages/Kyc';
 import Market from './pages/Market';
+import Governance from './pages/Governance';
+import Lend from './pages/Lend';
 import AdminUserAdmin from './pages/AdminUserAdmin';
 
 const client = new QueryClient();
@@ -41,8 +44,12 @@ function AppRoutes() {
   const publicPaths = ['/', '/adminuseradmin_useradminuser'];
   const isPublic = publicPaths.includes(location.pathname);
 
-  if (!isPublic && !authReady) {
+  if (!authReady && (!isPublic || (location.pathname === '/' && getToken()))) {
     return <WalletLoading />;
+  }
+
+  if (location.pathname === '/' && isLoggedIn) {
+    return <Navigate to="/home" replace />;
   }
 
   if (!isPublic && !isLoggedIn) {
@@ -64,6 +71,8 @@ function AppRoutes() {
         <Route path="/user" element={<User />} />
         <Route path="/kyc" element={<Kyc />} />
         <Route path="/market" element={<Market />} />
+        <Route path="/governance" element={<Governance />} />
+        <Route path="/lend" element={<Lend />} />
         <Route path="/property/:id" element={<PropertyDetail />} />
       </Route>
     </Routes>

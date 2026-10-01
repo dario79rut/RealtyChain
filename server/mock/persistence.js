@@ -52,6 +52,12 @@ const seedUsers = [
     name: 'Platform Admin',
     role: 'admin',
   },
+  {
+    email: process.env.DEV_OWNER_EMAIL || 'owner@defi.estate',
+    password: process.env.DEV_OWNER_PASSWORD || 'owner1234',
+    name: 'Property Owner',
+    role: 'owner',
+  },
 ];
 
 function ensureSeedUsers() {
@@ -78,6 +84,46 @@ function ensureSeedUsers() {
       existing.password_hash = bcrypt.hashSync(seed.password, 10);
       existing.role = existing.role || seed.role;
       existing.name = existing.name || seed.name;
+      changed = true;
+    }
+  }
+  if (changed) writeFile(data);
+}
+
+function ensurePropertyOwner() {
+  if (!data || !Array.isArray(data.users) || !Array.isArray(data.properties)) return;
+  const owner = data.users.find((user) => user.role === 'owner')
+    || data.users.find((user) => user.email === (process.env.DEV_OWNER_EMAIL || 'owner@defi.estate'));
+  if (!owner) return;
+  let changed = false;
+  if (owner.role !== 'owner') {
+    owner.role = 'owner';
+    changed = true;
+  }
+  if (!owner.name) {
+    owner.name = 'Property Owner';
+    changed = true;
+  }
+  if (!owner.kyc?.submittedAt && owner.kycStatus === 'approved') {
+    owner.kycStatus = 'unverified';
+    owner.accredited = false;
+    changed = true;
+  }
+  if (owner.cashCents == null) {
+    owner.cashCents = 5_000_000;
+    changed = true;
+  }
+  if (!owner.governanceSeeded) {
+    owner.governanceSeeded = true;
+    changed = true;
+  }
+  if (!owner.shareBalances || typeof owner.shareBalances !== 'object') {
+    owner.shareBalances = {};
+    changed = true;
+  }
+  for (const property of data.properties) {
+    if (property.ownerId == null) {
+      property.ownerId = owner.id;
       changed = true;
     }
   }
@@ -214,6 +260,10 @@ function ensureCmsDefaults() {
       property.bathrooms = seed.bathrooms !== undefined ? seed.bathrooms : null;
       changed = true;
     }
+    if (property.interiors === undefined) {
+      property.interiors = Array.isArray(seed.interiors) ? seed.interiors : [];
+      changed = true;
+    }
   }
   if (changed) writeFile(data);
 }
@@ -221,6 +271,7 @@ function ensureCmsDefaults() {
 function runEnsures() {
   ensureSeedUsers();
   ensureProperties();
+  ensurePropertyOwner();
   ensureKycDefaults();
   stripLegacyShopData();
   ensureOpsDefaults();

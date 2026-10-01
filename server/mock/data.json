@@ -16,7 +16,18 @@
         "reviewedAt": null,
         "reviewNote": null,
         "provider": "mock"
-      }
+      },
+      "savedSearches": [],
+      "shareBalances": {
+        "1": 41,
+        "2": 12,
+        "3": 25,
+        "4": 8,
+        "5": 20,
+        "6": 15
+      },
+      "governanceSeeded": true,
+      "cashCents": 4952030
     },
     {
       "id": 2,
@@ -27,7 +38,15 @@
       "kycStatus": "unverified",
       "accredited": false,
       "walletAddress": null,
-      "kyc": null
+      "kyc": null,
+      "savedSearches": [],
+      "shareBalances": {
+        "1": 40,
+        "3": 25,
+        "6": 15
+      },
+      "governanceSeeded": true,
+      "cashCents": 5000000
     },
     {
       "id": 3,
@@ -521,6 +540,50 @@
       "accredited": false,
       "walletAddress": null,
       "kyc": null
+    },
+    {
+      "id": 37,
+      "email": "kyc-1790242713547@example.com",
+      "name": "Kyc User",
+      "role": "user",
+      "password_hash": "$2b$10$rvDU2BfwvTB7Wxc8zQQtG.hgv6ChiP6hgZ7s6tJROv5s62fdh7wh.",
+      "kycStatus": "approved",
+      "accredited": true,
+      "walletAddress": "0x000000000000000000000000000001a0d2c7f0cf",
+      "kyc": {
+        "legalName": "Kyc User",
+        "country": "US",
+        "submittedAt": "2026-09-24T09:38:33.725Z",
+        "reviewedAt": "2026-09-24T09:38:33.806Z",
+        "reviewNote": null,
+        "provider": "mock"
+      }
+    },
+    {
+      "id": 38,
+      "email": "kyc2-1790242713811@example.com",
+      "name": "Other",
+      "role": "user",
+      "password_hash": "$2b$10$IRsxCd6d7R40dITV.Td/8OBzwJXSWZJwbkquEGYhszno4k9FXAI2.",
+      "kycStatus": "unverified",
+      "accredited": false,
+      "walletAddress": null,
+      "kyc": null
+    },
+    {
+      "id": 39,
+      "email": "owner@defi.estate",
+      "name": "Property Owner",
+      "role": "owner",
+      "password_hash": "$2b$10$yqBa4XREr9uX6d7BLLSS3eDIu.9Ev.dh.t/efhB.ytOj7tbJvKFyu",
+      "kycStatus": "unverified",
+      "accredited": false,
+      "walletAddress": null,
+      "kyc": null,
+      "cashCents": 5000000,
+      "governanceSeeded": true,
+      "shareBalances": {},
+      "savedSearches": []
     }
   ],
   "properties": [
@@ -602,7 +665,54 @@
         "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1470&q=80"
       ],
       "bedrooms": 3,
-      "bathrooms": 2
+      "bathrooms": 2,
+      "interiors": [
+        {
+          "name": "Living room",
+          "detail": "The living room runs 22 feet along a floor-to-ceiling glass wall facing Midtown. White oak floors continue in from the entry, and the ceiling is about 10 feet. A low sofa faces the glass, with a walnut coffee table and one lounge chair in the corner. A wide pass-through on the west wall opens into the kitchen, so the two rooms read as one.",
+          "imageUrl": "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Kitchen",
+          "detail": "A galley kitchen, about 8 by 14 feet, with honed stone counters and flat-panel cabinets in a warm gray. The range, dishwasher, and refrigerator are panel-front. Upper cabinets stop short of the ceiling and leave a shelf for glassware. The pass-through is the main opening to the living room; a door at the far end reaches the service hall.",
+          "imageUrl": "https://images.unsplash.com/photo-1556912173-46c336c7fd55?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Primary bedroom",
+          "detail": "The primary bedroom is at the east end of the apartment. A king bed faces the window, and blackout shades sit inside the frame. Closet doors run the full east wall, about 10 feet of hanging space and shelves. The ensuite bath opens at the foot of the bed. The floor is the same white oak as the living room.",
+          "imageUrl": "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Second bedroom",
+          "detail": "The second bedroom is dressed as a guest room. A queen bed sits against the interior wall, and a desk fits under the window without covering the radiator. There is floor space for a crib that still leaves a path to the closet. The hall bath — a shower and a single vanity — is shared from this room.",
+          "imageUrl": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Primary bath",
+          "detail": "The primary bath is large-format stone tile. The walk-in shower has a fixed rain head and a handheld, with a niche for bottles cut into the wall. A double vanity holds two sinks and a bank of drawers under each. The hall bath, used by the guest bedroom, is a separate shower and a single vanity.",
+          "imageUrl": "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&w=1600&q=80"
+        }
+      ],
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 450000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 450,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "id": "2",
@@ -674,7 +784,54 @@
         "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
       ],
       "bedrooms": 5,
-      "bathrooms": 6
+      "bathrooms": 6,
+      "interiors": [
+        {
+          "name": "Great room",
+          "detail": "The great room is one open volume from the entry to the pool sliders. Seating faces the ocean, not a television wall, and the sofa group sits on a rug that stops short of the slider track. The ceiling stays high enough that the terrace and the water stay in view from the kitchen island. Floors are wide-plank stone that continues onto the covered terrace.",
+          "imageUrl": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Kitchen",
+          "detail": "The kitchen is built around a white-stone island with seating for four on the great-room side. The range wall holds a cooktop and a tall fridge, and the pantry is a door behind that wall rather than open shelves. Counters are the same stone as the island. A second sink faces the pool so dishes can be passed outside without crossing the great room.",
+          "imageUrl": "https://images.unsplash.com/photo-1600489000022-c2086d79f9d4?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Primary suite",
+          "detail": "The primary suite is on the ocean side, separated from the guest wing by a short hall. A sitting area with two chairs sits between the king bed and the balcony doors. The closet is a walk-in off the bath, not along the bedroom wall, so the ocean windows stay clear. Blackout drapes stack at the sides of the slider.",
+          "imageUrl": "https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Guest bedroom",
+          "detail": "This is one of four guest rooms on the garden side of the villa. Each has a queen bed, blackout drapes, a small desk, and a closet deep enough for hanging luggage. The bath is ensuite: a shower, a single vanity, and a door that does not open through the bedroom. The four rooms share a linen closet in the hall.",
+          "imageUrl": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Primary bath",
+          "detail": "The primary bath opens from the suite, not from the hall. A freestanding tub sits at the window, and the shower is a separate glass enclosure with a bench. The vanity is one long stone slab with two sinks and drawers between them. The walk-in closet is through a door beside the vanity.",
+          "imageUrl": "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1600&q=80"
+        }
+      ],
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 1200000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 1200,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "id": "3",
@@ -746,7 +903,44 @@
         "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
       ],
       "bedrooms": null,
-      "bathrooms": null
+      "bathrooms": null,
+      "interiors": [
+        {
+          "name": "Lobby",
+          "detail": "The lobby is double-height, with a stone floor and a reception desk set off the entry so the elevator core stays visible. Visitor seating is a short run of chairs along the glass. Turnstiles sit between the desk and the elevators. The ceiling drops to a single story only at the mail room on the right.",
+          "imageUrl": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Typical floor",
+          "detail": "A typical floor is an open plate around a central core of elevators, stairs, and restrooms. Perimeter glass runs the full edge, with shades in the ceiling pocket. Columns land on a grid that can be demised into suites of about 2,500 sq ft without crossing the core. Raised floor is not used; power comes from the ceiling.",
+          "imageUrl": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Conference center",
+          "detail": "The second-floor conference center is shared by the building, not leased with a single floor. A boardroom seats about fourteen at one table. Two smaller huddle rooms open off the same pre-function hall, with a pantry counter between them. The hall has a coat closet and a door back to the elevator lobby.",
+          "imageUrl": "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1600&q=80"
+        }
+      ],
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 3500000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 3500,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "id": "4",
@@ -805,7 +999,49 @@
         "https://images.unsplash.com/photo-1518780664697-55e3ad937233?ixlib=rb-4.0.3&auto=format&fit=crop&w=1530&q=80"
       ],
       "bedrooms": 4,
-      "bathrooms": 3
+      "bathrooms": 3,
+      "interiors": [
+        {
+          "name": "Great room",
+          "detail": "The great room sits under exposed timber beams. A stone fireplace is the center of the long wall, with seating pulled toward it and the glass that faces the slope. The floor is wide pine. A dining table for eight is at the kitchen end, still in the same volume, so the fireplace stays in view from the table.",
+          "imageUrl": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Kitchen",
+          "detail": "The kitchen is open to the great room, finished in warm wood cabinets and a stone counter. A farmhouse sink sits under the window that looks at the trees, not at the slope. The range is on the interior wall so the window stays clear. Open shelves above the counter hold everyday dishes; the pantry is a door beside the fridge.",
+          "imageUrl": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Primary bedroom",
+          "detail": "The primary bedroom is on the main level, off a short hall from the great room. A king bed faces the glass, with linen drapes on a wood rod. A door at the side of the room opens onto the hot-tub deck without passing back through the great room. The closet is a reach-in along the hall wall. The bath is ensuite.",
+          "imageUrl": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Loft bedroom",
+          "detail": "The loft bedroom sits under the roof pitch and is used as a bunk room: two sets of bunks and a chest at the stair. Headroom is full at the stair and lower at the eaves. Two more bedrooms are on the lower hall, each with a queen bed, a closet, and a window to the slope. They share a bath at the end of that hall.",
+          "imageUrl": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1600&q=80"
+        }
+      ],
+      "ownerId": 39,
+      "platform": {
+        "stage": "review",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 875000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 875,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "id": "5",
@@ -877,7 +1113,44 @@
         "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1374&q=80"
       ],
       "bedrooms": null,
-      "bathrooms": null
+      "bathrooms": null,
+      "interiors": [
+        {
+          "name": "Sales floor",
+          "detail": "The sales floor is about 1,600 sq ft of open space. The path from the corner entrance runs straight to the back counter, with display tables on both sides rather than a maze of racks. The floor is polished concrete. Track lighting hangs on the ceiling grid. A fitting room is a single door on the left wall, not a bank of stalls.",
+          "imageUrl": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Window display",
+          "detail": "The corner has display windows on two streets. The sill is deep enough for a mannequin run and a low seating ledge inside the glass. Shades are a simple roller at the head of each window. The entry door is on the long side, so the corner itself stays a display, not a vestibule.",
+          "imageUrl": "https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Back room",
+          "detail": "The back room is storage and a small staff area, about 400 sq ft. Shelving runs one wall from floor to ceiling. A desk and a locker sit opposite. The alley door is at the rear, wide enough for a hand truck, with a step down to the pavement. A single restroom opens off this room, not off the sales floor.",
+          "imageUrl": "https://images.unsplash.com/photo-1604014237800-1c9102c219da?auto=format&fit=crop&w=1600&q=80"
+        }
+      ],
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 680000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 680,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "id": "6",
@@ -949,12 +1222,5559 @@
         "https://images.unsplash.com/photo-1448630360428-65456885c650?ixlib=rb-4.0.3&auto=format&fit=crop&w=1467&q=80"
       ],
       "bedrooms": 4,
-      "bathrooms": 3.5
+      "bathrooms": 3.5,
+      "interiors": [
+        {
+          "name": "Parlor",
+          "detail": "The front parlor keeps the original mantel and the tall windows onto the street. Restored hardwood runs wall to wall, with a rug sized to the seating group and not to the whole room. The ceiling medallion and the window casings are intact. Pocket doors, when open, connect this room to the kitchen behind it.",
+          "imageUrl": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Kitchen",
+          "detail": "The kitchen is the updated room behind the parlor, still on the original brownstone plan rather than an open great room. A long counter runs one wall, with the range at the center and cabinets above and below. A door at the back opens to the garden. The floor is tile, a step down from the parlor hardwood.",
+          "imageUrl": "https://images.unsplash.com/photo-1556909172-54557c7e4fb7?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Primary bedroom",
+          "detail": "The primary bedroom is on the second floor, at the front of the house. Original trim frames two street-facing windows, and a king bed sits between them on the interior wall so both windows stay usable. The closet was built into a former dressing alcove and does not cut the windows. The bath is through a door at the back of the room.",
+          "imageUrl": "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Primary bath",
+          "detail": "The primary bath was carved from a former dressing room, so it keeps the original window. A walk-in shower occupies the wall without the window. The vanity is a single sink with drawers, not a double, because the room is narrow. The floor is small hexagonal tile. A linen cupboard is the old closet, left in place.",
+          "imageUrl": "https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=1600&q=80"
+        },
+        {
+          "name": "Garden level",
+          "detail": "The garden level is finished as a family room rather than raw basement. The ceiling is lower than the parlor, with the beams left exposed. A half bath is under the stair. A door at the back goes up a short run of steps to the rear garden. Two small bedrooms open off this level, each with a window at grade and a closet.",
+          "imageUrl": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1600&q=80"
+        }
+      ],
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 1850000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 1850,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     }
   ],
   "activity": {
     "events": [],
     "cursor": 24,
     "lastSyncAt": "2026-08-25T12:24:15.926Z"
-  }
+  },
+  "governance": [
+    {
+      "id": "gov-lobby",
+      "propertyId": "1",
+      "title": "Approve a $180,000 lobby renovation",
+      "summary": "Replace the lobby stone, lighting, and entry doors. The reserve covers the work. Work would start next quarter and should not pause rent.",
+      "kind": "budget",
+      "createdBy": null,
+      "createdAt": "2026-09-22T15:17:32.197Z",
+      "endsAt": "2026-09-30T15:17:32.197Z",
+      "otherFor": 210,
+      "otherAgainst": 74,
+      "quorumShares": 180,
+      "votes": [
+        {
+          "userId": 1,
+          "choice": "for",
+          "shares": 41,
+          "at": "2026-09-30T14:29:42.090Z"
+        }
+      ]
+    },
+    {
+      "id": "gov-manager",
+      "propertyId": "3",
+      "title": "Appoint Harbor & Co. as property manager",
+      "summary": "The current manager’s contract ends this year. Harbor & Co. bid a lower fee and a 3-year term with quarterly reporting to shareholders.",
+      "kind": "manager",
+      "createdBy": null,
+      "createdAt": "2026-09-23T15:17:32.197Z",
+      "endsAt": "2026-10-05T15:17:32.197Z",
+      "otherFor": 48,
+      "otherAgainst": 61,
+      "quorumShares": 80,
+      "votes": [
+        {
+          "userId": 1,
+          "choice": "for",
+          "shares": 25,
+          "at": "2026-09-24T15:22:31.167Z"
+        }
+      ]
+    },
+    {
+      "id": "gov-sale",
+      "propertyId": "6",
+      "title": "Authorize a sale above $2.1 million",
+      "summary": "Allow the board to accept a bona fide bid at or above $2.1 million. A lower bid would come back to shareholders.",
+      "kind": "sale",
+      "createdBy": null,
+      "createdAt": "2026-09-20T15:17:32.197Z",
+      "endsAt": "2026-09-27T15:17:32.197Z",
+      "otherFor": 260,
+      "otherAgainst": 44,
+      "quorumShares": 200,
+      "votes": []
+    },
+    {
+      "id": "gov-seating",
+      "propertyId": "5",
+      "title": "Fund the outdoor seating expansion",
+      "summary": "Spend $42,000 from reserves on the patio the tenant requested. The lease amendment raises rent by 4% when the patio opens.",
+      "kind": "budget",
+      "createdBy": null,
+      "createdAt": "2026-09-04T15:17:32.197Z",
+      "endsAt": "2026-09-23T15:17:32.197Z",
+      "otherFor": 240,
+      "otherAgainst": 36,
+      "quorumShares": 120,
+      "votes": []
+    },
+    {
+      "id": "gov-assessment",
+      "propertyId": "2",
+      "title": "Special assessment for seawall repair",
+      "summary": "Levy $1,200 per share for emergency seawall work. Insurance denied the claim. The work is already quoted.",
+      "kind": "distribution",
+      "createdBy": null,
+      "createdAt": "2026-08-25T15:17:32.197Z",
+      "endsAt": "2026-09-14T15:17:32.197Z",
+      "otherFor": 90,
+      "otherAgainst": 410,
+      "quorumShares": 200,
+      "votes": []
+    }
+  ],
+  "market": {
+    "orders": [
+      {
+        "id": "ord-499cc647",
+        "userId": 1,
+        "propertyId": "1",
+        "side": "bid",
+        "priceCents": 45270,
+        "amount": 1,
+        "remaining": 0,
+        "filled": 0,
+        "status": "cancelled",
+        "createdAt": "2026-09-30T14:37:22.438Z",
+        "updatedAt": "2026-09-30T14:37:23.524Z"
+      },
+      {
+        "id": "ord-4e503d63",
+        "userId": 1,
+        "propertyId": "1",
+        "side": "bid",
+        "priceCents": 45270,
+        "amount": 1,
+        "remaining": 0,
+        "filled": 0,
+        "status": "cancelled",
+        "createdAt": "2026-09-30T14:34:48.602Z",
+        "updatedAt": "2026-09-30T14:37:57.838Z"
+      },
+      {
+        "id": "ord-09759d11",
+        "userId": 1,
+        "propertyId": "1",
+        "side": "ask",
+        "priceCents": 44730,
+        "amount": 1,
+        "remaining": 0,
+        "status": "cancelled",
+        "createdAt": "2026-09-30T14:31:17.716Z",
+        "updatedAt": "2026-09-30T14:31:18.123Z"
+      },
+      {
+        "id": "ord-6e08c4c0",
+        "userId": 1,
+        "propertyId": "1",
+        "side": "bid",
+        "priceCents": 45270,
+        "amount": 1,
+        "remaining": 0,
+        "status": "cancelled",
+        "createdAt": "2026-09-30T14:31:16.781Z",
+        "updatedAt": "2026-09-30T14:31:17.201Z"
+      },
+      {
+        "id": "ord-0a8554bf",
+        "userId": 1,
+        "propertyId": "1",
+        "side": "bid",
+        "priceCents": 45270,
+        "amount": 1,
+        "remaining": 0,
+        "status": "filled",
+        "createdAt": "2026-09-30T14:29:00.491Z",
+        "updatedAt": "2026-09-30T14:29:00.491Z"
+      },
+      {
+        "id": "ord-691fe329",
+        "userId": 1,
+        "propertyId": "1",
+        "side": "ask",
+        "priceCents": 44730,
+        "amount": 2,
+        "remaining": 0,
+        "status": "filled",
+        "createdAt": "2026-09-30T14:26:43.893Z",
+        "updatedAt": "2026-09-30T14:26:43.893Z"
+      },
+      {
+        "id": "ord-81566094",
+        "userId": 1,
+        "propertyId": "1",
+        "side": "bid",
+        "priceCents": 45270,
+        "amount": 1,
+        "remaining": 0,
+        "status": "filled",
+        "createdAt": "2026-09-30T14:25:31.787Z",
+        "updatedAt": "2026-09-30T14:25:31.787Z"
+      },
+      {
+        "id": "ord-5c7f3dcd",
+        "userId": 1,
+        "propertyId": "1",
+        "side": "ask",
+        "priceCents": 44730,
+        "amount": 1,
+        "remaining": 0,
+        "status": "filled",
+        "createdAt": "2026-09-30T14:24:20.888Z",
+        "updatedAt": "2026-09-30T14:24:20.888Z"
+      },
+      {
+        "id": "ord-651f54a0",
+        "userId": 1,
+        "propertyId": "1",
+        "side": "bid",
+        "priceCents": 45270,
+        "amount": 1,
+        "remaining": 0,
+        "status": "filled",
+        "createdAt": "2026-09-30T14:24:19.990Z",
+        "updatedAt": "2026-09-30T14:24:19.990Z"
+      },
+      {
+        "id": "ord-2cb14366",
+        "userId": 1,
+        "propertyId": "1",
+        "side": "ask",
+        "priceCents": 45270,
+        "remaining": 0,
+        "status": "cancelled",
+        "createdAt": "2026-09-30T13:23:13.103Z"
+      },
+      {
+        "id": "ord-39d9cbbd",
+        "userId": 1,
+        "propertyId": "1",
+        "side": "ask",
+        "priceCents": 45270,
+        "remaining": 0,
+        "status": "cancelled",
+        "createdAt": "2026-09-30T13:23:11.664Z"
+      },
+      {
+        "id": "book-1-bid-0-44730",
+        "userId": null,
+        "propertyId": "1",
+        "side": "bid",
+        "priceCents": 44730,
+        "remaining": 11,
+        "status": "open",
+        "createdAt": "2026-09-30T12:09:24.930Z"
+      },
+      {
+        "id": "book-1-bid-1-44460",
+        "userId": null,
+        "propertyId": "1",
+        "side": "bid",
+        "priceCents": 44460,
+        "remaining": 30,
+        "status": "open",
+        "createdAt": "2026-09-30T12:08:24.930Z"
+      },
+      {
+        "id": "book-1-bid-2-44100",
+        "userId": null,
+        "propertyId": "1",
+        "side": "bid",
+        "priceCents": 44100,
+        "remaining": 46,
+        "status": "open",
+        "createdAt": "2026-09-30T12:07:24.930Z"
+      },
+      {
+        "id": "book-1-ask-0-45270",
+        "userId": null,
+        "propertyId": "1",
+        "side": "ask",
+        "priceCents": 45270,
+        "remaining": 5,
+        "status": "open",
+        "createdAt": "2026-09-30T12:09:24.930Z"
+      },
+      {
+        "id": "book-1-ask-1-45540",
+        "userId": null,
+        "propertyId": "1",
+        "side": "ask",
+        "priceCents": 45540,
+        "remaining": 26,
+        "status": "open",
+        "createdAt": "2026-09-30T12:08:24.930Z"
+      },
+      {
+        "id": "book-1-ask-2-45900",
+        "userId": null,
+        "propertyId": "1",
+        "side": "ask",
+        "priceCents": 45900,
+        "remaining": 40,
+        "status": "open",
+        "createdAt": "2026-09-30T12:07:24.930Z"
+      },
+      {
+        "id": "book-2-bid-0-119280",
+        "userId": null,
+        "propertyId": "2",
+        "side": "bid",
+        "priceCents": 119280,
+        "remaining": 18,
+        "status": "open",
+        "createdAt": "2026-09-30T12:09:24.930Z"
+      },
+      {
+        "id": "book-2-bid-1-118560",
+        "userId": null,
+        "propertyId": "2",
+        "side": "bid",
+        "priceCents": 118560,
+        "remaining": 30,
+        "status": "open",
+        "createdAt": "2026-09-30T12:08:24.930Z"
+      },
+      {
+        "id": "book-2-bid-2-117600",
+        "userId": null,
+        "propertyId": "2",
+        "side": "bid",
+        "priceCents": 117600,
+        "remaining": 46,
+        "status": "open",
+        "createdAt": "2026-09-30T12:07:24.930Z"
+      },
+      {
+        "id": "book-2-ask-0-120720",
+        "userId": null,
+        "propertyId": "2",
+        "side": "ask",
+        "priceCents": 120720,
+        "remaining": 14,
+        "status": "open",
+        "createdAt": "2026-09-30T12:09:24.930Z"
+      },
+      {
+        "id": "book-2-ask-1-121440",
+        "userId": null,
+        "propertyId": "2",
+        "side": "ask",
+        "priceCents": 121440,
+        "remaining": 26,
+        "status": "open",
+        "createdAt": "2026-09-30T12:08:24.930Z"
+      },
+      {
+        "id": "book-2-ask-2-122400",
+        "userId": null,
+        "propertyId": "2",
+        "side": "ask",
+        "priceCents": 122400,
+        "remaining": 40,
+        "status": "open",
+        "createdAt": "2026-09-30T12:07:24.930Z"
+      },
+      {
+        "id": "book-3-bid-0-347900",
+        "userId": null,
+        "propertyId": "3",
+        "side": "bid",
+        "priceCents": 347900,
+        "remaining": 18,
+        "status": "open",
+        "createdAt": "2026-09-30T12:09:24.930Z"
+      },
+      {
+        "id": "book-3-bid-1-345800",
+        "userId": null,
+        "propertyId": "3",
+        "side": "bid",
+        "priceCents": 345800,
+        "remaining": 30,
+        "status": "open",
+        "createdAt": "2026-09-30T12:08:24.930Z"
+      },
+      {
+        "id": "book-3-bid-2-343000",
+        "userId": null,
+        "propertyId": "3",
+        "side": "bid",
+        "priceCents": 343000,
+        "remaining": 46,
+        "status": "open",
+        "createdAt": "2026-09-30T12:07:24.930Z"
+      },
+      {
+        "id": "book-3-ask-0-352100",
+        "userId": null,
+        "propertyId": "3",
+        "side": "ask",
+        "priceCents": 352100,
+        "remaining": 14,
+        "status": "open",
+        "createdAt": "2026-09-30T12:09:24.930Z"
+      },
+      {
+        "id": "book-3-ask-1-354200",
+        "userId": null,
+        "propertyId": "3",
+        "side": "ask",
+        "priceCents": 354200,
+        "remaining": 26,
+        "status": "open",
+        "createdAt": "2026-09-30T12:08:24.930Z"
+      },
+      {
+        "id": "book-3-ask-2-357000",
+        "userId": null,
+        "propertyId": "3",
+        "side": "ask",
+        "priceCents": 357000,
+        "remaining": 40,
+        "status": "open",
+        "createdAt": "2026-09-30T12:07:24.930Z"
+      },
+      {
+        "id": "book-4-bid-0-86975",
+        "userId": null,
+        "propertyId": "4",
+        "side": "bid",
+        "priceCents": 86975,
+        "remaining": 18,
+        "status": "open",
+        "createdAt": "2026-09-30T12:09:24.930Z"
+      },
+      {
+        "id": "book-4-bid-1-86450",
+        "userId": null,
+        "propertyId": "4",
+        "side": "bid",
+        "priceCents": 86450,
+        "remaining": 30,
+        "status": "open",
+        "createdAt": "2026-09-30T12:08:24.930Z"
+      },
+      {
+        "id": "book-4-bid-2-85750",
+        "userId": null,
+        "propertyId": "4",
+        "side": "bid",
+        "priceCents": 85750,
+        "remaining": 46,
+        "status": "open",
+        "createdAt": "2026-09-30T12:07:24.930Z"
+      },
+      {
+        "id": "book-4-ask-0-88025",
+        "userId": null,
+        "propertyId": "4",
+        "side": "ask",
+        "priceCents": 88025,
+        "remaining": 14,
+        "status": "open",
+        "createdAt": "2026-09-30T12:09:24.930Z"
+      },
+      {
+        "id": "book-4-ask-1-88550",
+        "userId": null,
+        "propertyId": "4",
+        "side": "ask",
+        "priceCents": 88550,
+        "remaining": 26,
+        "status": "open",
+        "createdAt": "2026-09-30T12:08:24.930Z"
+      },
+      {
+        "id": "book-4-ask-2-89250",
+        "userId": null,
+        "propertyId": "4",
+        "side": "ask",
+        "priceCents": 89250,
+        "remaining": 40,
+        "status": "open",
+        "createdAt": "2026-09-30T12:07:24.930Z"
+      },
+      {
+        "id": "book-5-bid-0-67592",
+        "userId": null,
+        "propertyId": "5",
+        "side": "bid",
+        "priceCents": 67592,
+        "remaining": 18,
+        "status": "open",
+        "createdAt": "2026-09-30T12:09:24.930Z"
+      },
+      {
+        "id": "book-5-bid-1-67184",
+        "userId": null,
+        "propertyId": "5",
+        "side": "bid",
+        "priceCents": 67184,
+        "remaining": 30,
+        "status": "open",
+        "createdAt": "2026-09-30T12:08:24.930Z"
+      },
+      {
+        "id": "book-5-bid-2-66640",
+        "userId": null,
+        "propertyId": "5",
+        "side": "bid",
+        "priceCents": 66640,
+        "remaining": 46,
+        "status": "open",
+        "createdAt": "2026-09-30T12:07:24.930Z"
+      },
+      {
+        "id": "book-5-ask-0-68408",
+        "userId": null,
+        "propertyId": "5",
+        "side": "ask",
+        "priceCents": 68408,
+        "remaining": 14,
+        "status": "open",
+        "createdAt": "2026-09-30T12:09:24.930Z"
+      },
+      {
+        "id": "book-5-ask-1-68816",
+        "userId": null,
+        "propertyId": "5",
+        "side": "ask",
+        "priceCents": 68816,
+        "remaining": 26,
+        "status": "open",
+        "createdAt": "2026-09-30T12:08:24.930Z"
+      },
+      {
+        "id": "book-5-ask-2-69360",
+        "userId": null,
+        "propertyId": "5",
+        "side": "ask",
+        "priceCents": 69360,
+        "remaining": 40,
+        "status": "open",
+        "createdAt": "2026-09-30T12:07:24.930Z"
+      },
+      {
+        "id": "book-6-bid-0-183890",
+        "userId": null,
+        "propertyId": "6",
+        "side": "bid",
+        "priceCents": 183890,
+        "remaining": 18,
+        "status": "open",
+        "createdAt": "2026-09-30T12:09:24.930Z"
+      },
+      {
+        "id": "book-6-bid-1-182780",
+        "userId": null,
+        "propertyId": "6",
+        "side": "bid",
+        "priceCents": 182780,
+        "remaining": 30,
+        "status": "open",
+        "createdAt": "2026-09-30T12:08:24.930Z"
+      },
+      {
+        "id": "book-6-bid-2-181300",
+        "userId": null,
+        "propertyId": "6",
+        "side": "bid",
+        "priceCents": 181300,
+        "remaining": 46,
+        "status": "open",
+        "createdAt": "2026-09-30T12:07:24.930Z"
+      },
+      {
+        "id": "book-6-ask-0-186110",
+        "userId": null,
+        "propertyId": "6",
+        "side": "ask",
+        "priceCents": 186110,
+        "remaining": 14,
+        "status": "open",
+        "createdAt": "2026-09-30T12:09:24.930Z"
+      },
+      {
+        "id": "book-6-ask-1-187220",
+        "userId": null,
+        "propertyId": "6",
+        "side": "ask",
+        "priceCents": 187220,
+        "remaining": 26,
+        "status": "open",
+        "createdAt": "2026-09-30T12:08:24.930Z"
+      },
+      {
+        "id": "book-6-ask-2-188700",
+        "userId": null,
+        "propertyId": "6",
+        "side": "ask",
+        "priceCents": 188700,
+        "remaining": 40,
+        "status": "open",
+        "createdAt": "2026-09-30T12:07:24.930Z"
+      },
+      {
+        "id": "book-7-bid-537-248750",
+        "userId": null,
+        "propertyId": "7",
+        "side": "bid",
+        "priceCents": 248750,
+        "remaining": 16,
+        "status": "open",
+        "createdAt": "2026-09-30T06:18:01.537Z"
+      },
+      {
+        "id": "book-7-bid-547-247000",
+        "userId": null,
+        "propertyId": "7",
+        "side": "bid",
+        "priceCents": 247000,
+        "remaining": 28,
+        "status": "open",
+        "createdAt": "2026-09-30T06:08:01.546Z"
+      },
+      {
+        "id": "book-7-ask-546-251250",
+        "userId": null,
+        "propertyId": "7",
+        "side": "ask",
+        "priceCents": 251250,
+        "remaining": 12,
+        "status": "open",
+        "createdAt": "2026-09-30T06:09:01.546Z"
+      },
+      {
+        "id": "book-7-ask-547-253500",
+        "userId": null,
+        "propertyId": "7",
+        "side": "ask",
+        "priceCents": 253500,
+        "remaining": 24,
+        "status": "open",
+        "createdAt": "2026-09-30T06:08:01.546Z"
+      }
+    ],
+    "trades": [
+      {
+        "id": "trd-1be069a3",
+        "propertyId": "1",
+        "priceCents": 45270,
+        "shares": 1,
+        "buyerId": 1,
+        "sellerId": null,
+        "taker": "buy",
+        "at": "2026-09-30T14:29:00.491Z"
+      },
+      {
+        "id": "trd-9b878183",
+        "propertyId": "1",
+        "priceCents": 44730,
+        "shares": 2,
+        "buyerId": null,
+        "sellerId": 1,
+        "taker": "sell",
+        "at": "2026-09-30T14:26:43.893Z"
+      },
+      {
+        "id": "trd-729f9023",
+        "propertyId": "1",
+        "priceCents": 45270,
+        "shares": 1,
+        "buyerId": 1,
+        "sellerId": null,
+        "taker": "buy",
+        "at": "2026-09-30T14:25:31.787Z"
+      },
+      {
+        "id": "trd-2cf78165",
+        "propertyId": "1",
+        "priceCents": 44730,
+        "shares": 1,
+        "buyerId": null,
+        "sellerId": 1,
+        "taker": "sell",
+        "at": "2026-09-30T14:24:20.888Z"
+      },
+      {
+        "id": "trd-fadd5a49",
+        "propertyId": "1",
+        "priceCents": 45270,
+        "shares": 1,
+        "buyerId": 1,
+        "sellerId": null,
+        "taker": "buy",
+        "at": "2026-09-30T14:24:19.988Z"
+      },
+      {
+        "id": "trd-c6a6eb5b",
+        "propertyId": "1",
+        "priceCents": 45270,
+        "shares": 1,
+        "buyerId": 1,
+        "sellerId": null,
+        "at": "2026-09-30T14:19:40.327Z"
+      },
+      {
+        "id": "trd-fef590e1",
+        "propertyId": "1",
+        "priceCents": 44730,
+        "shares": 1,
+        "buyerId": null,
+        "sellerId": 1,
+        "at": "2026-09-30T14:13:15.865Z"
+      },
+      {
+        "id": "trd-43cd9237",
+        "propertyId": "1",
+        "priceCents": 45270,
+        "shares": 1,
+        "buyerId": 1,
+        "sellerId": null,
+        "at": "2026-09-30T14:13:15.246Z"
+      },
+      {
+        "id": "trd-ef847cd8",
+        "propertyId": "1",
+        "priceCents": 44730,
+        "shares": 1,
+        "buyerId": null,
+        "sellerId": 1,
+        "at": "2026-09-30T14:06:50.720Z"
+      },
+      {
+        "id": "trd-8071ac01",
+        "propertyId": "1",
+        "priceCents": 45270,
+        "shares": 1,
+        "buyerId": 1,
+        "sellerId": null,
+        "at": "2026-09-30T14:06:50.310Z"
+      },
+      {
+        "id": "trd-09a8e84c",
+        "propertyId": "1",
+        "priceCents": 45270,
+        "shares": 1,
+        "buyerId": 1,
+        "sellerId": null,
+        "at": "2026-09-30T12:11:29.129Z"
+      }
+    ],
+    "opens": {
+      "1": 45000,
+      "2": 120000,
+      "3": 350000,
+      "4": 87500,
+      "5": 68000,
+      "6": 185000,
+      "7": 250000
+    },
+    "candles": {
+      "1": [
+        {
+          "t": "2026-08-02",
+          "o": 42174,
+          "h": 42478,
+          "l": 41981,
+          "c": 42333,
+          "v": 10
+        },
+        {
+          "t": "2026-08-03",
+          "o": 42333,
+          "h": 42672,
+          "l": 42149,
+          "c": 42283,
+          "v": 22
+        },
+        {
+          "t": "2026-08-04",
+          "o": 42283,
+          "h": 42650,
+          "l": 42226,
+          "c": 42536,
+          "v": 9
+        },
+        {
+          "t": "2026-08-05",
+          "o": 42536,
+          "h": 42984,
+          "l": 42366,
+          "c": 42895,
+          "v": 38
+        },
+        {
+          "t": "2026-08-06",
+          "o": 42895,
+          "h": 43600,
+          "l": 42780,
+          "c": 43505,
+          "v": 8
+        },
+        {
+          "t": "2026-08-07",
+          "o": 43505,
+          "h": 44065,
+          "l": 43412,
+          "c": 43737,
+          "v": 42
+        },
+        {
+          "t": "2026-08-08",
+          "o": 43737,
+          "h": 44057,
+          "l": 43437,
+          "c": 43620,
+          "v": 39
+        },
+        {
+          "t": "2026-08-09",
+          "o": 43620,
+          "h": 44285,
+          "l": 43438,
+          "c": 44122,
+          "v": 17
+        },
+        {
+          "t": "2026-08-10",
+          "o": 44122,
+          "h": 44518,
+          "l": 43884,
+          "c": 44327,
+          "v": 51
+        },
+        {
+          "t": "2026-08-11",
+          "o": 44327,
+          "h": 44455,
+          "l": 44103,
+          "c": 44169,
+          "v": 21
+        },
+        {
+          "t": "2026-08-12",
+          "o": 44169,
+          "h": 44417,
+          "l": 44076,
+          "c": 44190,
+          "v": 15
+        },
+        {
+          "t": "2026-08-13",
+          "o": 44190,
+          "h": 44359,
+          "l": 43677,
+          "c": 44028,
+          "v": 29
+        },
+        {
+          "t": "2026-08-14",
+          "o": 44028,
+          "h": 44267,
+          "l": 43732,
+          "c": 43998,
+          "v": 45
+        },
+        {
+          "t": "2026-08-15",
+          "o": 43998,
+          "h": 44359,
+          "l": 43725,
+          "c": 43761,
+          "v": 10
+        },
+        {
+          "t": "2026-08-16",
+          "o": 43761,
+          "h": 44454,
+          "l": 43678,
+          "c": 44208,
+          "v": 37
+        },
+        {
+          "t": "2026-08-17",
+          "o": 44208,
+          "h": 44455,
+          "l": 44045,
+          "c": 44426,
+          "v": 18
+        },
+        {
+          "t": "2026-08-18",
+          "o": 44426,
+          "h": 45036,
+          "l": 44213,
+          "c": 44900,
+          "v": 28
+        },
+        {
+          "t": "2026-08-19",
+          "o": 44900,
+          "h": 45203,
+          "l": 44728,
+          "c": 44741,
+          "v": 30
+        },
+        {
+          "t": "2026-08-20",
+          "o": 44741,
+          "h": 45205,
+          "l": 44466,
+          "c": 44942,
+          "v": 32
+        },
+        {
+          "t": "2026-08-21",
+          "o": 44942,
+          "h": 45054,
+          "l": 44675,
+          "c": 45007,
+          "v": 45
+        },
+        {
+          "t": "2026-08-22",
+          "o": 45007,
+          "h": 45084,
+          "l": 44796,
+          "c": 44954,
+          "v": 26
+        },
+        {
+          "t": "2026-08-23",
+          "o": 44954,
+          "h": 45560,
+          "l": 44811,
+          "c": 45304,
+          "v": 26
+        },
+        {
+          "t": "2026-08-24",
+          "o": 45304,
+          "h": 45506,
+          "l": 45073,
+          "c": 45085,
+          "v": 34
+        },
+        {
+          "t": "2026-08-25",
+          "o": 45085,
+          "h": 45480,
+          "l": 45022,
+          "c": 45450,
+          "v": 50
+        },
+        {
+          "t": "2026-08-26",
+          "o": 45450,
+          "h": 45837,
+          "l": 45095,
+          "c": 45802,
+          "v": 13
+        },
+        {
+          "t": "2026-08-27",
+          "o": 45802,
+          "h": 46154,
+          "l": 45703,
+          "c": 45853,
+          "v": 17
+        },
+        {
+          "t": "2026-08-28",
+          "o": 45853,
+          "h": 46313,
+          "l": 45725,
+          "c": 46088,
+          "v": 48
+        },
+        {
+          "t": "2026-08-29",
+          "o": 46088,
+          "h": 46296,
+          "l": 45569,
+          "c": 45907,
+          "v": 46
+        },
+        {
+          "t": "2026-08-30",
+          "o": 45907,
+          "h": 46227,
+          "l": 45521,
+          "c": 45788,
+          "v": 53
+        },
+        {
+          "t": "2026-08-31",
+          "o": 45788,
+          "h": 46062,
+          "l": 45510,
+          "c": 45913,
+          "v": 47
+        },
+        {
+          "t": "2026-09-01",
+          "o": 45913,
+          "h": 46275,
+          "l": 45731,
+          "c": 46061,
+          "v": 9
+        },
+        {
+          "t": "2026-09-02",
+          "o": 46061,
+          "h": 46711,
+          "l": 45924,
+          "c": 46350,
+          "v": 26
+        },
+        {
+          "t": "2026-09-03",
+          "o": 46350,
+          "h": 46880,
+          "l": 46232,
+          "c": 46529,
+          "v": 18
+        },
+        {
+          "t": "2026-09-04",
+          "o": 46529,
+          "h": 46587,
+          "l": 46413,
+          "c": 46524,
+          "v": 48
+        },
+        {
+          "t": "2026-09-05",
+          "o": 46524,
+          "h": 46927,
+          "l": 46511,
+          "c": 46587,
+          "v": 16
+        },
+        {
+          "t": "2026-09-06",
+          "o": 46587,
+          "h": 46753,
+          "l": 46473,
+          "c": 46736,
+          "v": 16
+        },
+        {
+          "t": "2026-09-07",
+          "o": 46736,
+          "h": 47025,
+          "l": 46138,
+          "c": 46424,
+          "v": 22
+        },
+        {
+          "t": "2026-09-08",
+          "o": 46424,
+          "h": 46742,
+          "l": 45646,
+          "c": 45983,
+          "v": 30
+        },
+        {
+          "t": "2026-09-09",
+          "o": 45983,
+          "h": 46161,
+          "l": 45369,
+          "c": 45574,
+          "v": 6
+        },
+        {
+          "t": "2026-09-10",
+          "o": 45574,
+          "h": 45671,
+          "l": 45307,
+          "c": 45436,
+          "v": 27
+        },
+        {
+          "t": "2026-09-11",
+          "o": 45436,
+          "h": 45758,
+          "l": 45102,
+          "c": 45596,
+          "v": 42
+        },
+        {
+          "t": "2026-09-12",
+          "o": 45596,
+          "h": 45694,
+          "l": 45366,
+          "c": 45681,
+          "v": 43
+        },
+        {
+          "t": "2026-09-13",
+          "o": 45681,
+          "h": 46033,
+          "l": 45438,
+          "c": 45487,
+          "v": 43
+        },
+        {
+          "t": "2026-09-14",
+          "o": 45487,
+          "h": 45751,
+          "l": 45413,
+          "c": 45512,
+          "v": 12
+        },
+        {
+          "t": "2026-09-15",
+          "o": 45512,
+          "h": 45677,
+          "l": 45305,
+          "c": 45604,
+          "v": 14
+        },
+        {
+          "t": "2026-09-16",
+          "o": 45604,
+          "h": 45734,
+          "l": 45363,
+          "c": 45633,
+          "v": 30
+        },
+        {
+          "t": "2026-09-17",
+          "o": 45633,
+          "h": 45852,
+          "l": 45045,
+          "c": 45214,
+          "v": 32
+        },
+        {
+          "t": "2026-09-18",
+          "o": 45214,
+          "h": 45289,
+          "l": 44625,
+          "c": 44975,
+          "v": 13
+        },
+        {
+          "t": "2026-09-19",
+          "o": 44975,
+          "h": 45009,
+          "l": 44420,
+          "c": 44756,
+          "v": 28
+        },
+        {
+          "t": "2026-09-20",
+          "o": 44756,
+          "h": 45089,
+          "l": 44455,
+          "c": 45066,
+          "v": 23
+        },
+        {
+          "t": "2026-09-21",
+          "o": 45066,
+          "h": 45516,
+          "l": 44951,
+          "c": 45286,
+          "v": 11
+        },
+        {
+          "t": "2026-09-22",
+          "o": 45286,
+          "h": 45446,
+          "l": 45101,
+          "c": 45282,
+          "v": 19
+        },
+        {
+          "t": "2026-09-23",
+          "o": 45282,
+          "h": 45620,
+          "l": 44962,
+          "c": 45445,
+          "v": 47
+        },
+        {
+          "t": "2026-09-24",
+          "o": 45445,
+          "h": 45544,
+          "l": 45145,
+          "c": 45487,
+          "v": 52
+        },
+        {
+          "t": "2026-09-25",
+          "o": 45487,
+          "h": 45902,
+          "l": 45207,
+          "c": 45568,
+          "v": 9
+        },
+        {
+          "t": "2026-09-26",
+          "o": 45568,
+          "h": 45915,
+          "l": 45326,
+          "c": 45905,
+          "v": 19
+        },
+        {
+          "t": "2026-09-27",
+          "o": 45905,
+          "h": 46196,
+          "l": 45794,
+          "c": 45972,
+          "v": 48
+        },
+        {
+          "t": "2026-09-28",
+          "o": 45972,
+          "h": 46060,
+          "l": 45558,
+          "c": 45756,
+          "v": 52
+        },
+        {
+          "t": "2026-09-29",
+          "o": 45756,
+          "h": 45934,
+          "l": 45423,
+          "c": 45630,
+          "v": 53
+        },
+        {
+          "t": "2026-09-30",
+          "o": 45630,
+          "h": 45737,
+          "l": 44730,
+          "c": 45270,
+          "v": 63
+        }
+      ],
+      "2": [
+        {
+          "t": "2026-08-02",
+          "o": 114699,
+          "h": 117161,
+          "l": 113751,
+          "c": 116239,
+          "v": 51
+        },
+        {
+          "t": "2026-08-03",
+          "o": 116239,
+          "h": 116476,
+          "l": 115656,
+          "c": 116029,
+          "v": 25
+        },
+        {
+          "t": "2026-08-04",
+          "o": 116029,
+          "h": 116500,
+          "l": 115738,
+          "c": 115903,
+          "v": 9
+        },
+        {
+          "t": "2026-08-05",
+          "o": 115903,
+          "h": 117527,
+          "l": 115191,
+          "c": 117190,
+          "v": 41
+        },
+        {
+          "t": "2026-08-06",
+          "o": 117190,
+          "h": 117907,
+          "l": 115701,
+          "c": 116551,
+          "v": 25
+        },
+        {
+          "t": "2026-08-07",
+          "o": 116551,
+          "h": 118070,
+          "l": 116462,
+          "c": 117923,
+          "v": 28
+        },
+        {
+          "t": "2026-08-08",
+          "o": 117923,
+          "h": 118817,
+          "l": 117226,
+          "c": 118007,
+          "v": 31
+        },
+        {
+          "t": "2026-08-09",
+          "o": 118007,
+          "h": 118975,
+          "l": 117469,
+          "c": 118328,
+          "v": 31
+        },
+        {
+          "t": "2026-08-10",
+          "o": 118328,
+          "h": 118521,
+          "l": 117506,
+          "c": 117951,
+          "v": 12
+        },
+        {
+          "t": "2026-08-11",
+          "o": 117951,
+          "h": 118819,
+          "l": 117750,
+          "c": 118569,
+          "v": 27
+        },
+        {
+          "t": "2026-08-12",
+          "o": 118569,
+          "h": 119703,
+          "l": 117874,
+          "c": 119428,
+          "v": 44
+        },
+        {
+          "t": "2026-08-13",
+          "o": 119428,
+          "h": 120374,
+          "l": 118491,
+          "c": 118731,
+          "v": 54
+        },
+        {
+          "t": "2026-08-14",
+          "o": 118731,
+          "h": 119353,
+          "l": 118523,
+          "c": 119187,
+          "v": 13
+        },
+        {
+          "t": "2026-08-15",
+          "o": 119187,
+          "h": 120060,
+          "l": 118407,
+          "c": 119235,
+          "v": 18
+        },
+        {
+          "t": "2026-08-16",
+          "o": 119235,
+          "h": 121273,
+          "l": 118715,
+          "c": 120400,
+          "v": 11
+        },
+        {
+          "t": "2026-08-17",
+          "o": 120400,
+          "h": 122050,
+          "l": 120139,
+          "c": 121227,
+          "v": 46
+        },
+        {
+          "t": "2026-08-18",
+          "o": 121227,
+          "h": 122405,
+          "l": 120706,
+          "c": 121734,
+          "v": 39
+        },
+        {
+          "t": "2026-08-19",
+          "o": 121734,
+          "h": 122457,
+          "l": 121293,
+          "c": 121430,
+          "v": 30
+        },
+        {
+          "t": "2026-08-20",
+          "o": 121430,
+          "h": 122291,
+          "l": 120907,
+          "c": 121133,
+          "v": 53
+        },
+        {
+          "t": "2026-08-21",
+          "o": 121133,
+          "h": 121879,
+          "l": 119545,
+          "c": 120057,
+          "v": 10
+        },
+        {
+          "t": "2026-08-22",
+          "o": 120057,
+          "h": 121200,
+          "l": 119772,
+          "c": 120420,
+          "v": 29
+        },
+        {
+          "t": "2026-08-23",
+          "o": 120420,
+          "h": 121023,
+          "l": 120260,
+          "c": 120956,
+          "v": 39
+        },
+        {
+          "t": "2026-08-24",
+          "o": 120956,
+          "h": 121361,
+          "l": 120855,
+          "c": 121040,
+          "v": 40
+        },
+        {
+          "t": "2026-08-25",
+          "o": 121040,
+          "h": 122850,
+          "l": 120125,
+          "c": 121923,
+          "v": 22
+        },
+        {
+          "t": "2026-08-26",
+          "o": 121923,
+          "h": 122431,
+          "l": 121576,
+          "c": 122090,
+          "v": 11
+        },
+        {
+          "t": "2026-08-27",
+          "o": 122090,
+          "h": 122366,
+          "l": 121955,
+          "c": 122295,
+          "v": 38
+        },
+        {
+          "t": "2026-08-28",
+          "o": 122295,
+          "h": 122909,
+          "l": 122049,
+          "c": 122887,
+          "v": 27
+        },
+        {
+          "t": "2026-08-29",
+          "o": 122887,
+          "h": 123066,
+          "l": 121681,
+          "c": 121697,
+          "v": 15
+        },
+        {
+          "t": "2026-08-30",
+          "o": 121697,
+          "h": 122962,
+          "l": 121498,
+          "c": 122201,
+          "v": 17
+        },
+        {
+          "t": "2026-08-31",
+          "o": 122201,
+          "h": 123423,
+          "l": 122032,
+          "c": 122480,
+          "v": 43
+        },
+        {
+          "t": "2026-09-01",
+          "o": 122480,
+          "h": 123334,
+          "l": 122326,
+          "c": 123051,
+          "v": 39
+        },
+        {
+          "t": "2026-09-02",
+          "o": 123051,
+          "h": 123589,
+          "l": 121729,
+          "c": 122064,
+          "v": 25
+        },
+        {
+          "t": "2026-09-03",
+          "o": 122064,
+          "h": 122264,
+          "l": 121632,
+          "c": 122243,
+          "v": 52
+        },
+        {
+          "t": "2026-09-04",
+          "o": 122243,
+          "h": 122985,
+          "l": 121467,
+          "c": 122232,
+          "v": 21
+        },
+        {
+          "t": "2026-09-05",
+          "o": 122232,
+          "h": 123019,
+          "l": 121253,
+          "c": 121467,
+          "v": 32
+        },
+        {
+          "t": "2026-09-06",
+          "o": 121467,
+          "h": 121829,
+          "l": 120554,
+          "c": 120809,
+          "v": 23
+        },
+        {
+          "t": "2026-09-07",
+          "o": 120809,
+          "h": 121033,
+          "l": 120403,
+          "c": 120849,
+          "v": 15
+        },
+        {
+          "t": "2026-09-08",
+          "o": 120849,
+          "h": 121808,
+          "l": 119952,
+          "c": 120437,
+          "v": 43
+        },
+        {
+          "t": "2026-09-09",
+          "o": 120437,
+          "h": 121618,
+          "l": 120110,
+          "c": 121213,
+          "v": 53
+        },
+        {
+          "t": "2026-09-10",
+          "o": 121213,
+          "h": 122260,
+          "l": 120882,
+          "c": 121389,
+          "v": 17
+        },
+        {
+          "t": "2026-09-11",
+          "o": 121389,
+          "h": 121875,
+          "l": 120371,
+          "c": 121069,
+          "v": 47
+        },
+        {
+          "t": "2026-09-12",
+          "o": 121069,
+          "h": 121647,
+          "l": 120349,
+          "c": 120679,
+          "v": 14
+        },
+        {
+          "t": "2026-09-13",
+          "o": 120679,
+          "h": 122294,
+          "l": 120232,
+          "c": 121437,
+          "v": 18
+        },
+        {
+          "t": "2026-09-14",
+          "o": 121437,
+          "h": 121644,
+          "l": 119415,
+          "c": 120361,
+          "v": 28
+        },
+        {
+          "t": "2026-09-15",
+          "o": 120361,
+          "h": 120403,
+          "l": 118672,
+          "c": 119447,
+          "v": 20
+        },
+        {
+          "t": "2026-09-16",
+          "o": 119447,
+          "h": 120300,
+          "l": 119008,
+          "c": 119604,
+          "v": 23
+        },
+        {
+          "t": "2026-09-17",
+          "o": 119604,
+          "h": 120979,
+          "l": 119441,
+          "c": 120211,
+          "v": 10
+        },
+        {
+          "t": "2026-09-18",
+          "o": 120211,
+          "h": 121765,
+          "l": 119281,
+          "c": 120829,
+          "v": 48
+        },
+        {
+          "t": "2026-09-19",
+          "o": 120829,
+          "h": 121373,
+          "l": 119664,
+          "c": 120146,
+          "v": 31
+        },
+        {
+          "t": "2026-09-20",
+          "o": 120146,
+          "h": 120645,
+          "l": 118855,
+          "c": 119484,
+          "v": 21
+        },
+        {
+          "t": "2026-09-21",
+          "o": 119484,
+          "h": 119775,
+          "l": 119051,
+          "c": 119247,
+          "v": 12
+        },
+        {
+          "t": "2026-09-22",
+          "o": 119247,
+          "h": 119713,
+          "l": 119224,
+          "c": 119450,
+          "v": 15
+        },
+        {
+          "t": "2026-09-23",
+          "o": 119450,
+          "h": 119771,
+          "l": 118736,
+          "c": 119328,
+          "v": 32
+        },
+        {
+          "t": "2026-09-24",
+          "o": 119328,
+          "h": 120257,
+          "l": 117993,
+          "c": 118931,
+          "v": 29
+        },
+        {
+          "t": "2026-09-25",
+          "o": 118931,
+          "h": 121103,
+          "l": 118869,
+          "c": 120176,
+          "v": 11
+        },
+        {
+          "t": "2026-09-26",
+          "o": 120176,
+          "h": 120994,
+          "l": 119804,
+          "c": 120577,
+          "v": 14
+        },
+        {
+          "t": "2026-09-27",
+          "o": 120577,
+          "h": 121456,
+          "l": 119440,
+          "c": 119897,
+          "v": 42
+        },
+        {
+          "t": "2026-09-28",
+          "o": 119897,
+          "h": 120555,
+          "l": 119277,
+          "c": 119515,
+          "v": 10
+        },
+        {
+          "t": "2026-09-29",
+          "o": 119515,
+          "h": 120248,
+          "l": 118987,
+          "c": 119706,
+          "v": 20
+        },
+        {
+          "t": "2026-09-30",
+          "o": 119706,
+          "h": 120789,
+          "l": 119352,
+          "c": 120000,
+          "v": 9
+        }
+      ],
+      "3": [
+        {
+          "t": "2026-08-02",
+          "o": 332364,
+          "h": 337003,
+          "l": 330953,
+          "c": 335770,
+          "v": 54
+        },
+        {
+          "t": "2026-08-03",
+          "o": 335770,
+          "h": 336174,
+          "l": 335093,
+          "c": 335233,
+          "v": 40
+        },
+        {
+          "t": "2026-08-04",
+          "o": 335233,
+          "h": 336853,
+          "l": 333830,
+          "c": 335644,
+          "v": 25
+        },
+        {
+          "t": "2026-08-05",
+          "o": 335644,
+          "h": 337861,
+          "l": 333820,
+          "c": 336977,
+          "v": 40
+        },
+        {
+          "t": "2026-08-06",
+          "o": 336977,
+          "h": 343407,
+          "l": 335026,
+          "c": 341768,
+          "v": 19
+        },
+        {
+          "t": "2026-08-07",
+          "o": 341768,
+          "h": 342899,
+          "l": 338275,
+          "c": 340557,
+          "v": 17
+        },
+        {
+          "t": "2026-08-08",
+          "o": 340557,
+          "h": 343075,
+          "l": 338729,
+          "c": 340673,
+          "v": 50
+        },
+        {
+          "t": "2026-08-09",
+          "o": 340673,
+          "h": 344500,
+          "l": 339153,
+          "c": 342823,
+          "v": 43
+        },
+        {
+          "t": "2026-08-10",
+          "o": 342823,
+          "h": 347655,
+          "l": 341341,
+          "c": 344920,
+          "v": 9
+        },
+        {
+          "t": "2026-08-11",
+          "o": 344920,
+          "h": 345735,
+          "l": 342037,
+          "c": 343532,
+          "v": 9
+        },
+        {
+          "t": "2026-08-12",
+          "o": 343532,
+          "h": 347724,
+          "l": 342874,
+          "c": 347539,
+          "v": 50
+        },
+        {
+          "t": "2026-08-13",
+          "o": 347539,
+          "h": 348879,
+          "l": 344296,
+          "c": 345673,
+          "v": 13
+        },
+        {
+          "t": "2026-08-14",
+          "o": 345673,
+          "h": 347341,
+          "l": 344579,
+          "c": 346402,
+          "v": 39
+        },
+        {
+          "t": "2026-08-15",
+          "o": 346402,
+          "h": 350680,
+          "l": 345724,
+          "c": 350010,
+          "v": 48
+        },
+        {
+          "t": "2026-08-16",
+          "o": 350010,
+          "h": 355199,
+          "l": 349718,
+          "c": 352867,
+          "v": 36
+        },
+        {
+          "t": "2026-08-17",
+          "o": 352867,
+          "h": 353604,
+          "l": 348479,
+          "c": 350343,
+          "v": 53
+        },
+        {
+          "t": "2026-08-18",
+          "o": 350343,
+          "h": 353346,
+          "l": 348779,
+          "c": 352624,
+          "v": 35
+        },
+        {
+          "t": "2026-08-19",
+          "o": 352624,
+          "h": 353880,
+          "l": 350445,
+          "c": 351680,
+          "v": 46
+        },
+        {
+          "t": "2026-08-20",
+          "o": 351680,
+          "h": 354033,
+          "l": 350523,
+          "c": 351676,
+          "v": 30
+        },
+        {
+          "t": "2026-08-21",
+          "o": 351676,
+          "h": 353467,
+          "l": 349989,
+          "c": 351899,
+          "v": 37
+        },
+        {
+          "t": "2026-08-22",
+          "o": 351899,
+          "h": 355138,
+          "l": 351870,
+          "c": 354357,
+          "v": 44
+        },
+        {
+          "t": "2026-08-23",
+          "o": 354357,
+          "h": 357013,
+          "l": 351217,
+          "c": 353764,
+          "v": 19
+        },
+        {
+          "t": "2026-08-24",
+          "o": 353764,
+          "h": 355842,
+          "l": 349963,
+          "c": 351124,
+          "v": 54
+        },
+        {
+          "t": "2026-08-25",
+          "o": 351124,
+          "h": 352066,
+          "l": 349648,
+          "c": 349722,
+          "v": 31
+        },
+        {
+          "t": "2026-08-26",
+          "o": 349722,
+          "h": 352338,
+          "l": 346719,
+          "c": 347381,
+          "v": 28
+        },
+        {
+          "t": "2026-08-27",
+          "o": 347381,
+          "h": 349230,
+          "l": 343310,
+          "c": 344762,
+          "v": 15
+        },
+        {
+          "t": "2026-08-28",
+          "o": 344762,
+          "h": 346471,
+          "l": 343953,
+          "c": 345849,
+          "v": 50
+        },
+        {
+          "t": "2026-08-29",
+          "o": 345849,
+          "h": 349428,
+          "l": 344008,
+          "c": 346678,
+          "v": 25
+        },
+        {
+          "t": "2026-08-30",
+          "o": 346678,
+          "h": 348984,
+          "l": 346184,
+          "c": 346328,
+          "v": 29
+        },
+        {
+          "t": "2026-08-31",
+          "o": 346328,
+          "h": 349679,
+          "l": 346212,
+          "c": 348396,
+          "v": 44
+        },
+        {
+          "t": "2026-09-01",
+          "o": 348396,
+          "h": 348565,
+          "l": 344108,
+          "c": 346747,
+          "v": 13
+        },
+        {
+          "t": "2026-09-02",
+          "o": 346747,
+          "h": 347791,
+          "l": 344835,
+          "c": 344907,
+          "v": 10
+        },
+        {
+          "t": "2026-09-03",
+          "o": 344907,
+          "h": 347016,
+          "l": 343761,
+          "c": 345134,
+          "v": 8
+        },
+        {
+          "t": "2026-09-04",
+          "o": 345134,
+          "h": 347336,
+          "l": 342425,
+          "c": 346680,
+          "v": 14
+        },
+        {
+          "t": "2026-09-05",
+          "o": 346680,
+          "h": 347292,
+          "l": 344365,
+          "c": 346750,
+          "v": 10
+        },
+        {
+          "t": "2026-09-06",
+          "o": 346750,
+          "h": 351792,
+          "l": 345958,
+          "c": 349182,
+          "v": 53
+        },
+        {
+          "t": "2026-09-07",
+          "o": 349182,
+          "h": 350285,
+          "l": 346580,
+          "c": 347176,
+          "v": 17
+        },
+        {
+          "t": "2026-09-08",
+          "o": 347176,
+          "h": 349862,
+          "l": 345330,
+          "c": 346212,
+          "v": 39
+        },
+        {
+          "t": "2026-09-09",
+          "o": 346212,
+          "h": 351801,
+          "l": 344111,
+          "c": 349622,
+          "v": 21
+        },
+        {
+          "t": "2026-09-10",
+          "o": 349622,
+          "h": 352056,
+          "l": 349577,
+          "c": 350114,
+          "v": 37
+        },
+        {
+          "t": "2026-09-11",
+          "o": 350114,
+          "h": 352882,
+          "l": 349756,
+          "c": 352453,
+          "v": 29
+        },
+        {
+          "t": "2026-09-12",
+          "o": 352453,
+          "h": 354540,
+          "l": 348719,
+          "c": 349956,
+          "v": 40
+        },
+        {
+          "t": "2026-09-13",
+          "o": 349956,
+          "h": 350664,
+          "l": 345172,
+          "c": 347102,
+          "v": 10
+        },
+        {
+          "t": "2026-09-14",
+          "o": 347102,
+          "h": 351128,
+          "l": 346938,
+          "c": 350109,
+          "v": 22
+        },
+        {
+          "t": "2026-09-15",
+          "o": 350109,
+          "h": 352100,
+          "l": 349000,
+          "c": 350899,
+          "v": 18
+        },
+        {
+          "t": "2026-09-16",
+          "o": 350899,
+          "h": 355875,
+          "l": 348489,
+          "c": 353330,
+          "v": 9
+        },
+        {
+          "t": "2026-09-17",
+          "o": 353330,
+          "h": 356354,
+          "l": 351642,
+          "c": 355230,
+          "v": 50
+        },
+        {
+          "t": "2026-09-18",
+          "o": 355230,
+          "h": 356307,
+          "l": 352348,
+          "c": 353199,
+          "v": 36
+        },
+        {
+          "t": "2026-09-19",
+          "o": 353199,
+          "h": 353414,
+          "l": 351390,
+          "c": 353204,
+          "v": 30
+        },
+        {
+          "t": "2026-09-20",
+          "o": 353204,
+          "h": 354490,
+          "l": 353067,
+          "c": 354397,
+          "v": 37
+        },
+        {
+          "t": "2026-09-21",
+          "o": 354397,
+          "h": 357140,
+          "l": 353716,
+          "c": 355980,
+          "v": 11
+        },
+        {
+          "t": "2026-09-22",
+          "o": 355980,
+          "h": 358768,
+          "l": 352010,
+          "c": 353459,
+          "v": 48
+        },
+        {
+          "t": "2026-09-23",
+          "o": 353459,
+          "h": 354535,
+          "l": 349110,
+          "c": 351089,
+          "v": 21
+        },
+        {
+          "t": "2026-09-24",
+          "o": 351089,
+          "h": 352460,
+          "l": 350354,
+          "c": 352375,
+          "v": 53
+        },
+        {
+          "t": "2026-09-25",
+          "o": 352375,
+          "h": 357287,
+          "l": 349661,
+          "c": 354622,
+          "v": 27
+        },
+        {
+          "t": "2026-09-26",
+          "o": 354622,
+          "h": 356771,
+          "l": 354205,
+          "c": 355939,
+          "v": 48
+        },
+        {
+          "t": "2026-09-27",
+          "o": 355939,
+          "h": 357015,
+          "l": 354762,
+          "c": 356595,
+          "v": 28
+        },
+        {
+          "t": "2026-09-28",
+          "o": 356595,
+          "h": 359552,
+          "l": 355620,
+          "c": 358981,
+          "v": 40
+        },
+        {
+          "t": "2026-09-29",
+          "o": 358981,
+          "h": 360749,
+          "l": 357417,
+          "c": 360171,
+          "v": 31
+        },
+        {
+          "t": "2026-09-30",
+          "o": 360171,
+          "h": 361046,
+          "l": 349593,
+          "c": 350000,
+          "v": 22
+        }
+      ],
+      "4": [
+        {
+          "t": "2026-08-02",
+          "o": 83000,
+          "h": 84345,
+          "l": 82941,
+          "c": 83754,
+          "v": 18
+        },
+        {
+          "t": "2026-08-03",
+          "o": 83754,
+          "h": 85266,
+          "l": 83504,
+          "c": 84823,
+          "v": 19
+        },
+        {
+          "t": "2026-08-04",
+          "o": 84823,
+          "h": 85399,
+          "l": 84720,
+          "c": 85301,
+          "v": 10
+        },
+        {
+          "t": "2026-08-05",
+          "o": 85301,
+          "h": 85400,
+          "l": 85090,
+          "c": 85230,
+          "v": 34
+        },
+        {
+          "t": "2026-08-06",
+          "o": 85230,
+          "h": 86571,
+          "l": 84704,
+          "c": 86026,
+          "v": 38
+        },
+        {
+          "t": "2026-08-07",
+          "o": 86026,
+          "h": 86490,
+          "l": 85413,
+          "c": 85711,
+          "v": 8
+        },
+        {
+          "t": "2026-08-08",
+          "o": 85711,
+          "h": 87228,
+          "l": 85508,
+          "c": 86577,
+          "v": 48
+        },
+        {
+          "t": "2026-08-09",
+          "o": 86577,
+          "h": 86739,
+          "l": 86043,
+          "c": 86359,
+          "v": 51
+        },
+        {
+          "t": "2026-08-10",
+          "o": 86359,
+          "h": 87907,
+          "l": 85758,
+          "c": 87306,
+          "v": 42
+        },
+        {
+          "t": "2026-08-11",
+          "o": 87306,
+          "h": 88016,
+          "l": 87196,
+          "c": 87702,
+          "v": 15
+        },
+        {
+          "t": "2026-08-12",
+          "o": 87702,
+          "h": 89122,
+          "l": 87148,
+          "c": 88444,
+          "v": 33
+        },
+        {
+          "t": "2026-08-13",
+          "o": 88444,
+          "h": 89108,
+          "l": 87393,
+          "c": 87882,
+          "v": 51
+        },
+        {
+          "t": "2026-08-14",
+          "o": 87882,
+          "h": 88724,
+          "l": 87701,
+          "c": 88618,
+          "v": 30
+        },
+        {
+          "t": "2026-08-15",
+          "o": 88618,
+          "h": 88806,
+          "l": 88345,
+          "c": 88707,
+          "v": 50
+        },
+        {
+          "t": "2026-08-16",
+          "o": 88707,
+          "h": 89255,
+          "l": 88064,
+          "c": 88938,
+          "v": 16
+        },
+        {
+          "t": "2026-08-17",
+          "o": 88938,
+          "h": 89147,
+          "l": 88160,
+          "c": 88603,
+          "v": 37
+        },
+        {
+          "t": "2026-08-18",
+          "o": 88603,
+          "h": 88641,
+          "l": 87546,
+          "c": 87995,
+          "v": 17
+        },
+        {
+          "t": "2026-08-19",
+          "o": 87995,
+          "h": 88646,
+          "l": 86688,
+          "c": 87341,
+          "v": 30
+        },
+        {
+          "t": "2026-08-20",
+          "o": 87341,
+          "h": 88507,
+          "l": 87136,
+          "c": 88113,
+          "v": 11
+        },
+        {
+          "t": "2026-08-21",
+          "o": 88113,
+          "h": 88450,
+          "l": 86713,
+          "c": 87376,
+          "v": 32
+        },
+        {
+          "t": "2026-08-22",
+          "o": 87376,
+          "h": 87806,
+          "l": 86513,
+          "c": 86919,
+          "v": 24
+        },
+        {
+          "t": "2026-08-23",
+          "o": 86919,
+          "h": 87163,
+          "l": 85886,
+          "c": 86324,
+          "v": 13
+        },
+        {
+          "t": "2026-08-24",
+          "o": 86324,
+          "h": 87732,
+          "l": 85652,
+          "c": 87181,
+          "v": 27
+        },
+        {
+          "t": "2026-08-25",
+          "o": 87181,
+          "h": 88082,
+          "l": 86904,
+          "c": 87944,
+          "v": 30
+        },
+        {
+          "t": "2026-08-26",
+          "o": 87944,
+          "h": 88527,
+          "l": 87176,
+          "c": 87602,
+          "v": 15
+        },
+        {
+          "t": "2026-08-27",
+          "o": 87602,
+          "h": 88246,
+          "l": 87317,
+          "c": 87829,
+          "v": 45
+        },
+        {
+          "t": "2026-08-28",
+          "o": 87829,
+          "h": 88622,
+          "l": 87511,
+          "c": 88467,
+          "v": 22
+        },
+        {
+          "t": "2026-08-29",
+          "o": 88467,
+          "h": 89450,
+          "l": 87865,
+          "c": 88773,
+          "v": 29
+        },
+        {
+          "t": "2026-08-30",
+          "o": 88773,
+          "h": 89463,
+          "l": 87872,
+          "c": 88064,
+          "v": 41
+        },
+        {
+          "t": "2026-08-31",
+          "o": 88064,
+          "h": 89048,
+          "l": 87806,
+          "c": 88458,
+          "v": 52
+        },
+        {
+          "t": "2026-09-01",
+          "o": 88458,
+          "h": 89339,
+          "l": 87861,
+          "c": 88714,
+          "v": 27
+        },
+        {
+          "t": "2026-09-02",
+          "o": 88714,
+          "h": 89371,
+          "l": 88427,
+          "c": 89062,
+          "v": 27
+        },
+        {
+          "t": "2026-09-03",
+          "o": 89062,
+          "h": 89710,
+          "l": 88174,
+          "c": 88316,
+          "v": 32
+        },
+        {
+          "t": "2026-09-04",
+          "o": 88316,
+          "h": 89104,
+          "l": 87740,
+          "c": 88720,
+          "v": 27
+        },
+        {
+          "t": "2026-09-05",
+          "o": 88720,
+          "h": 88768,
+          "l": 87725,
+          "c": 88318,
+          "v": 48
+        },
+        {
+          "t": "2026-09-06",
+          "o": 88318,
+          "h": 88818,
+          "l": 88057,
+          "c": 88315,
+          "v": 9
+        },
+        {
+          "t": "2026-09-07",
+          "o": 88315,
+          "h": 88601,
+          "l": 87596,
+          "c": 87711,
+          "v": 30
+        },
+        {
+          "t": "2026-09-08",
+          "o": 87711,
+          "h": 88974,
+          "l": 87455,
+          "c": 88437,
+          "v": 18
+        },
+        {
+          "t": "2026-09-09",
+          "o": 88437,
+          "h": 88831,
+          "l": 87604,
+          "c": 88163,
+          "v": 7
+        },
+        {
+          "t": "2026-09-10",
+          "o": 88163,
+          "h": 88605,
+          "l": 87322,
+          "c": 87581,
+          "v": 36
+        },
+        {
+          "t": "2026-09-11",
+          "o": 87581,
+          "h": 87856,
+          "l": 86842,
+          "c": 86933,
+          "v": 38
+        },
+        {
+          "t": "2026-09-12",
+          "o": 86933,
+          "h": 88126,
+          "l": 86278,
+          "c": 87800,
+          "v": 24
+        },
+        {
+          "t": "2026-09-13",
+          "o": 87800,
+          "h": 88333,
+          "l": 87235,
+          "c": 88292,
+          "v": 20
+        },
+        {
+          "t": "2026-09-14",
+          "o": 88292,
+          "h": 88367,
+          "l": 87310,
+          "c": 87606,
+          "v": 44
+        },
+        {
+          "t": "2026-09-15",
+          "o": 87606,
+          "h": 87858,
+          "l": 87007,
+          "c": 87246,
+          "v": 8
+        },
+        {
+          "t": "2026-09-16",
+          "o": 87246,
+          "h": 88188,
+          "l": 86630,
+          "c": 87603,
+          "v": 36
+        },
+        {
+          "t": "2026-09-17",
+          "o": 87603,
+          "h": 87891,
+          "l": 86889,
+          "c": 87426,
+          "v": 53
+        },
+        {
+          "t": "2026-09-18",
+          "o": 87426,
+          "h": 88020,
+          "l": 86742,
+          "c": 87713,
+          "v": 26
+        },
+        {
+          "t": "2026-09-19",
+          "o": 87713,
+          "h": 88148,
+          "l": 86993,
+          "c": 87248,
+          "v": 25
+        },
+        {
+          "t": "2026-09-20",
+          "o": 87248,
+          "h": 87689,
+          "l": 87237,
+          "c": 87266,
+          "v": 24
+        },
+        {
+          "t": "2026-09-21",
+          "o": 87266,
+          "h": 87947,
+          "l": 86518,
+          "c": 86824,
+          "v": 9
+        },
+        {
+          "t": "2026-09-22",
+          "o": 86824,
+          "h": 87366,
+          "l": 86136,
+          "c": 86938,
+          "v": 24
+        },
+        {
+          "t": "2026-09-23",
+          "o": 86938,
+          "h": 87384,
+          "l": 86221,
+          "c": 86333,
+          "v": 13
+        },
+        {
+          "t": "2026-09-24",
+          "o": 86333,
+          "h": 87434,
+          "l": 85849,
+          "c": 87192,
+          "v": 27
+        },
+        {
+          "t": "2026-09-25",
+          "o": 87192,
+          "h": 87813,
+          "l": 86611,
+          "c": 86956,
+          "v": 8
+        },
+        {
+          "t": "2026-09-26",
+          "o": 86956,
+          "h": 87388,
+          "l": 86046,
+          "c": 86714,
+          "v": 23
+        },
+        {
+          "t": "2026-09-27",
+          "o": 86714,
+          "h": 86942,
+          "l": 86263,
+          "c": 86363,
+          "v": 7
+        },
+        {
+          "t": "2026-09-28",
+          "o": 86363,
+          "h": 86961,
+          "l": 85768,
+          "c": 86402,
+          "v": 46
+        },
+        {
+          "t": "2026-09-29",
+          "o": 86402,
+          "h": 86697,
+          "l": 85879,
+          "c": 86301,
+          "v": 38
+        },
+        {
+          "t": "2026-09-30",
+          "o": 86301,
+          "h": 88037,
+          "l": 86280,
+          "c": 87500,
+          "v": 40
+        }
+      ],
+      "5": [
+        {
+          "t": "2026-08-02",
+          "o": 64080,
+          "h": 64632,
+          "l": 63754,
+          "c": 64455,
+          "v": 20
+        },
+        {
+          "t": "2026-08-03",
+          "o": 64455,
+          "h": 65589,
+          "l": 64445,
+          "c": 65300,
+          "v": 34
+        },
+        {
+          "t": "2026-08-04",
+          "o": 65300,
+          "h": 65868,
+          "l": 65041,
+          "c": 65823,
+          "v": 26
+        },
+        {
+          "t": "2026-08-05",
+          "o": 65823,
+          "h": 66579,
+          "l": 65763,
+          "c": 66521,
+          "v": 33
+        },
+        {
+          "t": "2026-08-06",
+          "o": 66521,
+          "h": 67398,
+          "l": 66215,
+          "c": 67062,
+          "v": 32
+        },
+        {
+          "t": "2026-08-07",
+          "o": 67062,
+          "h": 67560,
+          "l": 66965,
+          "c": 67046,
+          "v": 45
+        },
+        {
+          "t": "2026-08-08",
+          "o": 67046,
+          "h": 68076,
+          "l": 66928,
+          "c": 67562,
+          "v": 18
+        },
+        {
+          "t": "2026-08-09",
+          "o": 67562,
+          "h": 67648,
+          "l": 67277,
+          "c": 67513,
+          "v": 14
+        },
+        {
+          "t": "2026-08-10",
+          "o": 67513,
+          "h": 67890,
+          "l": 67011,
+          "c": 67544,
+          "v": 39
+        },
+        {
+          "t": "2026-08-11",
+          "o": 67544,
+          "h": 67806,
+          "l": 67028,
+          "c": 67290,
+          "v": 45
+        },
+        {
+          "t": "2026-08-12",
+          "o": 67290,
+          "h": 67698,
+          "l": 66819,
+          "c": 66984,
+          "v": 39
+        },
+        {
+          "t": "2026-08-13",
+          "o": 66984,
+          "h": 67225,
+          "l": 66259,
+          "c": 66771,
+          "v": 11
+        },
+        {
+          "t": "2026-08-14",
+          "o": 66771,
+          "h": 67565,
+          "l": 66536,
+          "c": 67394,
+          "v": 9
+        },
+        {
+          "t": "2026-08-15",
+          "o": 67394,
+          "h": 67678,
+          "l": 66616,
+          "c": 67062,
+          "v": 31
+        },
+        {
+          "t": "2026-08-16",
+          "o": 67062,
+          "h": 67620,
+          "l": 66800,
+          "c": 67415,
+          "v": 41
+        },
+        {
+          "t": "2026-08-17",
+          "o": 67415,
+          "h": 68048,
+          "l": 67400,
+          "c": 67664,
+          "v": 43
+        },
+        {
+          "t": "2026-08-18",
+          "o": 67664,
+          "h": 67998,
+          "l": 67056,
+          "c": 67414,
+          "v": 14
+        },
+        {
+          "t": "2026-08-19",
+          "o": 67414,
+          "h": 67754,
+          "l": 66828,
+          "c": 66953,
+          "v": 46
+        },
+        {
+          "t": "2026-08-20",
+          "o": 66953,
+          "h": 67229,
+          "l": 66294,
+          "c": 66549,
+          "v": 35
+        },
+        {
+          "t": "2026-08-21",
+          "o": 66549,
+          "h": 66966,
+          "l": 66540,
+          "c": 66822,
+          "v": 12
+        },
+        {
+          "t": "2026-08-22",
+          "o": 66822,
+          "h": 66952,
+          "l": 66662,
+          "c": 66908,
+          "v": 39
+        },
+        {
+          "t": "2026-08-23",
+          "o": 66908,
+          "h": 67524,
+          "l": 66707,
+          "c": 67400,
+          "v": 41
+        },
+        {
+          "t": "2026-08-24",
+          "o": 67400,
+          "h": 67597,
+          "l": 67253,
+          "c": 67491,
+          "v": 41
+        },
+        {
+          "t": "2026-08-25",
+          "o": 67491,
+          "h": 67800,
+          "l": 67043,
+          "c": 67298,
+          "v": 39
+        },
+        {
+          "t": "2026-08-26",
+          "o": 67298,
+          "h": 67920,
+          "l": 67035,
+          "c": 67695,
+          "v": 32
+        },
+        {
+          "t": "2026-08-27",
+          "o": 67695,
+          "h": 68414,
+          "l": 67268,
+          "c": 68314,
+          "v": 22
+        },
+        {
+          "t": "2026-08-28",
+          "o": 68314,
+          "h": 68629,
+          "l": 68049,
+          "c": 68400,
+          "v": 45
+        },
+        {
+          "t": "2026-08-29",
+          "o": 68400,
+          "h": 68816,
+          "l": 67726,
+          "c": 67998,
+          "v": 40
+        },
+        {
+          "t": "2026-08-30",
+          "o": 67998,
+          "h": 68253,
+          "l": 67934,
+          "c": 68243,
+          "v": 53
+        },
+        {
+          "t": "2026-08-31",
+          "o": 68243,
+          "h": 68755,
+          "l": 68116,
+          "c": 68581,
+          "v": 53
+        },
+        {
+          "t": "2026-09-01",
+          "o": 68581,
+          "h": 68940,
+          "l": 67604,
+          "c": 67949,
+          "v": 49
+        },
+        {
+          "t": "2026-09-02",
+          "o": 67949,
+          "h": 68397,
+          "l": 67901,
+          "c": 68258,
+          "v": 11
+        },
+        {
+          "t": "2026-09-03",
+          "o": 68258,
+          "h": 69014,
+          "l": 68170,
+          "c": 68700,
+          "v": 37
+        },
+        {
+          "t": "2026-09-04",
+          "o": 68700,
+          "h": 69053,
+          "l": 68159,
+          "c": 69047,
+          "v": 20
+        },
+        {
+          "t": "2026-09-05",
+          "o": 69047,
+          "h": 69288,
+          "l": 68694,
+          "c": 68939,
+          "v": 27
+        },
+        {
+          "t": "2026-09-06",
+          "o": 68939,
+          "h": 69086,
+          "l": 68135,
+          "c": 68345,
+          "v": 39
+        },
+        {
+          "t": "2026-09-07",
+          "o": 68345,
+          "h": 68982,
+          "l": 67826,
+          "c": 68649,
+          "v": 33
+        },
+        {
+          "t": "2026-09-08",
+          "o": 68649,
+          "h": 69473,
+          "l": 68554,
+          "c": 69077,
+          "v": 13
+        },
+        {
+          "t": "2026-09-09",
+          "o": 69077,
+          "h": 69577,
+          "l": 68812,
+          "c": 68926,
+          "v": 23
+        },
+        {
+          "t": "2026-09-10",
+          "o": 68926,
+          "h": 69154,
+          "l": 68307,
+          "c": 68329,
+          "v": 7
+        },
+        {
+          "t": "2026-09-11",
+          "o": 68329,
+          "h": 68361,
+          "l": 68040,
+          "c": 68338,
+          "v": 21
+        },
+        {
+          "t": "2026-09-12",
+          "o": 68338,
+          "h": 68971,
+          "l": 68320,
+          "c": 68639,
+          "v": 50
+        },
+        {
+          "t": "2026-09-13",
+          "o": 68639,
+          "h": 69394,
+          "l": 68622,
+          "c": 69166,
+          "v": 12
+        },
+        {
+          "t": "2026-09-14",
+          "o": 69166,
+          "h": 69735,
+          "l": 68896,
+          "c": 69595,
+          "v": 39
+        },
+        {
+          "t": "2026-09-15",
+          "o": 69595,
+          "h": 70190,
+          "l": 69089,
+          "c": 69784,
+          "v": 54
+        },
+        {
+          "t": "2026-09-16",
+          "o": 69784,
+          "h": 69796,
+          "l": 68888,
+          "c": 69042,
+          "v": 22
+        },
+        {
+          "t": "2026-09-17",
+          "o": 69042,
+          "h": 69050,
+          "l": 68809,
+          "c": 68918,
+          "v": 44
+        },
+        {
+          "t": "2026-09-18",
+          "o": 68918,
+          "h": 69380,
+          "l": 68217,
+          "c": 68387,
+          "v": 14
+        },
+        {
+          "t": "2026-09-19",
+          "o": 68387,
+          "h": 68477,
+          "l": 68111,
+          "c": 68406,
+          "v": 24
+        },
+        {
+          "t": "2026-09-20",
+          "o": 68406,
+          "h": 68470,
+          "l": 67573,
+          "c": 67795,
+          "v": 41
+        },
+        {
+          "t": "2026-09-21",
+          "o": 67795,
+          "h": 68080,
+          "l": 67537,
+          "c": 68034,
+          "v": 9
+        },
+        {
+          "t": "2026-09-22",
+          "o": 68034,
+          "h": 68216,
+          "l": 67383,
+          "c": 67642,
+          "v": 9
+        },
+        {
+          "t": "2026-09-23",
+          "o": 67642,
+          "h": 68488,
+          "l": 67505,
+          "c": 68114,
+          "v": 49
+        },
+        {
+          "t": "2026-09-24",
+          "o": 68114,
+          "h": 68337,
+          "l": 67450,
+          "c": 67981,
+          "v": 51
+        },
+        {
+          "t": "2026-09-25",
+          "o": 67981,
+          "h": 68457,
+          "l": 67413,
+          "c": 67630,
+          "v": 23
+        },
+        {
+          "t": "2026-09-26",
+          "o": 67630,
+          "h": 67892,
+          "l": 67171,
+          "c": 67560,
+          "v": 8
+        },
+        {
+          "t": "2026-09-27",
+          "o": 67560,
+          "h": 68185,
+          "l": 67512,
+          "c": 67880,
+          "v": 42
+        },
+        {
+          "t": "2026-09-28",
+          "o": 67880,
+          "h": 68053,
+          "l": 66918,
+          "c": 67435,
+          "v": 28
+        },
+        {
+          "t": "2026-09-29",
+          "o": 67435,
+          "h": 67722,
+          "l": 67103,
+          "c": 67687,
+          "v": 50
+        },
+        {
+          "t": "2026-09-30",
+          "o": 67687,
+          "h": 68140,
+          "l": 67248,
+          "c": 68000,
+          "v": 53
+        }
+      ],
+      "6": [
+        {
+          "t": "2026-08-02",
+          "o": 172232,
+          "h": 173616,
+          "l": 172155,
+          "c": 172310,
+          "v": 13
+        },
+        {
+          "t": "2026-08-03",
+          "o": 172310,
+          "h": 176715,
+          "l": 172259,
+          "c": 175476,
+          "v": 37
+        },
+        {
+          "t": "2026-08-04",
+          "o": 175476,
+          "h": 176910,
+          "l": 174752,
+          "c": 176530,
+          "v": 25
+        },
+        {
+          "t": "2026-08-05",
+          "o": 176530,
+          "h": 176841,
+          "l": 175809,
+          "c": 176372,
+          "v": 37
+        },
+        {
+          "t": "2026-08-06",
+          "o": 176372,
+          "h": 178905,
+          "l": 176180,
+          "c": 178755,
+          "v": 50
+        },
+        {
+          "t": "2026-08-07",
+          "o": 178755,
+          "h": 180649,
+          "l": 177302,
+          "c": 180413,
+          "v": 31
+        },
+        {
+          "t": "2026-08-08",
+          "o": 180413,
+          "h": 181746,
+          "l": 178933,
+          "c": 179576,
+          "v": 10
+        },
+        {
+          "t": "2026-08-09",
+          "o": 179576,
+          "h": 180135,
+          "l": 177974,
+          "c": 178696,
+          "v": 28
+        },
+        {
+          "t": "2026-08-10",
+          "o": 178696,
+          "h": 179149,
+          "l": 177002,
+          "c": 178077,
+          "v": 48
+        },
+        {
+          "t": "2026-08-11",
+          "o": 178077,
+          "h": 180195,
+          "l": 177325,
+          "c": 179624,
+          "v": 51
+        },
+        {
+          "t": "2026-08-12",
+          "o": 179624,
+          "h": 181194,
+          "l": 178486,
+          "c": 180591,
+          "v": 21
+        },
+        {
+          "t": "2026-08-13",
+          "o": 180591,
+          "h": 182012,
+          "l": 179773,
+          "c": 180093,
+          "v": 36
+        },
+        {
+          "t": "2026-08-14",
+          "o": 180093,
+          "h": 181313,
+          "l": 178371,
+          "c": 179721,
+          "v": 24
+        },
+        {
+          "t": "2026-08-15",
+          "o": 179721,
+          "h": 181206,
+          "l": 178936,
+          "c": 180643,
+          "v": 39
+        },
+        {
+          "t": "2026-08-16",
+          "o": 180643,
+          "h": 183142,
+          "l": 179470,
+          "c": 182248,
+          "v": 14
+        },
+        {
+          "t": "2026-08-17",
+          "o": 182248,
+          "h": 184627,
+          "l": 180995,
+          "c": 183910,
+          "v": 24
+        },
+        {
+          "t": "2026-08-18",
+          "o": 183910,
+          "h": 185295,
+          "l": 181696,
+          "c": 182596,
+          "v": 24
+        },
+        {
+          "t": "2026-08-19",
+          "o": 182596,
+          "h": 183390,
+          "l": 181499,
+          "c": 181996,
+          "v": 46
+        },
+        {
+          "t": "2026-08-20",
+          "o": 181996,
+          "h": 184350,
+          "l": 180604,
+          "c": 183353,
+          "v": 9
+        },
+        {
+          "t": "2026-08-21",
+          "o": 183353,
+          "h": 184703,
+          "l": 180935,
+          "c": 182133,
+          "v": 25
+        },
+        {
+          "t": "2026-08-22",
+          "o": 182133,
+          "h": 184119,
+          "l": 181907,
+          "c": 183113,
+          "v": 42
+        },
+        {
+          "t": "2026-08-23",
+          "o": 183113,
+          "h": 184682,
+          "l": 182906,
+          "c": 183812,
+          "v": 6
+        },
+        {
+          "t": "2026-08-24",
+          "o": 183812,
+          "h": 186500,
+          "l": 183306,
+          "c": 185067,
+          "v": 48
+        },
+        {
+          "t": "2026-08-25",
+          "o": 185067,
+          "h": 185736,
+          "l": 184012,
+          "c": 184379,
+          "v": 11
+        },
+        {
+          "t": "2026-08-26",
+          "o": 184379,
+          "h": 185376,
+          "l": 182980,
+          "c": 184252,
+          "v": 30
+        },
+        {
+          "t": "2026-08-27",
+          "o": 184252,
+          "h": 186646,
+          "l": 183287,
+          "c": 186023,
+          "v": 42
+        },
+        {
+          "t": "2026-08-28",
+          "o": 186023,
+          "h": 187405,
+          "l": 185449,
+          "c": 186190,
+          "v": 24
+        },
+        {
+          "t": "2026-08-29",
+          "o": 186190,
+          "h": 187870,
+          "l": 185333,
+          "c": 187318,
+          "v": 8
+        },
+        {
+          "t": "2026-08-30",
+          "o": 187318,
+          "h": 188680,
+          "l": 184644,
+          "c": 185510,
+          "v": 17
+        },
+        {
+          "t": "2026-08-31",
+          "o": 185510,
+          "h": 187695,
+          "l": 184566,
+          "c": 186379,
+          "v": 49
+        },
+        {
+          "t": "2026-09-01",
+          "o": 186379,
+          "h": 186912,
+          "l": 184536,
+          "c": 184963,
+          "v": 31
+        },
+        {
+          "t": "2026-09-02",
+          "o": 184963,
+          "h": 187659,
+          "l": 184879,
+          "c": 186454,
+          "v": 11
+        },
+        {
+          "t": "2026-09-03",
+          "o": 186454,
+          "h": 187745,
+          "l": 186032,
+          "c": 186821,
+          "v": 23
+        },
+        {
+          "t": "2026-09-04",
+          "o": 186821,
+          "h": 188364,
+          "l": 186109,
+          "c": 187443,
+          "v": 41
+        },
+        {
+          "t": "2026-09-05",
+          "o": 187443,
+          "h": 189224,
+          "l": 186497,
+          "c": 188753,
+          "v": 43
+        },
+        {
+          "t": "2026-09-06",
+          "o": 188753,
+          "h": 189643,
+          "l": 187694,
+          "c": 188189,
+          "v": 46
+        },
+        {
+          "t": "2026-09-07",
+          "o": 188189,
+          "h": 189388,
+          "l": 187325,
+          "c": 189384,
+          "v": 25
+        },
+        {
+          "t": "2026-09-08",
+          "o": 189384,
+          "h": 190632,
+          "l": 186434,
+          "c": 187537,
+          "v": 26
+        },
+        {
+          "t": "2026-09-09",
+          "o": 187537,
+          "h": 188793,
+          "l": 184870,
+          "c": 186320,
+          "v": 22
+        },
+        {
+          "t": "2026-09-10",
+          "o": 186320,
+          "h": 186403,
+          "l": 185577,
+          "c": 185619,
+          "v": 46
+        },
+        {
+          "t": "2026-09-11",
+          "o": 185619,
+          "h": 185762,
+          "l": 184080,
+          "c": 184568,
+          "v": 25
+        },
+        {
+          "t": "2026-09-12",
+          "o": 184568,
+          "h": 184830,
+          "l": 183410,
+          "c": 184502,
+          "v": 21
+        },
+        {
+          "t": "2026-09-13",
+          "o": 184502,
+          "h": 185125,
+          "l": 183969,
+          "c": 184628,
+          "v": 35
+        },
+        {
+          "t": "2026-09-14",
+          "o": 184628,
+          "h": 185827,
+          "l": 184075,
+          "c": 184485,
+          "v": 6
+        },
+        {
+          "t": "2026-09-15",
+          "o": 184485,
+          "h": 185354,
+          "l": 183369,
+          "c": 183611,
+          "v": 12
+        },
+        {
+          "t": "2026-09-16",
+          "o": 183611,
+          "h": 186084,
+          "l": 183504,
+          "c": 185396,
+          "v": 16
+        },
+        {
+          "t": "2026-09-17",
+          "o": 185396,
+          "h": 185703,
+          "l": 182957,
+          "c": 184292,
+          "v": 23
+        },
+        {
+          "t": "2026-09-18",
+          "o": 184292,
+          "h": 186012,
+          "l": 183836,
+          "c": 185099,
+          "v": 49
+        },
+        {
+          "t": "2026-09-19",
+          "o": 185099,
+          "h": 186169,
+          "l": 184985,
+          "c": 185278,
+          "v": 27
+        },
+        {
+          "t": "2026-09-20",
+          "o": 185278,
+          "h": 186130,
+          "l": 184559,
+          "c": 184897,
+          "v": 39
+        },
+        {
+          "t": "2026-09-21",
+          "o": 184897,
+          "h": 186005,
+          "l": 183561,
+          "c": 184093,
+          "v": 10
+        },
+        {
+          "t": "2026-09-22",
+          "o": 184093,
+          "h": 184337,
+          "l": 181721,
+          "c": 183197,
+          "v": 53
+        },
+        {
+          "t": "2026-09-23",
+          "o": 183197,
+          "h": 184273,
+          "l": 181748,
+          "c": 183480,
+          "v": 35
+        },
+        {
+          "t": "2026-09-24",
+          "o": 183480,
+          "h": 183805,
+          "l": 182032,
+          "c": 182209,
+          "v": 28
+        },
+        {
+          "t": "2026-09-25",
+          "o": 182209,
+          "h": 184084,
+          "l": 181197,
+          "c": 182733,
+          "v": 25
+        },
+        {
+          "t": "2026-09-26",
+          "o": 182733,
+          "h": 184049,
+          "l": 181040,
+          "c": 181680,
+          "v": 52
+        },
+        {
+          "t": "2026-09-27",
+          "o": 181680,
+          "h": 182945,
+          "l": 180762,
+          "c": 181138,
+          "v": 35
+        },
+        {
+          "t": "2026-09-28",
+          "o": 181138,
+          "h": 182263,
+          "l": 179190,
+          "c": 180151,
+          "v": 34
+        },
+        {
+          "t": "2026-09-29",
+          "o": 180151,
+          "h": 181783,
+          "l": 179286,
+          "c": 181583,
+          "v": 16
+        },
+        {
+          "t": "2026-09-30",
+          "o": 181583,
+          "h": 186161,
+          "l": 180878,
+          "c": 185000,
+          "v": 14
+        }
+      ],
+      "7": [
+        {
+          "t": "2026-08-02",
+          "o": 238694,
+          "h": 242349,
+          "l": 237558,
+          "c": 241624,
+          "v": 15
+        },
+        {
+          "t": "2026-08-03",
+          "o": 241624,
+          "h": 246092,
+          "l": 240232,
+          "c": 244623,
+          "v": 52
+        },
+        {
+          "t": "2026-08-04",
+          "o": 244623,
+          "h": 245828,
+          "l": 242987,
+          "c": 245432,
+          "v": 41
+        },
+        {
+          "t": "2026-08-05",
+          "o": 245432,
+          "h": 247308,
+          "l": 244851,
+          "c": 246958,
+          "v": 36
+        },
+        {
+          "t": "2026-08-06",
+          "o": 246958,
+          "h": 250862,
+          "l": 245077,
+          "c": 248983,
+          "v": 44
+        },
+        {
+          "t": "2026-08-07",
+          "o": 248983,
+          "h": 252088,
+          "l": 247575,
+          "c": 251266,
+          "v": 19
+        },
+        {
+          "t": "2026-08-08",
+          "o": 251266,
+          "h": 255186,
+          "l": 250542,
+          "c": 253357,
+          "v": 29
+        },
+        {
+          "t": "2026-08-09",
+          "o": 253357,
+          "h": 253965,
+          "l": 250510,
+          "c": 251450,
+          "v": 40
+        },
+        {
+          "t": "2026-08-10",
+          "o": 251450,
+          "h": 251669,
+          "l": 249866,
+          "c": 251505,
+          "v": 45
+        },
+        {
+          "t": "2026-08-11",
+          "o": 251505,
+          "h": 252339,
+          "l": 248426,
+          "c": 250091,
+          "v": 33
+        },
+        {
+          "t": "2026-08-12",
+          "o": 250091,
+          "h": 251766,
+          "l": 249530,
+          "c": 251391,
+          "v": 27
+        },
+        {
+          "t": "2026-08-13",
+          "o": 251391,
+          "h": 252298,
+          "l": 248973,
+          "c": 249888,
+          "v": 44
+        },
+        {
+          "t": "2026-08-14",
+          "o": 249888,
+          "h": 251863,
+          "l": 247948,
+          "c": 248119,
+          "v": 51
+        },
+        {
+          "t": "2026-08-15",
+          "o": 248119,
+          "h": 249640,
+          "l": 244689,
+          "c": 246609,
+          "v": 21
+        },
+        {
+          "t": "2026-08-16",
+          "o": 246609,
+          "h": 249341,
+          "l": 245898,
+          "c": 248285,
+          "v": 39
+        },
+        {
+          "t": "2026-08-17",
+          "o": 248285,
+          "h": 250067,
+          "l": 246430,
+          "c": 246910,
+          "v": 30
+        },
+        {
+          "t": "2026-08-18",
+          "o": 246910,
+          "h": 247899,
+          "l": 244375,
+          "c": 245624,
+          "v": 21
+        },
+        {
+          "t": "2026-08-19",
+          "o": 245624,
+          "h": 246089,
+          "l": 243430,
+          "c": 244698,
+          "v": 14
+        },
+        {
+          "t": "2026-08-20",
+          "o": 244698,
+          "h": 248319,
+          "l": 244465,
+          "c": 247083,
+          "v": 34
+        },
+        {
+          "t": "2026-08-21",
+          "o": 247083,
+          "h": 249170,
+          "l": 245327,
+          "c": 247778,
+          "v": 52
+        },
+        {
+          "t": "2026-08-22",
+          "o": 247778,
+          "h": 250344,
+          "l": 246045,
+          "c": 250051,
+          "v": 9
+        },
+        {
+          "t": "2026-08-23",
+          "o": 250051,
+          "h": 250986,
+          "l": 247648,
+          "c": 249414,
+          "v": 34
+        },
+        {
+          "t": "2026-08-24",
+          "o": 249414,
+          "h": 250168,
+          "l": 247706,
+          "c": 249009,
+          "v": 14
+        },
+        {
+          "t": "2026-08-25",
+          "o": 249009,
+          "h": 251353,
+          "l": 248366,
+          "c": 249705,
+          "v": 21
+        },
+        {
+          "t": "2026-08-26",
+          "o": 249705,
+          "h": 251946,
+          "l": 248236,
+          "c": 251441,
+          "v": 47
+        },
+        {
+          "t": "2026-08-27",
+          "o": 251441,
+          "h": 251457,
+          "l": 250436,
+          "c": 250495,
+          "v": 20
+        },
+        {
+          "t": "2026-08-28",
+          "o": 250495,
+          "h": 250536,
+          "l": 248507,
+          "c": 249349,
+          "v": 47
+        },
+        {
+          "t": "2026-08-29",
+          "o": 249349,
+          "h": 249687,
+          "l": 248201,
+          "c": 248639,
+          "v": 19
+        },
+        {
+          "t": "2026-08-30",
+          "o": 248639,
+          "h": 251128,
+          "l": 247780,
+          "c": 249224,
+          "v": 29
+        },
+        {
+          "t": "2026-08-31",
+          "o": 249224,
+          "h": 251335,
+          "l": 248217,
+          "c": 250604,
+          "v": 50
+        },
+        {
+          "t": "2026-09-01",
+          "o": 250604,
+          "h": 250856,
+          "l": 250075,
+          "c": 250217,
+          "v": 53
+        },
+        {
+          "t": "2026-09-02",
+          "o": 250217,
+          "h": 253157,
+          "l": 248750,
+          "c": 251902,
+          "v": 43
+        },
+        {
+          "t": "2026-09-03",
+          "o": 251902,
+          "h": 252452,
+          "l": 250753,
+          "c": 251241,
+          "v": 27
+        },
+        {
+          "t": "2026-09-04",
+          "o": 251241,
+          "h": 252547,
+          "l": 249937,
+          "c": 252377,
+          "v": 34
+        },
+        {
+          "t": "2026-09-05",
+          "o": 252377,
+          "h": 253762,
+          "l": 250073,
+          "c": 250559,
+          "v": 21
+        },
+        {
+          "t": "2026-09-06",
+          "o": 250559,
+          "h": 253114,
+          "l": 249855,
+          "c": 252800,
+          "v": 27
+        },
+        {
+          "t": "2026-09-07",
+          "o": 252800,
+          "h": 253219,
+          "l": 252052,
+          "c": 252808,
+          "v": 28
+        },
+        {
+          "t": "2026-09-08",
+          "o": 252808,
+          "h": 254417,
+          "l": 249291,
+          "c": 250401,
+          "v": 22
+        },
+        {
+          "t": "2026-09-09",
+          "o": 250401,
+          "h": 250811,
+          "l": 248726,
+          "c": 249504,
+          "v": 39
+        },
+        {
+          "t": "2026-09-10",
+          "o": 249504,
+          "h": 251190,
+          "l": 247082,
+          "c": 248480,
+          "v": 17
+        },
+        {
+          "t": "2026-09-11",
+          "o": 248480,
+          "h": 250830,
+          "l": 247020,
+          "c": 249341,
+          "v": 8
+        },
+        {
+          "t": "2026-09-12",
+          "o": 249341,
+          "h": 249983,
+          "l": 246560,
+          "c": 248233,
+          "v": 47
+        },
+        {
+          "t": "2026-09-13",
+          "o": 248233,
+          "h": 250636,
+          "l": 247066,
+          "c": 249244,
+          "v": 27
+        },
+        {
+          "t": "2026-09-14",
+          "o": 249244,
+          "h": 251161,
+          "l": 247664,
+          "c": 248364,
+          "v": 49
+        },
+        {
+          "t": "2026-09-15",
+          "o": 248364,
+          "h": 251627,
+          "l": 246860,
+          "c": 249682,
+          "v": 10
+        },
+        {
+          "t": "2026-09-16",
+          "o": 249682,
+          "h": 250981,
+          "l": 248080,
+          "c": 249031,
+          "v": 50
+        },
+        {
+          "t": "2026-09-17",
+          "o": 249031,
+          "h": 250649,
+          "l": 247529,
+          "c": 248198,
+          "v": 14
+        },
+        {
+          "t": "2026-09-18",
+          "o": 248198,
+          "h": 248253,
+          "l": 245764,
+          "c": 247049,
+          "v": 37
+        },
+        {
+          "t": "2026-09-19",
+          "o": 247049,
+          "h": 249377,
+          "l": 246607,
+          "c": 249155,
+          "v": 26
+        },
+        {
+          "t": "2026-09-20",
+          "o": 249155,
+          "h": 251432,
+          "l": 247911,
+          "c": 251254,
+          "v": 8
+        },
+        {
+          "t": "2026-09-21",
+          "o": 251254,
+          "h": 253850,
+          "l": 250458,
+          "c": 252130,
+          "v": 10
+        },
+        {
+          "t": "2026-09-22",
+          "o": 252130,
+          "h": 255268,
+          "l": 251150,
+          "c": 253493,
+          "v": 38
+        },
+        {
+          "t": "2026-09-23",
+          "o": 253493,
+          "h": 254665,
+          "l": 252020,
+          "c": 252159,
+          "v": 24
+        },
+        {
+          "t": "2026-09-24",
+          "o": 252159,
+          "h": 252723,
+          "l": 251135,
+          "c": 251945,
+          "v": 51
+        },
+        {
+          "t": "2026-09-25",
+          "o": 251945,
+          "h": 253745,
+          "l": 250273,
+          "c": 251450,
+          "v": 40
+        },
+        {
+          "t": "2026-09-26",
+          "o": 251450,
+          "h": 252956,
+          "l": 249556,
+          "c": 249943,
+          "v": 37
+        },
+        {
+          "t": "2026-09-27",
+          "o": 249943,
+          "h": 251109,
+          "l": 249546,
+          "c": 250930,
+          "v": 21
+        },
+        {
+          "t": "2026-09-28",
+          "o": 250930,
+          "h": 252507,
+          "l": 249430,
+          "c": 251950,
+          "v": 16
+        },
+        {
+          "t": "2026-09-29",
+          "o": 251950,
+          "h": 253506,
+          "l": 248520,
+          "c": 249707,
+          "v": 27
+        },
+        {
+          "t": "2026-09-30",
+          "o": 249707,
+          "h": 250550,
+          "l": 249201,
+          "c": 250000,
+          "v": 27
+        }
+      ]
+    },
+    "tape": {
+      "1": [
+        {
+          "id": "tape-1-2026-09-23-0",
+          "propertyId": "1",
+          "priceCents": 45367,
+          "shares": 8,
+          "taker": "sell",
+          "at": "2026-09-23T06:15:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-23-1",
+          "propertyId": "1",
+          "priceCents": 45620,
+          "shares": 8,
+          "taker": "sell",
+          "at": "2026-09-23T12:00:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-23-2",
+          "propertyId": "1",
+          "priceCents": 45599,
+          "shares": 2,
+          "taker": "buy",
+          "at": "2026-09-23T17:45:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-24-0",
+          "propertyId": "1",
+          "priceCents": 45544,
+          "shares": 7,
+          "taker": "buy",
+          "at": "2026-09-24T06:15:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-24-1",
+          "propertyId": "1",
+          "priceCents": 45544,
+          "shares": 4,
+          "taker": "buy",
+          "at": "2026-09-24T12:00:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-24-2",
+          "propertyId": "1",
+          "priceCents": 45544,
+          "shares": 3,
+          "taker": "buy",
+          "at": "2026-09-24T17:45:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-25-0",
+          "propertyId": "1",
+          "priceCents": 45801,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-25T06:15:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-25-1",
+          "propertyId": "1",
+          "priceCents": 45661,
+          "shares": 2,
+          "taker": "buy",
+          "at": "2026-09-25T12:00:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-25-2",
+          "propertyId": "1",
+          "priceCents": 45547,
+          "shares": 5,
+          "taker": "sell",
+          "at": "2026-09-25T17:45:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-26-0",
+          "propertyId": "1",
+          "priceCents": 45778,
+          "shares": 6,
+          "taker": "sell",
+          "at": "2026-09-26T06:15:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-26-1",
+          "propertyId": "1",
+          "priceCents": 45574,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-26T12:00:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-26-2",
+          "propertyId": "1",
+          "priceCents": 45896,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-26T17:45:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-27-0",
+          "propertyId": "1",
+          "priceCents": 45940,
+          "shares": 1,
+          "taker": "buy",
+          "at": "2026-09-27T06:15:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-27-1",
+          "propertyId": "1",
+          "priceCents": 45808,
+          "shares": 1,
+          "taker": "buy",
+          "at": "2026-09-27T12:00:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-27-2",
+          "propertyId": "1",
+          "priceCents": 46018,
+          "shares": 1,
+          "taker": "sell",
+          "at": "2026-09-27T17:45:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-28-0",
+          "propertyId": "1",
+          "priceCents": 45912,
+          "shares": 3,
+          "taker": "buy",
+          "at": "2026-09-28T06:15:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-28-1",
+          "propertyId": "1",
+          "priceCents": 45827,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-28T12:00:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-28-2",
+          "propertyId": "1",
+          "priceCents": 45594,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-28T17:45:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-29-0",
+          "propertyId": "1",
+          "priceCents": 45691,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-29T06:15:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-29-1",
+          "propertyId": "1",
+          "priceCents": 45529,
+          "shares": 8,
+          "taker": "sell",
+          "at": "2026-09-29T12:00:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-29-2",
+          "propertyId": "1",
+          "priceCents": 45603,
+          "shares": 4,
+          "taker": "buy",
+          "at": "2026-09-29T17:45:00.000Z"
+        },
+        {
+          "id": "tape-1-2026-09-30-0",
+          "propertyId": "1",
+          "priceCents": 45152,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-30T03:58:08.759Z"
+        },
+        {
+          "id": "tape-1-2026-09-30-1",
+          "propertyId": "1",
+          "priceCents": 45597,
+          "shares": 9,
+          "taker": "buy",
+          "at": "2026-09-30T07:26:17.519Z"
+        },
+        {
+          "id": "tape-1-2026-09-30-2",
+          "propertyId": "1",
+          "priceCents": 45304,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-30T10:54:26.279Z"
+        }
+      ],
+      "2": [
+        {
+          "id": "tape-2-2026-09-23-0",
+          "propertyId": "2",
+          "priceCents": 119284,
+          "shares": 3,
+          "taker": "buy",
+          "at": "2026-09-23T06:15:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-23-1",
+          "propertyId": "2",
+          "priceCents": 119674,
+          "shares": 6,
+          "taker": "buy",
+          "at": "2026-09-23T12:00:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-23-2",
+          "propertyId": "2",
+          "priceCents": 119771,
+          "shares": 5,
+          "taker": "sell",
+          "at": "2026-09-23T17:45:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-24-0",
+          "propertyId": "2",
+          "priceCents": 120205,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-24T06:15:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-24-1",
+          "propertyId": "2",
+          "priceCents": 120075,
+          "shares": 2,
+          "taker": "buy",
+          "at": "2026-09-24T12:00:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-24-2",
+          "propertyId": "2",
+          "priceCents": 120151,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-24T17:45:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-25-0",
+          "propertyId": "2",
+          "priceCents": 120228,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-25T06:15:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-25-1",
+          "propertyId": "2",
+          "priceCents": 119839,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-25T12:00:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-25-2",
+          "propertyId": "2",
+          "priceCents": 120739,
+          "shares": 8,
+          "taker": "buy",
+          "at": "2026-09-25T17:45:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-26-0",
+          "propertyId": "2",
+          "priceCents": 120290,
+          "shares": 2,
+          "taker": "buy",
+          "at": "2026-09-26T06:15:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-26-1",
+          "propertyId": "2",
+          "priceCents": 120581,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-26T12:00:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-26-2",
+          "propertyId": "2",
+          "priceCents": 120100,
+          "shares": 8,
+          "taker": "buy",
+          "at": "2026-09-26T17:45:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-27-0",
+          "propertyId": "2",
+          "priceCents": 120176,
+          "shares": 4,
+          "taker": "buy",
+          "at": "2026-09-27T06:15:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-27-1",
+          "propertyId": "2",
+          "priceCents": 120887,
+          "shares": 3,
+          "taker": "sell",
+          "at": "2026-09-27T12:00:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-27-2",
+          "propertyId": "2",
+          "priceCents": 119673,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-27T17:45:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-28-0",
+          "propertyId": "2",
+          "priceCents": 119576,
+          "shares": 8,
+          "taker": "sell",
+          "at": "2026-09-28T06:15:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-28-1",
+          "propertyId": "2",
+          "priceCents": 119553,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-28T12:00:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-28-2",
+          "propertyId": "2",
+          "priceCents": 119819,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-28T17:45:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-29-0",
+          "propertyId": "2",
+          "priceCents": 120221,
+          "shares": 6,
+          "taker": "buy",
+          "at": "2026-09-29T06:15:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-29-1",
+          "propertyId": "2",
+          "priceCents": 119834,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-29T12:00:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-29-2",
+          "propertyId": "2",
+          "priceCents": 120224,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-29T17:45:00.000Z"
+        },
+        {
+          "id": "tape-2-2026-09-30-0",
+          "propertyId": "2",
+          "priceCents": 120191,
+          "shares": 1,
+          "taker": "sell",
+          "at": "2026-09-30T03:58:08.786Z"
+        },
+        {
+          "id": "tape-2-2026-09-30-1",
+          "propertyId": "2",
+          "priceCents": 120287,
+          "shares": 6,
+          "taker": "buy",
+          "at": "2026-09-30T07:26:17.572Z"
+        },
+        {
+          "id": "tape-2-2026-09-30-2",
+          "propertyId": "2",
+          "priceCents": 120466,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-30T10:54:26.358Z"
+        }
+      ],
+      "3": [
+        {
+          "id": "tape-3-2026-09-23-0",
+          "propertyId": "3",
+          "priceCents": 352645,
+          "shares": 6,
+          "taker": "sell",
+          "at": "2026-09-23T06:15:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-23-1",
+          "propertyId": "3",
+          "priceCents": 352929,
+          "shares": 3,
+          "taker": "sell",
+          "at": "2026-09-23T12:00:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-23-2",
+          "propertyId": "3",
+          "priceCents": 354326,
+          "shares": 9,
+          "taker": "buy",
+          "at": "2026-09-23T17:45:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-24-0",
+          "propertyId": "3",
+          "priceCents": 350916,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-24T06:15:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-24-1",
+          "propertyId": "3",
+          "priceCents": 352349,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-24T12:00:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-24-2",
+          "propertyId": "3",
+          "priceCents": 352460,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-24T17:45:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-25-0",
+          "propertyId": "3",
+          "priceCents": 351696,
+          "shares": 4,
+          "taker": "buy",
+          "at": "2026-09-25T06:15:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-25-1",
+          "propertyId": "3",
+          "priceCents": 355234,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-25T12:00:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-25-2",
+          "propertyId": "3",
+          "priceCents": 352380,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-25T17:45:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-26-0",
+          "propertyId": "3",
+          "priceCents": 356390,
+          "shares": 9,
+          "taker": "buy",
+          "at": "2026-09-26T06:15:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-26-1",
+          "propertyId": "3",
+          "priceCents": 356633,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-26T12:00:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-26-2",
+          "propertyId": "3",
+          "priceCents": 355927,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-26T17:45:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-27-0",
+          "propertyId": "3",
+          "priceCents": 356800,
+          "shares": 1,
+          "taker": "sell",
+          "at": "2026-09-27T06:15:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-27-1",
+          "propertyId": "3",
+          "priceCents": 357015,
+          "shares": 4,
+          "taker": "buy",
+          "at": "2026-09-27T12:00:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-27-2",
+          "propertyId": "3",
+          "priceCents": 356985,
+          "shares": 9,
+          "taker": "buy",
+          "at": "2026-09-27T17:45:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-28-0",
+          "propertyId": "3",
+          "priceCents": 358631,
+          "shares": 6,
+          "taker": "buy",
+          "at": "2026-09-28T06:15:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-28-1",
+          "propertyId": "3",
+          "priceCents": 359552,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-28T12:00:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-28-2",
+          "propertyId": "3",
+          "priceCents": 359552,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-28T17:45:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-29-0",
+          "propertyId": "3",
+          "priceCents": 358273,
+          "shares": 1,
+          "taker": "buy",
+          "at": "2026-09-29T06:15:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-29-1",
+          "propertyId": "3",
+          "priceCents": 358385,
+          "shares": 6,
+          "taker": "sell",
+          "at": "2026-09-29T12:00:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-29-2",
+          "propertyId": "3",
+          "priceCents": 358840,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-29T17:45:00.000Z"
+        },
+        {
+          "id": "tape-3-2026-09-30-0",
+          "propertyId": "3",
+          "priceCents": 358995,
+          "shares": 6,
+          "taker": "buy",
+          "at": "2026-09-30T03:58:08.786Z"
+        },
+        {
+          "id": "tape-3-2026-09-30-1",
+          "propertyId": "3",
+          "priceCents": 360332,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-30T07:26:17.572Z"
+        },
+        {
+          "id": "tape-3-2026-09-30-2",
+          "propertyId": "3",
+          "priceCents": 350829,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-30T10:54:26.358Z"
+        }
+      ],
+      "4": [
+        {
+          "id": "tape-4-2026-09-23-0",
+          "propertyId": "4",
+          "priceCents": 86365,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-23T06:15:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-23-1",
+          "propertyId": "4",
+          "priceCents": 86877,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-23T12:00:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-23-2",
+          "propertyId": "4",
+          "priceCents": 86350,
+          "shares": 2,
+          "taker": "buy",
+          "at": "2026-09-23T17:45:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-24-0",
+          "propertyId": "4",
+          "priceCents": 87019,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-24T06:15:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-24-1",
+          "propertyId": "4",
+          "priceCents": 86476,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-24T12:00:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-24-2",
+          "propertyId": "4",
+          "priceCents": 86726,
+          "shares": 5,
+          "taker": "sell",
+          "at": "2026-09-24T17:45:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-25-0",
+          "propertyId": "4",
+          "priceCents": 87344,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-25T06:15:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-25-1",
+          "propertyId": "4",
+          "priceCents": 87435,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-25T12:00:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-25-2",
+          "propertyId": "4",
+          "priceCents": 86675,
+          "shares": 2,
+          "taker": "buy",
+          "at": "2026-09-25T17:45:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-26-0",
+          "propertyId": "4",
+          "priceCents": 86416,
+          "shares": 6,
+          "taker": "sell",
+          "at": "2026-09-26T06:15:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-26-1",
+          "propertyId": "4",
+          "priceCents": 86663,
+          "shares": 5,
+          "taker": "sell",
+          "at": "2026-09-26T12:00:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-26-2",
+          "propertyId": "4",
+          "priceCents": 86535,
+          "shares": 4,
+          "taker": "buy",
+          "at": "2026-09-26T17:45:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-27-0",
+          "propertyId": "4",
+          "priceCents": 86581,
+          "shares": 9,
+          "taker": "buy",
+          "at": "2026-09-27T06:15:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-27-1",
+          "propertyId": "4",
+          "priceCents": 86263,
+          "shares": 2,
+          "taker": "buy",
+          "at": "2026-09-27T12:00:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-27-2",
+          "propertyId": "4",
+          "priceCents": 86263,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-27T17:45:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-28-0",
+          "propertyId": "4",
+          "priceCents": 86923,
+          "shares": 1,
+          "taker": "buy",
+          "at": "2026-09-28T06:15:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-28-1",
+          "propertyId": "4",
+          "priceCents": 86961,
+          "shares": 6,
+          "taker": "buy",
+          "at": "2026-09-28T12:00:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-28-2",
+          "propertyId": "4",
+          "priceCents": 86879,
+          "shares": 1,
+          "taker": "buy",
+          "at": "2026-09-28T17:45:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-29-0",
+          "propertyId": "4",
+          "priceCents": 86403,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-29T06:15:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-29-1",
+          "propertyId": "4",
+          "priceCents": 86110,
+          "shares": 1,
+          "taker": "sell",
+          "at": "2026-09-29T12:00:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-29-2",
+          "propertyId": "4",
+          "priceCents": 86273,
+          "shares": 9,
+          "taker": "sell",
+          "at": "2026-09-29T17:45:00.000Z"
+        },
+        {
+          "id": "tape-4-2026-09-30-0",
+          "propertyId": "4",
+          "priceCents": 86846,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-30T03:58:08.786Z"
+        },
+        {
+          "id": "tape-4-2026-09-30-1",
+          "propertyId": "4",
+          "priceCents": 86803,
+          "shares": 9,
+          "taker": "buy",
+          "at": "2026-09-30T07:26:17.572Z"
+        },
+        {
+          "id": "tape-4-2026-09-30-2",
+          "propertyId": "4",
+          "priceCents": 87866,
+          "shares": 6,
+          "taker": "buy",
+          "at": "2026-09-30T10:54:26.358Z"
+        }
+      ],
+      "5": [
+        {
+          "id": "tape-5-2026-09-23-0",
+          "propertyId": "5",
+          "priceCents": 68099,
+          "shares": 8,
+          "taker": "buy",
+          "at": "2026-09-23T06:15:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-23-1",
+          "propertyId": "5",
+          "priceCents": 68488,
+          "shares": 1,
+          "taker": "sell",
+          "at": "2026-09-23T12:00:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-23-2",
+          "propertyId": "5",
+          "priceCents": 67924,
+          "shares": 8,
+          "taker": "buy",
+          "at": "2026-09-23T17:45:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-24-0",
+          "propertyId": "5",
+          "priceCents": 68000,
+          "shares": 1,
+          "taker": "buy",
+          "at": "2026-09-24T06:15:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-24-1",
+          "propertyId": "5",
+          "priceCents": 68073,
+          "shares": 9,
+          "taker": "sell",
+          "at": "2026-09-24T12:00:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-24-2",
+          "propertyId": "5",
+          "priceCents": 67991,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-24T17:45:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-25-0",
+          "propertyId": "5",
+          "priceCents": 68159,
+          "shares": 3,
+          "taker": "sell",
+          "at": "2026-09-25T06:15:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-25-1",
+          "propertyId": "5",
+          "priceCents": 67526,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-25T12:00:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-25-2",
+          "propertyId": "5",
+          "priceCents": 68027,
+          "shares": 2,
+          "taker": "buy",
+          "at": "2026-09-25T17:45:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-26-0",
+          "propertyId": "5",
+          "priceCents": 67877,
+          "shares": 1,
+          "taker": "sell",
+          "at": "2026-09-26T06:15:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-26-1",
+          "propertyId": "5",
+          "priceCents": 67892,
+          "shares": 3,
+          "taker": "buy",
+          "at": "2026-09-26T12:00:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-26-2",
+          "propertyId": "5",
+          "priceCents": 67724,
+          "shares": 8,
+          "taker": "sell",
+          "at": "2026-09-26T17:45:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-27-0",
+          "propertyId": "5",
+          "priceCents": 67790,
+          "shares": 3,
+          "taker": "buy",
+          "at": "2026-09-27T06:15:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-27-1",
+          "propertyId": "5",
+          "priceCents": 67513,
+          "shares": 8,
+          "taker": "buy",
+          "at": "2026-09-27T12:00:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-27-2",
+          "propertyId": "5",
+          "priceCents": 67819,
+          "shares": 3,
+          "taker": "buy",
+          "at": "2026-09-27T17:45:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-28-0",
+          "propertyId": "5",
+          "priceCents": 68017,
+          "shares": 6,
+          "taker": "buy",
+          "at": "2026-09-28T06:15:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-28-1",
+          "propertyId": "5",
+          "priceCents": 68053,
+          "shares": 1,
+          "taker": "sell",
+          "at": "2026-09-28T12:00:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-28-2",
+          "propertyId": "5",
+          "priceCents": 67360,
+          "shares": 6,
+          "taker": "buy",
+          "at": "2026-09-28T17:45:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-29-0",
+          "propertyId": "5",
+          "priceCents": 67349,
+          "shares": 5,
+          "taker": "sell",
+          "at": "2026-09-29T06:15:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-29-1",
+          "propertyId": "5",
+          "priceCents": 67508,
+          "shares": 9,
+          "taker": "buy",
+          "at": "2026-09-29T12:00:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-29-2",
+          "propertyId": "5",
+          "priceCents": 67313,
+          "shares": 1,
+          "taker": "sell",
+          "at": "2026-09-29T17:45:00.000Z"
+        },
+        {
+          "id": "tape-5-2026-09-30-0",
+          "propertyId": "5",
+          "priceCents": 68098,
+          "shares": 7,
+          "taker": "buy",
+          "at": "2026-09-30T03:58:08.786Z"
+        },
+        {
+          "id": "tape-5-2026-09-30-1",
+          "propertyId": "5",
+          "priceCents": 67928,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-30T07:26:17.572Z"
+        },
+        {
+          "id": "tape-5-2026-09-30-2",
+          "propertyId": "5",
+          "priceCents": 67892,
+          "shares": 3,
+          "taker": "buy",
+          "at": "2026-09-30T10:54:26.358Z"
+        }
+      ],
+      "6": [
+        {
+          "id": "tape-6-2026-09-23-0",
+          "propertyId": "6",
+          "priceCents": 182863,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-23T06:15:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-23-1",
+          "propertyId": "6",
+          "priceCents": 183605,
+          "shares": 4,
+          "taker": "buy",
+          "at": "2026-09-23T12:00:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-23-2",
+          "propertyId": "6",
+          "priceCents": 182682,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-23T17:45:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-24-0",
+          "propertyId": "6",
+          "priceCents": 182535,
+          "shares": 2,
+          "taker": "buy",
+          "at": "2026-09-24T06:15:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-24-1",
+          "propertyId": "6",
+          "priceCents": 183196,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-24T12:00:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-24-2",
+          "propertyId": "6",
+          "priceCents": 182040,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-24T17:45:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-25-0",
+          "propertyId": "6",
+          "priceCents": 182077,
+          "shares": 8,
+          "taker": "sell",
+          "at": "2026-09-25T06:15:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-25-1",
+          "propertyId": "6",
+          "priceCents": 183154,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-25T12:00:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-25-2",
+          "propertyId": "6",
+          "priceCents": 181709,
+          "shares": 6,
+          "taker": "buy",
+          "at": "2026-09-25T17:45:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-26-0",
+          "propertyId": "6",
+          "priceCents": 181997,
+          "shares": 4,
+          "taker": "buy",
+          "at": "2026-09-26T06:15:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-26-1",
+          "propertyId": "6",
+          "priceCents": 181373,
+          "shares": 3,
+          "taker": "buy",
+          "at": "2026-09-26T12:00:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-26-2",
+          "propertyId": "6",
+          "priceCents": 182759,
+          "shares": 1,
+          "taker": "buy",
+          "at": "2026-09-26T17:45:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-27-0",
+          "propertyId": "6",
+          "priceCents": 180801,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-27T06:15:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-27-1",
+          "propertyId": "6",
+          "priceCents": 181552,
+          "shares": 2,
+          "taker": "buy",
+          "at": "2026-09-27T12:00:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-27-2",
+          "propertyId": "6",
+          "priceCents": 180762,
+          "shares": 9,
+          "taker": "sell",
+          "at": "2026-09-27T17:45:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-28-0",
+          "propertyId": "6",
+          "priceCents": 181708,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-28T06:15:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-28-1",
+          "propertyId": "6",
+          "priceCents": 180871,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-28T12:00:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-28-2",
+          "propertyId": "6",
+          "priceCents": 179653,
+          "shares": 3,
+          "taker": "sell",
+          "at": "2026-09-28T17:45:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-29-0",
+          "propertyId": "6",
+          "priceCents": 179955,
+          "shares": 6,
+          "taker": "sell",
+          "at": "2026-09-29T06:15:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-29-1",
+          "propertyId": "6",
+          "priceCents": 180950,
+          "shares": 2,
+          "taker": "sell",
+          "at": "2026-09-29T12:00:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-29-2",
+          "propertyId": "6",
+          "priceCents": 180185,
+          "shares": 8,
+          "taker": "buy",
+          "at": "2026-09-29T17:45:00.000Z"
+        },
+        {
+          "id": "tape-6-2026-09-30-0",
+          "propertyId": "6",
+          "priceCents": 181498,
+          "shares": 7,
+          "taker": "buy",
+          "at": "2026-09-30T03:58:08.786Z"
+        },
+        {
+          "id": "tape-6-2026-09-30-1",
+          "propertyId": "6",
+          "priceCents": 183820,
+          "shares": 4,
+          "taker": "buy",
+          "at": "2026-09-30T07:26:17.572Z"
+        },
+        {
+          "id": "tape-6-2026-09-30-2",
+          "propertyId": "6",
+          "priceCents": 182799,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-30T10:54:26.358Z"
+        }
+      ],
+      "7": [
+        {
+          "id": "tape-7-2026-09-23-0",
+          "propertyId": "7",
+          "priceCents": 253290,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-23T06:15:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-23-1",
+          "propertyId": "7",
+          "priceCents": 252872,
+          "shares": 3,
+          "taker": "buy",
+          "at": "2026-09-23T12:00:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-23-2",
+          "propertyId": "7",
+          "priceCents": 253784,
+          "shares": 3,
+          "taker": "buy",
+          "at": "2026-09-23T17:45:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-24-0",
+          "propertyId": "7",
+          "priceCents": 252479,
+          "shares": 3,
+          "taker": "sell",
+          "at": "2026-09-24T06:15:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-24-1",
+          "propertyId": "7",
+          "priceCents": 252723,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-24T12:00:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-24-2",
+          "propertyId": "7",
+          "priceCents": 251684,
+          "shares": 1,
+          "taker": "sell",
+          "at": "2026-09-24T17:45:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-25-0",
+          "propertyId": "7",
+          "priceCents": 251323,
+          "shares": 8,
+          "taker": "buy",
+          "at": "2026-09-25T06:15:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-25-1",
+          "propertyId": "7",
+          "priceCents": 251763,
+          "shares": 5,
+          "taker": "sell",
+          "at": "2026-09-25T12:00:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-25-2",
+          "propertyId": "7",
+          "priceCents": 250273,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-25T17:45:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-26-0",
+          "propertyId": "7",
+          "priceCents": 249956,
+          "shares": 8,
+          "taker": "buy",
+          "at": "2026-09-26T06:15:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-26-1",
+          "propertyId": "7",
+          "priceCents": 251076,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-26T12:00:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-26-2",
+          "propertyId": "7",
+          "priceCents": 251015,
+          "shares": 8,
+          "taker": "buy",
+          "at": "2026-09-26T17:45:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-27-0",
+          "propertyId": "7",
+          "priceCents": 250273,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-27T06:15:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-27-1",
+          "propertyId": "7",
+          "priceCents": 251109,
+          "shares": 2,
+          "taker": "buy",
+          "at": "2026-09-27T12:00:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-27-2",
+          "propertyId": "7",
+          "priceCents": 251109,
+          "shares": 8,
+          "taker": "buy",
+          "at": "2026-09-27T17:45:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-28-0",
+          "propertyId": "7",
+          "priceCents": 250657,
+          "shares": 5,
+          "taker": "buy",
+          "at": "2026-09-28T06:15:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-28-1",
+          "propertyId": "7",
+          "priceCents": 250406,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-28T12:00:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-28-2",
+          "propertyId": "7",
+          "priceCents": 250963,
+          "shares": 3,
+          "taker": "buy",
+          "at": "2026-09-28T17:45:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-29-0",
+          "propertyId": "7",
+          "priceCents": 249900,
+          "shares": 6,
+          "taker": "buy",
+          "at": "2026-09-29T06:15:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-29-1",
+          "propertyId": "7",
+          "priceCents": 248520,
+          "shares": 1,
+          "taker": "buy",
+          "at": "2026-09-29T12:00:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-29-2",
+          "propertyId": "7",
+          "priceCents": 250936,
+          "shares": 9,
+          "taker": "buy",
+          "at": "2026-09-29T17:45:00.000Z"
+        },
+        {
+          "id": "tape-7-2026-09-30-0",
+          "propertyId": "7",
+          "priceCents": 250300,
+          "shares": 7,
+          "taker": "sell",
+          "at": "2026-09-30T04:11:15.393Z"
+        },
+        {
+          "id": "tape-7-2026-09-30-1",
+          "propertyId": "7",
+          "priceCents": 250550,
+          "shares": 2,
+          "taker": "buy",
+          "at": "2026-09-30T07:52:30.787Z"
+        },
+        {
+          "id": "tape-7-2026-09-30-2",
+          "propertyId": "7",
+          "priceCents": 250550,
+          "shares": 4,
+          "taker": "sell",
+          "at": "2026-09-30T11:33:46.180Z"
+        }
+      ]
+    },
+    "failures": [
+      {
+        "at": "2026-09-30T16:42:23.737Z",
+        "userId": 1,
+        "propertyId": "1",
+        "error": "Enter between 1 and 5000 shares."
+      },
+      {
+        "at": "2026-09-30T16:42:23.665Z",
+        "userId": 2,
+        "propertyId": "1",
+        "error": "Admins do not buy or sell tokens."
+      }
+    ]
+  },
+  "lending": {
+    "poolCents": 50000000,
+    "supplies": [],
+    "loans": []
+  },
+  "audit": [
+    {
+      "id": "audit-9c2d74",
+      "at": "2026-09-30T16:38:29.664Z",
+      "adminId": 2,
+      "action": "property-valuation",
+      "target": "1",
+      "detail": "$450000"
+    }
+  ]
 }

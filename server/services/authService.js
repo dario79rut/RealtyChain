@@ -40,6 +40,7 @@ async function authenticateUser({ email, password }) {
   if (!user) throw new Error('Invalid credentials');
   const ok = await bcrypt.compare(password, user.password_hash || '');
   if (!ok) throw new Error('Invalid credentials');
+  if (user.suspended) throw new Error('This account is suspended.');
 
   const token = jwt.sign({ sub: user.id, email: user.email, role: user.role || 'user' }, JWT_SECRET, { expiresIn: '7d' });
   return { token, user: sanitizeUser(user) };

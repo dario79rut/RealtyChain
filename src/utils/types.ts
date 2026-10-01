@@ -13,12 +13,22 @@ export type Property = {
   documents: {
     name: string;
     url: string;
+    kind?: string;
+    review?: string;
+  }[];
+  documentStatus?: 'unverified' | 'verified';
+  projectProgress?: number;
+  progressLog?: {
+    at: string;
+    percent: number;
+    note: string;
   }[];
   contractAddress?: string;
   offeringAddress?: string;
   tokenAddress?: string;
   sharePriceUsdc?: number;
   returnRate?: number;
+  ownerId?: number | null;
   occupancyPercent?: number | null;
   capRate?: number | null;
   rentRollExcerpt?: string;
@@ -29,6 +39,11 @@ export type Property = {
   unitMix?: string;
   bedrooms?: number | null;
   bathrooms?: number | null;
+  interiors?: {
+    name: string;
+    detail: string;
+    imageUrl: string;
+  }[];
   comps?: {
     address: string;
     soldDate: string;

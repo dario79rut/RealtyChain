@@ -70,7 +70,12 @@ function staticChecks() {
   const jwtOk = jwtConfigured();
   const bounty = process.env.BUG_BOUNTY_URL || '';
   const firstClose = process.env.FIRST_CLOSE_PROPERTY_ID || '';
-  const kycVendor = process.env.KYC_VENDOR === 'true';
+  const sumsubWired = Boolean(
+    process.env.SUMSUB_APP_TOKEN &&
+    process.env.SUMSUB_SECRET_KEY &&
+    process.env.SUMSUB_WEBHOOK_SECRET
+  );
+  const kycVendor = process.env.KYC_VENDOR === 'true' || sumsubWired;
   const auditDate = process.env.AUDIT_DATE || '';
 
   const jwtStatus = jwtOk ? 'pass' : demo ? 'warn' : 'fail';
@@ -78,7 +83,9 @@ function staticChecks() {
 
   return [
     check('demo', 'Demo mode', demo ? 'warn' : 'pass', demo
-      ? 'APP_ENV is not production. Do not take real money. KYC is mock admin review.'
+      ? (sumsubWired
+        ? 'APP_ENV is not production. Do not take real money. Identity checks use Sumsub.'
+        : 'APP_ENV is not production. Do not take real money. KYC is mock admin review.')
       : 'APP_ENV=production. Confirm legal, KYC vendor, and audit before any close.'),
     check(
       'jwt',
@@ -118,9 +125,11 @@ function staticChecks() {
       'kyc',
       'KYC vendor',
       kycVendor ? 'pass' : 'open',
-      kycVendor
-        ? 'KYC_VENDOR=true. Confirm the vendor is actually wired.'
-        : 'In-app KYC is still mock admin review. Do not treat this as CIP/AML.'
+      sumsubWired
+        ? 'Sumsub app token, secret, and webhook secret are set.'
+        : kycVendor
+          ? 'KYC_VENDOR=true. Confirm the vendor is actually wired.'
+          : 'In-app KYC is still mock admin review. Do not treat this as CIP/AML.'
     ),
     check(
       'audit',

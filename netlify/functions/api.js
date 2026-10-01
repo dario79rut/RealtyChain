@@ -61,19 +61,20 @@ const handle = serverless(app, {
     }
 
     if (event && event.body != null) {
-      if (typeof event.body === 'object' && !Buffer.isBuffer(event.body)) {
-        req.body = event.body;
-        return;
-      }
       if (typeof event.body === 'string') {
         const raw = event.isBase64Encoded
           ? Buffer.from(event.body, 'base64').toString('utf8')
           : event.body;
+        req.rawBody = raw;
         try {
           req.body = raw ? JSON.parse(raw) : undefined;
         } catch {
-          // Not valid JSON — leave the body as-is so normal error handling applies.
+          req.body = undefined;
         }
+        return;
+      }
+      if (typeof event.body === 'object' && !Buffer.isBuffer(event.body)) {
+        req.body = event.body;
       }
     }
   },

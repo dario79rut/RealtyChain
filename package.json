@@ -20,6 +20,7 @@
   "dependencies": {
     "@netlify/blobs": "^8.1.0",
     "@rainbow-me/rainbowkit": "^2.2.8",
+    "@sumsub/websdk": "^2.9.0",
     "@tanstack/react-query": "^5.81.2",
     "autoprefixer": "^10.4.21",
     "bcryptjs": "^3.0.3",
