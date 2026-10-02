@@ -132,10 +132,17 @@ function ensurePropertyOwner() {
 
 function ensureProperties() {
   if (!data) return;
+  const seeds = require('./properties').properties;
   if (!Array.isArray(data.properties) || data.properties.length === 0) {
-    data.properties = require('./properties').properties;
+    data.properties = seeds.map((row) => JSON.parse(JSON.stringify(row)));
     writeFile(data);
+    return;
   }
+  const have = new Set(data.properties.map((row) => String(row.id)));
+  const missing = seeds.filter((row) => !have.has(String(row.id)));
+  if (!missing.length) return;
+  data.properties.push(...missing.map((row) => JSON.parse(JSON.stringify(row))));
+  writeFile(data);
 }
 
 function ensureKycDefaults() {

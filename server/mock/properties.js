@@ -410,6 +410,8 @@ const CMS = {
   },
 };
 
+properties.push(...require('./catalogExtra').properties);
+
 for (const property of properties) {
   Object.assign(property, OPS[property.id] || {}, CMS[property.id] || {});
 }

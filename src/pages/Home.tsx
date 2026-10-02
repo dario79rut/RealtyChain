@@ -10,7 +10,7 @@ import { mediaUrl } from '../utils/api';
 
 export default function Home() {
   const { data: properties = [], isLoading, isError } = useProperties();
-  const featuredProperties = properties.slice(0, 3);
+  const featuredProperties = properties.filter((property) => property.status === 'Available').slice(0, 3);
   const navigate = useNavigate();
 
   return (
