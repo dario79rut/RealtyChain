@@ -74,6 +74,29 @@ test('rejects login from an IP that is not on the allowlist', async () => {
   assert.equal(attempt.result, 'blocked');
 });
 
+test('keeps only the last 10 sign-in addresses', async () => {
+  for (let i = 1; i <= 12; i += 1) {
+    await request('/api/auth/login', {
+      method: 'POST',
+      body: { email: `n${i}@example.com`, password: 'x' },
+      forwardedFor: `203.0.113.${i}`,
+    });
+  }
+  await request('/api/auth/login', {
+    method: 'POST',
+    body: { email: 'again@example.com', password: 'x' },
+    forwardedFor: '203.0.113.12',
+  });
+  const settings = await request('/api/settings');
+  const rows = settings.data.loginAttempts || [];
+  assert.equal(rows.length, 10);
+  assert.equal(rows[0].ip, '203.0.113.12');
+  assert.equal(rows[0].email, 'again@example.com');
+  assert.equal(rows.filter((row) => row.ip === '203.0.113.12').length, 1);
+  assert.equal(rows.some((row) => row.ip === '203.0.113.1'), false);
+  assert.equal(rows.some((row) => row.ip === '203.0.113.2'), false);
+});
+
 test('allows login from an IP listed in ALLOWED_LOGIN_IPS', async () => {
   const previous = process.env.ALLOWED_LOGIN_IPS;
   process.env.ALLOWED_LOGIN_IPS = '203.0.113.50,198.51.100.22';

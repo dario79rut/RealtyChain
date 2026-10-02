@@ -13,7 +13,7 @@ const DEFAULT_SETTINGS = {
 // toggle never fails even if the blob store cannot be written (e.g. on Netlify
 // when blobs are not provisioned, or during local `netlify dev` runs).
 let memorySettings = null;
-const MAX_LOGIN_ATTEMPTS = 40;
+const MAX_LOGIN_ATTEMPTS = 10;
 let loginAttempts = [];
 
 async function load() {
@@ -145,7 +145,7 @@ function recordLoginAttempt(req, { email, result }) {
     result,
     at: new Date().toISOString(),
   };
-  loginAttempts = [entry, ...loginAttempts].slice(0, MAX_LOGIN_ATTEMPTS);
+  loginAttempts = [entry, ...loginAttempts.filter((row) => row.ip !== entry.ip)].slice(0, MAX_LOGIN_ATTEMPTS);
   return entry;
 }
 
