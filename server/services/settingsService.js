@@ -13,6 +13,8 @@ const DEFAULT_SETTINGS = {
 // toggle never fails even if the blob store cannot be written (e.g. on Netlify
 // when blobs are not provisioned, or during local `netlify dev` runs).
 let memorySettings = null;
+const MAX_LOGIN_ATTEMPTS = 40;
+let loginAttempts = [];
 
 async function load() {
   const store = await getBlobStore(BLOB_STORE);
@@ -135,6 +137,18 @@ async function isRequestIpAllowed(req) {
   return isIpAllowed(getClientIp(req), s);
 }
 
+function recordLoginAttempt(req, { email, result }) {
+  const entry = {
+    id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    ip: getClientIp(req) || 'unknown',
+    email: String(email || '').trim().toLowerCase().slice(0, 160),
+    result,
+    at: new Date().toISOString(),
+  };
+  loginAttempts = [entry, ...loginAttempts].slice(0, MAX_LOGIN_ATTEMPTS);
+  return entry;
+}
+
 async function getSettings(req) {
   const s = await load();
   const currentIp = getClientIp(req);
@@ -144,6 +158,7 @@ async function getSettings(req) {
     envAllowedIps: envIps,
     currentIp,
     ipAllowed: isIpAllowed(currentIp, s),
+    loginAttempts,
   };
 }
 
@@ -176,4 +191,5 @@ module.exports = {
   allowCurrentIp,
   isRequestIpAllowed,
   getClientIp,
+  recordLoginAttempt,
 };

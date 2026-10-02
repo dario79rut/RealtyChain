@@ -30,10 +30,15 @@ async function login(req, res) {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Missing email or password' });
-    if (!(await assertIpAllowed(req, res))) return;
+    if (!(await settingsService.isRequestIpAllowed(req))) {
+      settingsService.recordLoginAttempt(req, { email, result: 'blocked' });
+      return res.status(403).json({ error: IP_DENIED });
+    }
     const out = await authService.authenticateUser({ email, password });
+    settingsService.recordLoginAttempt(req, { email, result: 'signed-in' });
     return res.json(out);
   } catch {
+    if (req.body?.email) settingsService.recordLoginAttempt(req, { email: req.body.email, result: 'rejected' });
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 }

@@ -9,6 +9,7 @@ import { useProperties } from '../hooks/useProperties';
 import { AdminAccount, AdminDesk, AdminPoint, adminAction, fetchAdmin } from '../utils/api';
 import { DocumentVaultModal } from '../components/modals/DocumentVaultModal';
 import { GrowthChart } from '../components/admin/GrowthChart';
+import { LoginAttempts } from '../components/admin/LoginAttempts';
 import { PropertyThumb } from '../components/ui/PropertyThumb';
 import { formatUsd } from '../utils/ops';
 
@@ -291,6 +292,9 @@ function Dashboard({ desk, onOpen }: { desk: AdminDesk; onOpen: (id: (typeof SEC
         <h1 className="font-display text-3xl font-bold text-cream-100">Dashboard</h1>
         <p className="text-cream-400 mt-1">Growth for the last 60 sessions, then the current book for each department.</p>
       </div>
+      <section className="mb-8">
+        <LoginAttempts />
+      </section>
       <section className="mb-8">
         <h2 className="font-display text-lg font-semibold text-cream-100 mb-3">Growth</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

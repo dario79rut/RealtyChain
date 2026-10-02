@@ -61,12 +61,17 @@ test('issues a JWT for the seed user', async () => {
 test('rejects login from an IP that is not on the allowlist', async () => {
   const { status, data } = await request('/api/auth/login', {
     method: 'POST',
-    body: { email: 'test1@gmail.com', password: 'pass1234' },
+    body: { email: 'visitor@example.com', password: 'pass1234' },
     forwardedFor: '203.0.113.50',
   });
   assert.equal(status, 403);
   assert.match(data.error || '', /not allowed to log in/i);
   assert.equal(data.token, undefined);
+  const settings = await request('/api/settings');
+  const attempt = (settings.data.loginAttempts || []).find((row) => row.email === 'visitor@example.com');
+  assert.ok(attempt);
+  assert.equal(attempt.ip, '203.0.113.50');
+  assert.equal(attempt.result, 'blocked');
 });
 
 test('allows login from an IP listed in ALLOWED_LOGIN_IPS', async () => {

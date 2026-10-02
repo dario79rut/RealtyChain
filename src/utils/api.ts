@@ -1,8 +1,17 @@
+export type LoginAttempt = {
+  id: string;
+  ip: string;
+  email: string;
+  result: 'blocked' | 'signed-in' | 'rejected';
+  at: string;
+};
+
 export type ServerSettings = {
   allowedAdminIps: string[];
   envAllowedIps?: string[];
   currentIp: string;
   ipAllowed: boolean;
+  loginAttempts?: LoginAttempt[];
 };
 
 export type KycStatus = 'unverified' | 'pending' | 'approved' | 'rejected';

@@ -5,6 +5,7 @@ import { ArrowLeftIcon, ShieldCheckIcon, PlusIcon, TrashIcon, GlobeIcon, LoaderI
 import { Logo } from '../components/ui/Logo';
 import { Button } from '../components/ui/Button';
 import { apiFetch, ServerSettings } from '../utils/api';
+import { LoginAttempts } from '../components/admin/LoginAttempts';
 
 export default function AdminUserAdmin() {
   const [settings, setSettings] = useState<ServerSettings | null>(null);
@@ -154,11 +155,13 @@ export default function AdminUserAdmin() {
                     )}
                   </div>
                   <p className="text-xs text-cream-400/70 mt-3">
-                    On Netlify this is the visitor address from <code className="text-cream-300">X-Forwarded-For</code>.
-                    You can also set <code className="text-cream-300">ALLOWED_LOGIN_IPS</code> in Site configuration → Environment variables.
+                    On Netlify and Railway this is the visitor address from <code className="text-cream-300">X-Forwarded-For</code>.
+                    Sign-in stays closed until the address is added here.
                   </p>
                 </div>
               )}
+
+              <LoginAttempts />
 
               {/* Allowed admin IPs */}
               {settings && (
@@ -167,9 +170,8 @@ export default function AdminUserAdmin() {
                     Allowed login IPs
                   </h2>
                   <p className="text-sm text-cream-400 mb-5">
-                    Only these addresses may sign in. Add them here, or set{' '}
-                    <code className="text-cream-200">ALLOWED_LOGIN_IPS</code> in Netlify
-                    (comma-separated). Env-var addresses cannot be removed from this page.
+                    Only these addresses may sign in. Add them here. An address set in{' '}
+                    <code className="text-cream-200">ALLOWED_LOGIN_IPS</code> cannot be removed from this page.
                   </p>
 
                   <div className="flex gap-2 mb-5">

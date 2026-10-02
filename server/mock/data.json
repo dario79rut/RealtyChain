@@ -1392,7 +1392,26 @@
           "note": "Same hill, smaller lot"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 920000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 0.92,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -1466,7 +1485,26 @@
           "note": "Nearby bungalow"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 640000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 0.64,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -1540,7 +1578,26 @@
           "note": "Same row, end unit"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 780000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 0.78,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -1614,7 +1671,26 @@
           "note": "Same block, interior unit"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 615000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 0.615,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -1688,7 +1764,26 @@
           "note": "Nearby one-bedroom"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 390000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 0.39,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -1762,7 +1857,26 @@
           "note": "Nearby desert lot"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 2100000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 2.1,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -1830,7 +1944,26 @@
           "note": "Nearby cabin sale"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "review",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 725000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 0.725,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -1904,7 +2037,26 @@
           "note": "Historic single house"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 1450000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 1.45,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -1978,7 +2130,26 @@
           "note": "Same warehouse block"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 980000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 0.98,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -2052,7 +2223,26 @@
           "note": "Nearby garden house"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 535000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 0.535,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -2126,7 +2316,26 @@
           "note": "Uptown office trade"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 4200000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 4.2,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -2200,7 +2409,26 @@
           "note": "Nearby retail bay"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 890000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 0.89,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -2274,7 +2502,26 @@
           "note": "SoDo industrial sale"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 1600000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 1.6,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -2348,7 +2595,26 @@
           "note": "Nearby medical office"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 2350000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 2.35,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -2422,7 +2688,26 @@
           "note": "RiNo retail sale"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 1100000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 1.1,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -2496,7 +2781,26 @@
           "note": "East End industrial sale"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 2750000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 2.75,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -2570,7 +2874,26 @@
           "note": "North Loop office sale"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 1950000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 1.95,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -2644,7 +2967,26 @@
           "note": "Nearby corner retail"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 3200000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 3.2,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -2718,7 +3060,26 @@
           "note": "South End flex sale"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "active",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 980000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 0.98,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     },
     {
       "documents": [
@@ -2792,7 +3153,26 @@
           "note": "Arts District hospitality sale"
         }
       ],
-      "ownerId": 39
+      "ownerId": 39,
+      "platform": {
+        "stage": "review",
+        "suspended": false,
+        "sale": null,
+        "valuationUsd": 5400000,
+        "ownershipVerified": false,
+        "tradingPaused": false,
+        "feeBps": 100,
+        "transfersRestricted": false,
+        "managementFeeBps": 700,
+        "token": {
+          "totalSupply": 1000,
+          "price": 5.4,
+          "ownerPercent": 30,
+          "minted": 1000,
+          "burned": 0,
+          "contract": null
+        }
+      }
     }
   ],
   "activity": {

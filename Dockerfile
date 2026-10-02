@@ -12,7 +12,6 @@ ENV VITE_DEMO_MODE=true
 RUN npm run build
 
 ENV NODE_ENV=production
-ENV LOGIN_OPEN=true
 
 EXPOSE 4000
 CMD ["node", "server/app.js"]
