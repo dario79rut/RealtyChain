@@ -57,6 +57,7 @@ A decentralized real estate platform built with React, Vite, and Web3 technologi
 3. Local seed accounts (created on first server start):
    - User: `test1@gmail.com` / `pass1234`
    - Admin: `admin@defi.estate` / `admin1234`
+   - Property owner: `owner@defi.estate` / `owner1234`
 
    Sign-in calls `POST /api/auth/login`. The catalog is served from `GET /api/properties` (JWT required).
 
