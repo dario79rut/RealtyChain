@@ -11,7 +11,6 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
-        wagmi: path.resolve(__dirname, './src/solana/wagmi.ts'),
         buffer: 'buffer',
       },
     },

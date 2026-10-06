@@ -1,4 +1,4 @@
-import { useReadContract } from 'wagmi';
+import { useReadContract } from '../solana/wagmi';
 import {
   isFactoryConfigured,
   PROPERTY_FACTORY_ADDRESS,

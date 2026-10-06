@@ -10,7 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { useProperties } from '../hooks/useProperties';
 import { ConnectWalletButton } from '../components/ui/ConnectWalletButton';
 import { formatUnits } from '../utils/units';
-import { useReadContracts, usePublicClient, useWriteContract } from 'wagmi';
+import { useReadContracts, usePublicClient, useWriteContract } from '../solana/wagmi';
 import {
   erc20Abi,
   distributorAbi,

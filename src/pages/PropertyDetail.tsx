@@ -30,7 +30,7 @@ import { useExitState, useRedemptionAddress } from '../hooks/useRedemption';
 import { useAsks, ShareAsk } from '../hooks/useAsks';
 import { isSolanaAddress, redemptionAbi } from '../contracts/config';
 import { formatUnits } from '../utils/units';
-import { usePublicClient, useWriteContract } from 'wagmi';
+import { usePublicClient, useWriteContract } from '../solana/wagmi';
 
 export default function PropertyDetail() {
   const { id } = useParams<{ id: string }>();

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount } from '../solana/wagmi';
 import { useAuth } from '../context/AuthContext';
 import { bindWallet } from '../utils/api';
 

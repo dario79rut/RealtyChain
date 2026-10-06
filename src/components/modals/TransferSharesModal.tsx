@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from 'lucide-react';
-import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
+import { useAccount, usePublicClient, useWriteContract } from '../../solana/wagmi';
 import { Button } from '../ui/Button';
 import { erc20Abi, isChainAddress } from '../../contracts/config';
 

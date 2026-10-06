@@ -9,7 +9,7 @@ import {
   useSignTypedData,
   useWaitForTransactionReceipt,
   useWriteContract,
-} from 'wagmi';
+} from '../../solana/wagmi';
 import { Button } from '../ui/Button';
 import { useNavigate } from 'react-router-dom';
 import {

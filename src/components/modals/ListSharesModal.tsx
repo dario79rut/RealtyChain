@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from 'lucide-react';
 import { formatUnits } from '../../utils/units';
-import { useAccount, usePublicClient, useReadContract, useWriteContract } from 'wagmi';
+import { useAccount, usePublicClient, useReadContract, useWriteContract } from '../../solana/wagmi';
 import { Button } from '../ui/Button';
 import {
   SHARE_MARKET_ADDRESS,

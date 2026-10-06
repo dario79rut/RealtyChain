@@ -1,4 +1,4 @@
-import { useReadContract } from 'wagmi';
+import { useReadContract } from '../solana/wagmi';
 import { offeringAbi, isSolanaAddress } from '../contracts/config';
 import { listingFromResult, useListing } from './useListing';
 import { Property } from '../utils/types';

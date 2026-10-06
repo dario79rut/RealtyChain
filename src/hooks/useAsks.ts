@@ -1,4 +1,4 @@
-import { useReadContract, useReadContracts } from 'wagmi';
+import { useReadContract, useReadContracts } from '../solana/wagmi';
 import {
   SHARE_MARKET_ADDRESS,
   isMarketConfigured,
