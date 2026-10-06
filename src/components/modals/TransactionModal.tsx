@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon, CheckCircleIcon, AlertCircleIcon, LoaderIcon } from 'lucide-react';
-import { formatUnits } from 'viem';
+import { formatUnits } from '../../utils/units';
 import {
   useAccount,
   usePublicClient,
@@ -17,7 +17,7 @@ import {
   identityRegistryAbi,
   IDENTITY_REGISTRY_ADDRESS,
   isFactoryConfigured,
-  isHexAddress,
+  isSolanaAddress,
   offeringAbi,
 } from '../../contracts/config';
 import { listingFromResult, useListing } from '../../hooks/useListing';
@@ -50,7 +50,7 @@ export function TransactionModal({ isOpen, onClose, property }: TransactionModal
 
   const { data: listingData } = useListing(isOpen ? property.id : undefined);
   const listing = listingFromResult(listingData);
-  const offeringAddress = isHexAddress(property.offeringAddress)
+  const offeringAddress = isSolanaAddress(property.offeringAddress)
     ? property.offeringAddress
     : listing?.exists
       ? listing.offering
@@ -89,18 +89,18 @@ export function TransactionModal({ isOpen, onClose, property }: TransactionModal
     query: { enabled: offeringEnabled },
   });
   const { data: verified } = useReadContract({
-    address: isHexAddress(IDENTITY_REGISTRY_ADDRESS) ? IDENTITY_REGISTRY_ADDRESS : undefined,
+    address: isSolanaAddress(IDENTITY_REGISTRY_ADDRESS) ? IDENTITY_REGISTRY_ADDRESS : undefined,
     abi: identityRegistryAbi,
     functionName: 'isVerified',
     args: address ? [address] : undefined,
-    query: { enabled: isOpen && isHexAddress(IDENTITY_REGISTRY_ADDRESS) && Boolean(address) },
+    query: { enabled: isOpen && isSolanaAddress(IDENTITY_REGISTRY_ADDRESS) && Boolean(address) },
   });
   const { data: frozen } = useReadContract({
-    address: isHexAddress(IDENTITY_REGISTRY_ADDRESS) ? IDENTITY_REGISTRY_ADDRESS : undefined,
+    address: isSolanaAddress(IDENTITY_REGISTRY_ADDRESS) ? IDENTITY_REGISTRY_ADDRESS : undefined,
     abi: identityRegistryAbi,
     functionName: 'isFrozen',
     args: address ? [address] : undefined,
-    query: { enabled: isOpen && isHexAddress(IDENTITY_REGISTRY_ADDRESS) && Boolean(address) },
+    query: { enabled: isOpen && isSolanaAddress(IDENTITY_REGISTRY_ADDRESS) && Boolean(address) },
   });
   const { data: documentsHash } = useReadContract({
     address: offeringAddress,

@@ -28,11 +28,9 @@ import { useOfferingAddress, useOfferingStats } from '../hooks/useOffering';
 import { listingFromResult, useListing } from '../hooks/useListing';
 import { useExitState, useRedemptionAddress } from '../hooks/useRedemption';
 import { useAsks, ShareAsk } from '../hooks/useAsks';
-import { isHexAddress, redemptionAbi } from '../contracts/config';
-import { formatUnits } from 'viem';
+import { isSolanaAddress, redemptionAbi } from '../contracts/config';
+import { formatUnits } from '../utils/units';
 import { usePublicClient, useWriteContract } from 'wagmi';
-
-const ZERO = '0x0000000000000000000000000000000000000000';
 
 export default function PropertyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -53,12 +51,8 @@ export default function PropertyDetail() {
   const listing = listingFromResult(useListing(id).data);
   const redemption = useRedemptionAddress(property);
   const catalogToken = property?.tokenAddress || property?.contractAddress;
-  const shareTokenForExit = isHexAddress(catalogToken)
-    ? catalogToken
-    : listing?.token && listing.token.toLowerCase() !== ZERO
-      ? listing.token
-      : undefined;
-  const exit = useExitState(redemption, isHexAddress(address) ? address : undefined, shareTokenForExit);
+  const shareTokenForExit = isSolanaAddress(catalogToken) ? catalogToken : undefined;
+  const exit = useExitState(redemption, isSolanaAddress(address) ? address : undefined, shareTokenForExit);
 
   const handleRedeem = async () => {
     if (!redemption || exit.shares <= 0n) return;
@@ -467,11 +461,13 @@ export default function PropertyDetail() {
                     </p>
                   </div>
                 )}
-                {user?.role === 'admin' || user?.role === 'owner' ? (
+                {user?.role === 'admin' || user?.role === 'owner' || user?.role === 'institution' ? (
                   <p className="text-cream-400 text-sm">
                     {user?.role === 'owner'
                       ? 'Investors buy tokens and join funding campaigns. Raise, tokenize, and finance this property from the owner desk.'
-                      : 'Buying and selling tokens is for investors. Manage this listing from the admin console.'}
+                      : user?.role === 'institution'
+                        ? 'Institutional positions are issued on Corda and settled to Solana from the desk. They are not bought on the public offering.'
+                        : 'Buying and selling tokens is for investors. Manage this listing from the admin console.'}
                   </p>
                 ) : (
                 <>

@@ -115,6 +115,71 @@ export function fetchMe() {
   return apiFetch<{ user: AuthUser }>('/api/auth/me');
 }
 
+export type CordaPosition = {
+  linearId: string;
+  status: 'ISSUED' | 'SETTLED';
+  propertyId: number;
+  propertyTitle: string;
+  shares: number;
+  participants: string[];
+  notary: string;
+  private: {
+    holderUserId: number;
+    legalName: string;
+    lei: string;
+    country: string;
+  };
+  commitment: string | null;
+  settlementId: string | null;
+  createdAt: string;
+  settledAt: string | null;
+};
+
+export type SolanaSettlement = {
+  id: string;
+  propertyId: number;
+  propertyTitle: string;
+  shares: number;
+  commitment: string;
+  solana: { tag: number; operation: string; instructionHex: string };
+  settledAt: string;
+};
+
+export type BridgeDesk = {
+  role: 'institution' | 'operator';
+  node: string;
+  notary: string;
+  counterparty: string;
+  identity: {
+    legalName: string | null;
+    lei: string | null;
+    country: string | null;
+    verified: boolean;
+  };
+  positions: CordaPosition[];
+};
+
+export function fetchBridgeDesk() {
+  return apiFetch<BridgeDesk>('/api/bridge/desk');
+}
+
+export function fetchPublicSettlements() {
+  return apiFetch<{ settlements: SolanaSettlement[] }>('/api/bridge/public');
+}
+
+export function createCordaPosition(propertyId: number, shares: number) {
+  return apiFetch<{ position: CordaPosition }>('/api/bridge/positions', {
+    method: 'POST',
+    body: JSON.stringify({ propertyId, shares }),
+  });
+}
+
+export function settleCordaPosition(linearId: string) {
+  return apiFetch<{ corda: CordaPosition; solana: SolanaSettlement }>(`/api/bridge/positions/${linearId}/settle`, {
+    method: 'POST',
+  });
+}
+
 export function fetchKyc() {
   return apiFetch<KycResponse>('/api/kyc');
 }

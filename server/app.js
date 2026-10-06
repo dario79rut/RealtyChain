@@ -18,6 +18,7 @@ const governanceRoutes = require('./routes/governance');
 const marketRoutes = require('./routes/market');
 const adminRoutes = require('./routes/admin');
 const lendingRoutes = require('./routes/lending');
+const bridgeRoutes = require('./routes/bridge');
 const opsController = require('./controllers/opsController');
 const readiness = require('./services/readiness');
 const persistence = require('./mock/persistence');
@@ -83,6 +84,7 @@ app.use('/api/searches', searchRoutes);
 app.use('/api/governance', governanceRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/lend', lendingRoutes);
+app.use('/api/bridge', bridgeRoutes);
 app.use('/api/admin', adminRoutes);
 
 const distDir = path.join(__dirname, '..', 'dist');

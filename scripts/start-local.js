@@ -9,12 +9,6 @@ const root = path.resolve(__dirname, '..');
 const envFile = path.join(root, '.env');
 const isWindows = process.platform === 'win32';
 const npm = isWindows ? 'npm.cmd' : 'npm';
-const hardhat = path.join(
-  root,
-  'node_modules',
-  '.bin',
-  isWindows ? 'hardhat.cmd' : 'hardhat'
-);
 const children = new Set();
 let stopping = false;
 
@@ -98,30 +92,6 @@ function shutdown(code = 0) {
   setTimeout(() => process.exit(code), 250);
 }
 
-async function waitForRpc(timeoutMs = 30_000) {
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
-    try {
-      const response = await fetch('http://127.0.0.1:8545', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'eth_chainId',
-          params: [],
-        }),
-      });
-      const body = await response.json();
-      if (body.result === '0x7a69') return;
-    } catch {
-      // Hardhat is still starting.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-  throw new Error('Hardhat did not become ready at http://127.0.0.1:8545.');
-}
-
 function assertPortFree(port) {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -151,12 +121,6 @@ async function findFreePort(start, attempts = 20) {
   throw new Error(`No free API port found between ${start} and ${start + attempts - 1}.`);
 }
 
-function addressFrom(output, key) {
-  const match = output.match(new RegExp(`${key}=(0x[a-fA-F0-9]{40})`));
-  if (!match) throw new Error(`Deployment did not print ${key}.`);
-  return match[1];
-}
-
 function writeEnv(values) {
   const existing = fs.existsSync(envFile) ? fs.readFileSync(envFile, 'utf8') : '';
   const lines = existing ? existing.replace(/\r\n/g, '\n').split('\n') : [];
@@ -180,64 +144,25 @@ async function main() {
     throw new Error(`Node.js 22 or newer is required (found ${process.version}). Run "nvm use 22".`);
   }
 
-  await Promise.all([assertPortFree(3000), assertPortFree(8545)]);
+  await assertPortFree(3000);
   const apiPort = await findFreePort(4000);
   if (apiPort !== 4000) {
     log(`Port 4000 is busy; the API will use port ${apiPort} instead.`);
   }
 
-  if (!fs.existsSync(hardhat)) {
+  if (!fs.existsSync(path.join(root, 'node_modules', 'vite'))) {
     log('Dependencies are missing. Running npm install…');
     await run(npm, ['install']);
   }
 
-  log('Starting the local Hardhat chain…');
-  start(hardhat, ['node']);
-  await waitForRpc();
-
-  log('Deploying RealtyChain contracts and seed listings…');
-  const deployment = await run(
-    hardhat,
-    ['run', 'scripts/deploy-property-protocol.js', '--network', 'localhost'],
-    {
-      capture: true,
-      // A local interview run must always deploy MockUSDC, even if .env
-      // previously contained a canonical network address.
-      env: { USDC_ADDRESS: '' },
-    }
-  );
-
   const values = {
-    VITE_IDENTITY_REGISTRY_ADDRESS: addressFrom(
-      deployment,
-      'VITE_IDENTITY_REGISTRY_ADDRESS'
-    ),
-    VITE_CLAIM_ISSUER_ADDRESS: addressFrom(deployment, 'VITE_CLAIM_ISSUER_ADDRESS'),
-    VITE_INVESTOR_ONBOARDER_ADDRESS: addressFrom(
-      deployment,
-      'VITE_INVESTOR_ONBOARDER_ADDRESS'
-    ),
-    VITE_USDC_ADDRESS: addressFrom(deployment, 'VITE_USDC_ADDRESS'),
-    VITE_PROPERTY_FACTORY_ADDRESS: addressFrom(
-      deployment,
-      'VITE_PROPERTY_FACTORY_ADDRESS'
-    ),
-    VITE_SHARE_MARKET_ADDRESS: addressFrom(
-      deployment,
-      'VITE_SHARE_MARKET_ADDRESS'
-    ),
-    VITE_ENABLE_TESTNETS: 'true',
-    VITE_ALLOWED_CHAINS: 'hardhat',
     VITE_DEMO_MODE: 'true',
-    CHAIN_ID: '31337',
-    CHAIN_RPC_URL: 'http://127.0.0.1:8545',
     DEMO_MODE: 'true',
     PORT: String(apiPort),
     API_PORT: String(apiPort),
   };
   writeEnv(values);
 
-  log('Contract addresses were written to .env.');
   log('Starting API and frontend. Press Ctrl+C to stop everything.');
   console.log('[local] App: http://localhost:3000');
   console.log(`[local] API: http://localhost:${apiPort}/health\n`);

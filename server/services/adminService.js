@@ -256,7 +256,7 @@ function growthOf(properties, users) {
   }
   const monthlyNet = properties.reduce((total, property) => total + flowOf(property).net, 0);
   const accrued = days.map((day, index) => ({ t: day, value: money((monthlyNet * (index + 1)) / 30) }));
-  const investors = users.filter((user) => user.role !== 'owner');
+  const investors = users.filter((user) => user.role !== 'owner' && user.role !== 'institution');
   const owners = users.filter((user) => user.role === 'owner');
   return {
     asset,
@@ -266,7 +266,7 @@ function growthOf(properties, users) {
     accrued,
     investors: runningCount(investors, days, () => true),
     owners: runningCount(owners, days, () => true),
-    approved: runningCount(users, days, (user) => user.kycStatus === 'approved'),
+    approved: runningCount(users, days, (user) => user.kycStatus === 'approved' && user.role !== 'institution'),
   };
 }
 
@@ -303,7 +303,7 @@ function snapshot() {
   return {
     properties: (persistence.data.properties || []).map(presentProperty),
     owners: users.filter((user) => user.role === 'owner').map(presentAccount),
-    investors: users.filter((user) => user.role !== 'owner').map(presentAccount),
+    investors: users.filter((user) => user.role !== 'owner' && user.role !== 'institution').map(presentAccount),
     market: {
       orders,
       trades,

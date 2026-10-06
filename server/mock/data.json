@@ -584,6 +584,24 @@
       "governanceSeeded": true,
       "shareBalances": {},
       "savedSearches": []
+    },
+    {
+      "id": 40,
+      "email": "institution@defi.estate",
+      "name": "Northline Capital",
+      "role": "institution",
+      "password_hash": "$2b$10$RS71dSXmZAAWH3DcrJE.Ne/VK/N20Qa0BRPw0cGrZv9r8Zi/o9KA6",
+      "kycStatus": "approved",
+      "accredited": true,
+      "walletAddress": null,
+      "kyc": {
+        "legalName": "Northline Capital LLP",
+        "country": "GB",
+        "submittedAt": "2026-01-15T00:00:00.000Z",
+        "reviewedAt": "2026-01-16T00:00:00.000Z",
+        "reviewNote": "Institutional onboarding held on the Corda node.",
+        "provider": "corda"
+      }
     }
   ],
   "properties": [
@@ -22301,6 +22319,45 @@
       "action": "property-valuation",
       "target": "1",
       "detail": "$450000"
+    }
+  ],
+  "cordaPositions": [
+    {
+      "linearId": "31384473-3be6-4f68-99e3-7b33fc11c357",
+      "status": "SETTLED",
+      "propertyId": "1",
+      "propertyTitle": "Luxury Downtown Apartment",
+      "shares": 10,
+      "participants": [
+        "O=Northline Capital, L=London, C=GB",
+        "O=RealtyChain Operator, C=GB"
+      ],
+      "notary": "O=RealtyChain Notary, C=GB",
+      "private": {
+        "holderUserId": 40,
+        "legalName": "Northline Capital LLP",
+        "lei": "894500CORDAINST00001",
+        "country": "GB"
+      },
+      "commitment": "7852124acb6edcb206e791f9c93aea1dc86c00648692962b07e77de93d284f75",
+      "settlementId": "6f08f556-439e-4429-bc78-d07a3c9b0f9d",
+      "createdAt": "2026-10-06T13:30:28.526Z",
+      "settledAt": "2026-10-06T13:30:28.831Z"
+    }
+  ],
+  "solanaSettlements": [
+    {
+      "id": "6f08f556-439e-4429-bc78-d07a3c9b0f9d",
+      "propertyId": "1",
+      "propertyTitle": "Luxury Downtown Apartment",
+      "shares": 10,
+      "commitment": "7852124acb6edcb206e791f9c93aea1dc86c00648692962b07e77de93d284f75",
+      "solana": {
+        "tag": 14,
+        "operation": "settle",
+        "instructionHex": "0e01000000000000000a0000000000000000000000000000007852124acb6edcb206e791f9c93aea1dc86c00648692962b07e77de93d284f75"
+      },
+      "settledAt": "2026-10-06T13:30:28.831Z"
     }
   ]
 }

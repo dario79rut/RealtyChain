@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from 'lucide-react';
-import { isAddress } from 'viem';
 import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
 import { Button } from '../ui/Button';
-import { erc20Abi, isHexAddress } from '../../contracts/config';
+import { erc20Abi, isChainAddress } from '../../contracts/config';
 
 const fieldClass =
   'w-full bg-void-700 border border-void-600 text-cream-100 rounded-xl py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-accent/40';
@@ -51,11 +50,11 @@ export function TransferSharesModal({
   const handleSend = async () => {
     if (!token || !address) return;
     const shares = Number(amount);
-    if (!isAddress(to) || !isHexAddress(to)) {
+    if (!isChainAddress(to)) {
       setError('Enter a valid recipient wallet.');
       return;
     }
-    if (to.toLowerCase() === address.toLowerCase()) {
+    if (to === address || (to.startsWith('0x') && to.toLowerCase() === address.toLowerCase())) {
       setError('Recipient must be a different wallet.');
       return;
     }
@@ -119,7 +118,7 @@ export function TransferSharesModal({
                   <label className="block text-sm font-medium text-cream-400 mb-1.5">Recipient</label>
                   <input
                     className={fieldClass}
-                    placeholder="0x…"
+                    placeholder="Solana address"
                     value={to}
                     onChange={(e) => setTo(e.target.value.trim())}
                   />

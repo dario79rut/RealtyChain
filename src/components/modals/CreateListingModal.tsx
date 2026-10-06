@@ -9,7 +9,7 @@ import { updateProperty } from '../../utils/api';
 import {
   PROPERTY_FACTORY_ADDRESS,
   isFactoryConfigured,
-  isHexAddress,
+  isSolanaAddress,
   propertyFactoryAbi,
 } from '../../contracts/config';
 import { listingFromResult } from '../../hooks/useListing';
@@ -69,7 +69,7 @@ export function CreateListingModal({ isOpen, property, onClose, onDeployed }: Cr
     if (!property || !isFactoryConfigured) return;
     setError('');
     const payTo = beneficiary || address || '';
-    if (!isHexAddress(payTo)) {
+    if (!isSolanaAddress(payTo)) {
       setError('Connect a wallet or enter a USDC beneficiary address.');
       return;
     }

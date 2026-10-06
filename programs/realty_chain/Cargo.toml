@@ -1,0 +1,11 @@
+[package]
+name = "realty_chain"
+version = "0.1.0"
+edition = "2021"
+description = "RealtyChain property shares, primary sale, and secondary asks on Solana"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+solana-program = "1.18.26"

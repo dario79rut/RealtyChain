@@ -76,6 +76,18 @@ export default function Lend() {
   const loan = desk?.loan;
   const ltvWidth = Math.min(100, ((loan?.ltv || 0) / (desk?.terms.liquidationLtv || 0.65)) * 100);
 
+  if (user?.role === 'institution') {
+    return (
+      <div className="min-h-screen w-full">
+        <div className="max-w-xl mx-auto px-4 py-20 text-center">
+          <h1 className="font-display text-3xl font-bold text-cream-100 mb-3">Investor lending</h1>
+          <p className="text-cream-400 mb-6">This pool is for retail investors. Institutional exposure stays on Corda and settles to Solana from the desk.</p>
+          <Button onClick={() => navigate('/institution')}>Open Corda desk</Button>
+        </div>
+      </div>
+    );
+  }
+
   if (user?.role === 'owner') {
     return (
       <div className="min-h-screen w-full">

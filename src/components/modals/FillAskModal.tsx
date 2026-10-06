@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from 'lucide-react';
-import { formatUnits } from 'viem';
+import { formatUnits } from '../../utils/units';
 import { useAccount, usePublicClient, useReadContract, useWriteContract } from 'wagmi';
 import { Button } from '../ui/Button';
 import {
   SHARE_MARKET_ADDRESS,
   USDC_ADDRESS,
   erc20Abi,
-  isHexAddress,
+  isSolanaAddress,
   isMarketConfigured,
   isUsdcConfigured,
   shareMarketAbi,
@@ -43,9 +43,9 @@ export function FillAskModal({ isOpen, ask, propertyTitle, onClose, onFilled }: 
     functionName: 'usdc',
     query: { enabled: isMarketConfigured },
   });
-  const usdcAddress = isHexAddress(USDC_ADDRESS)
+  const usdcAddress = isSolanaAddress(USDC_ADDRESS)
     ? USDC_ADDRESS
-    : isHexAddress(usdcFromMarket)
+    : isSolanaAddress(typeof usdcFromMarket === 'string' ? usdcFromMarket : undefined)
       ? usdcFromMarket
       : undefined;
 

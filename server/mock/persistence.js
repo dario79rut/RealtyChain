@@ -58,6 +58,12 @@ const seedUsers = [
     name: 'Property Owner',
     role: 'owner',
   },
+  {
+    email: process.env.DEV_INSTITUTION_EMAIL || 'institution@defi.estate',
+    password: process.env.DEV_INSTITUTION_PASSWORD || 'institution1234',
+    name: 'Northline Capital',
+    role: 'institution',
+  },
 ];
 
 function ensureSeedUsers() {
@@ -86,6 +92,43 @@ function ensureSeedUsers() {
       existing.name = existing.name || seed.name;
       changed = true;
     }
+  }
+  if (changed) writeFile(data);
+}
+
+function ensureInstitution() {
+  if (!data || !Array.isArray(data.users)) return;
+  const user = data.users.find((row) => row.email === (process.env.DEV_INSTITUTION_EMAIL || 'institution@defi.estate'));
+  if (!user) return;
+  let changed = false;
+  if (user.role !== 'institution') {
+    user.role = 'institution';
+    changed = true;
+  }
+  if (!user.name) {
+    user.name = 'Northline Capital';
+    changed = true;
+  }
+  if (!user.kyc) {
+    user.kycStatus = 'approved';
+    user.accredited = true;
+    user.kyc = {
+      legalName: 'Northline Capital LLP',
+      country: 'GB',
+      submittedAt: '2026-01-15T00:00:00.000Z',
+      reviewedAt: '2026-01-16T00:00:00.000Z',
+      reviewNote: 'Institutional onboarding held on the Corda node.',
+      provider: 'corda',
+    };
+    changed = true;
+  }
+  if (!Array.isArray(data.cordaPositions)) {
+    data.cordaPositions = [];
+    changed = true;
+  }
+  if (!Array.isArray(data.solanaSettlements)) {
+    data.solanaSettlements = [];
+    changed = true;
   }
   if (changed) writeFile(data);
 }
@@ -278,6 +321,7 @@ function ensureCmsDefaults() {
 function runEnsures() {
   ensureSeedUsers();
   ensureProperties();
+  ensureInstitution();
   ensurePropertyOwner();
   ensureKycDefaults();
   stripLegacyShopData();

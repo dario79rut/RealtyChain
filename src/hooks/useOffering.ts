@@ -1,5 +1,5 @@
 import { useReadContract } from 'wagmi';
-import { offeringAbi, isHexAddress } from '../contracts/config';
+import { offeringAbi, isSolanaAddress } from '../contracts/config';
 import { listingFromResult, useListing } from './useListing';
 import { Property } from '../utils/types';
 
@@ -8,7 +8,7 @@ const ZERO = '0x0000000000000000000000000000000000000000';
 export function useOfferingAddress(property: Property | undefined) {
   const { data } = useListing(property?.id);
   const fromFactory = listingFromResult(data);
-  if (property && isHexAddress(property.offeringAddress)) return property.offeringAddress;
+  if (property && isSolanaAddress(property.offeringAddress)) return property.offeringAddress;
   if (fromFactory?.exists && fromFactory.offering && fromFactory.offering.toLowerCase() !== ZERO) {
     return fromFactory.offering;
   }

@@ -2,7 +2,9 @@ const persistence = require('../mock/persistence');
 const { sanitizeUser } = require('../models/userModel');
 const sumsub = require('./sumsubClient');
 
-const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
+const EVM_ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
+const SOLANA_ADDRESS_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+const ADDRESS_RE = EVM_ADDRESS_RE;
 const BLOCKED_COUNTRIES = new Set(['KP', 'IR', 'SY', 'CU']);
 
 function ensureKycFields(user) {
@@ -199,10 +201,12 @@ function bindWallet(userId, address) {
   const user = findById(userId);
   if (!user) throw Object.assign(new Error('Unauthorized'), { status: 401 });
   const raw = String(address || '').trim();
-  if (!ADDRESS_RE.test(raw)) {
-    throw Object.assign(new Error('Enter a valid EVM wallet address.'), { status: 400 });
+  const evm = EVM_ADDRESS_RE.test(raw);
+  const solana = SOLANA_ADDRESS_RE.test(raw);
+  if (!evm && !solana) {
+    throw Object.assign(new Error('Enter a valid Solana wallet address.'), { status: 400 });
   }
-  const normalized = raw.toLowerCase();
+  const normalized = evm ? raw.toLowerCase() : raw;
   const taken = persistence.data.users.find(
     (u) => u.walletAddress && u.walletAddress.toLowerCase() === normalized && String(u.id) !== String(user.id)
   );

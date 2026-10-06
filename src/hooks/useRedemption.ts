@@ -2,7 +2,7 @@ import { useReadContract } from 'wagmi';
 import {
   erc20Abi,
   isFactoryConfigured,
-  isHexAddress,
+  isSolanaAddress,
   PROPERTY_FACTORY_ADDRESS,
   propertyFactoryAbi,
   redemptionAbi,
@@ -20,7 +20,7 @@ export function useRedemptionAddress(property: Property | undefined) {
     args: property?.id ? [BigInt(property.id)] : undefined,
     query: { enabled },
   });
-  if (property && isHexAddress(property.redemptionAddress)) return property.redemptionAddress;
+  if (property && isSolanaAddress(property.redemptionAddress)) return property.redemptionAddress;
   if (typeof data === 'string' && data.toLowerCase() !== ZERO) return data as `0x${string}`;
   return undefined;
 }

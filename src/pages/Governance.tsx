@@ -181,14 +181,14 @@ export default function Governance() {
     }
   };
 
-  if (user?.role === 'owner' || user?.role === 'admin') {
+  if (user?.role === 'owner' || user?.role === 'admin' || user?.role === 'institution') {
     return (
       <div className="min-h-screen w-full">
         <div className="max-w-xl mx-auto px-4 py-20 text-center">
           <h1 className="font-display text-3xl font-bold text-cream-100 mb-3">Governance</h1>
           <p className="text-cream-400 mb-6">Shareholder votes are an investor action.</p>
-          <Button onClick={() => navigate(user.role === 'admin' ? '/admin' : '/user')}>
-            {user.role === 'admin' ? 'Open admin' : 'Open owner desk'}
+          <Button onClick={() => navigate(user.role === 'admin' ? '/admin' : user.role === 'institution' ? '/institution' : '/user')}>
+            {user.role === 'admin' ? 'Open admin' : user.role === 'institution' ? 'Open Corda desk' : 'Open owner desk'}
           </Button>
         </div>
       </div>

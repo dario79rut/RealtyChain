@@ -1,9 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiProvider, useAccount } from 'wagmi';
-import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
-import { config } from '../wagmi';
+import { SolanaProviders } from './solana/provider';
 import { WalletProvider } from './context/WalletContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { getToken } from './utils/api';
@@ -21,6 +19,7 @@ import Market from './pages/Market';
 import Governance from './pages/Governance';
 import Lend from './pages/Lend';
 import AdminUserAdmin from './pages/AdminUserAdmin';
+import Institution from './pages/Institution';
 
 const client = new QueryClient();
 
@@ -33,13 +32,8 @@ function WalletLoading() {
 }
 
 function AppRoutes() {
-  const { status } = useAccount();
-  const { isLoggedIn, authReady } = useAuth();
+  const { isLoggedIn, authReady, user } = useAuth();
   const location = useLocation();
-
-  if (status === 'reconnecting' || status === 'connecting') {
-    return <WalletLoading />;
-  }
 
   const publicPaths = ['/', '/adminuseradmin_useradminuser'];
   const isPublic = publicPaths.includes(location.pathname);
@@ -49,7 +43,7 @@ function AppRoutes() {
   }
 
   if (location.pathname === '/' && isLoggedIn) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to={user?.role === 'institution' ? '/institution' : '/home'} replace />;
   }
 
   if (!isPublic && !isLoggedIn) {
@@ -74,6 +68,7 @@ function AppRoutes() {
         <Route path="/governance" element={<Governance />} />
         <Route path="/lend" element={<Lend />} />
         <Route path="/property/:id" element={<PropertyDetail />} />
+        <Route path="/institution" element={<Institution />} />
       </Route>
     </Routes>
   );
@@ -81,24 +76,15 @@ function AppRoutes() {
 
 function App() {
   return (
-    <WagmiProvider config={config}>
+    <SolanaProviders>
       <QueryClientProvider client={client}>
-        <RainbowKitProvider
-          theme={darkTheme({
-            accentColor: '#0ea5e9',
-            accentColorForeground: '#050505',
-            borderRadius: 'medium',
-            overlayBlur: 'small',
-          })}
-        >
-          <WalletProvider>
-            <AuthProvider>
-              <AppRoutes />
-            </AuthProvider>
-          </WalletProvider>
-        </RainbowKitProvider>
+        <WalletProvider>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </WalletProvider>
       </QueryClientProvider>
-    </WagmiProvider>
+    </SolanaProviders>
   );
 }
 

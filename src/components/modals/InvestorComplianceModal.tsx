@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from 'lucide-react';
-import { isAddress } from 'viem';
 import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
 import { Button } from '../ui/Button';
 import {
   IDENTITY_REGISTRY_ADDRESS,
   identityRegistryAbi,
-  isHexAddress,
+  isChainAddress,
   isIdentityConfigured,
   propertyShareAbi,
 } from '../../contracts/config';
@@ -70,11 +69,11 @@ export function InvestorComplianceModal({
 
   const handleSubmit = async () => {
     if (!fromWallet || !listing) return;
-    if (!isAddress(to) || !isHexAddress(to)) {
+    if (!isChainAddress(to)) {
       setError('Enter a valid destination wallet.');
       return;
     }
-    if (to.toLowerCase() === fromWallet.toLowerCase()) {
+    if (to === fromWallet || (to.startsWith('0x') && to.toLowerCase() === fromWallet.toLowerCase())) {
       setError('Destination must be a different wallet.');
       return;
     }
@@ -194,7 +193,7 @@ export function InvestorComplianceModal({
                     className={fieldClass}
                     value={to}
                     onChange={(e) => setTo(e.target.value.trim())}
-                    placeholder="0x…"
+                    placeholder="Solana address"
                     disabled={busy}
                   />
                 </div>

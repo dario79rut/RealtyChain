@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount } from 'wagmi';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { XIcon } from 'lucide-react';
 
@@ -25,9 +25,14 @@ type ConnectWalletButtonProps = {
   showBalance?: boolean;
 };
 
-export function ConnectWalletButton({ showBalance = true }: ConnectWalletButtonProps) {
+function shortAddress(value: string) {
+  return `${value.slice(0, 4)}…${value.slice(-4)}`;
+}
+
+export function ConnectWalletButton({ showBalance: _showBalance = true }: ConnectWalletButtonProps) {
   const simulateExtensionError = simulateWalletExtensionErrorEnabled();
-  const { isConnected } = useAccount();
+  const { connected, publicKey, disconnect } = useWallet();
+  const { setVisible } = useWalletModal();
   const [toastVisible, setToastVisible] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -44,24 +49,29 @@ export function ConnectWalletButton({ showBalance = true }: ConnectWalletButtonP
 
   useEffect(() => () => clearTimeout(hideTimer.current), []);
 
-  const blockConnect = (event: React.SyntheticEvent) => {
-    if (!simulateExtensionError || isConnected) return;
-    event.preventDefault();
-    event.stopPropagation();
+  const onClick = () => {
+    if (simulateExtensionError && !connected) {
+      showToast();
+      return;
+    }
+    if (connected) {
+      disconnect().catch(() => undefined);
+      return;
+    }
+    setVisible(true);
   };
+
+  const label = connected && publicKey ? shortAddress(publicKey.toBase58()) : 'Connect Wallet';
 
   return (
     <>
-      <div
-        onPointerDownCapture={(event) => {
-          if (!simulateExtensionError || isConnected) return;
-          blockConnect(event);
-          showToast();
-        }}
-        onClickCapture={blockConnect}
+      <button
+        type="button"
+        onClick={onClick}
+        className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-void-950"
       >
-        <ConnectButton showBalance={showBalance} />
-      </div>
+        {label}
+      </button>
       {typeof document !== 'undefined' &&
         createPortal(
           <AnimatePresence>

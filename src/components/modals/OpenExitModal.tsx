@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from 'lucide-react';
-import { formatUnits } from 'viem';
+import { formatUnits } from '../../utils/units';
 import { useAccount, usePublicClient, useReadContract, useWriteContract } from 'wagmi';
 import { Button } from '../ui/Button';
 import {
   USDC_ADDRESS,
   erc20Abi,
-  isHexAddress,
+  isSolanaAddress,
   isUsdcConfigured,
   redemptionAbi,
 } from '../../contracts/config';
@@ -38,9 +38,9 @@ export function OpenExitModal({ isOpen, propertyTitle, redemption, onClose, onOp
     functionName: 'usdc',
     query: { enabled: Boolean(redemption) },
   });
-  const usdcAddress = isHexAddress(USDC_ADDRESS)
+  const usdcAddress = isSolanaAddress(USDC_ADDRESS)
     ? USDC_ADDRESS
-    : isHexAddress(usdcFromPool)
+    : isSolanaAddress(typeof usdcFromPool === 'string' ? usdcFromPool : undefined)
       ? usdcFromPool
       : undefined;
 

@@ -15,37 +15,33 @@ test('demo snapshot leaves audit, bounty, and first close open', async () => {
   assert.equal(byId.kyc.status, 'open');
 });
 
-test('production startup blockers require jwt, rpc, and factory', () => {
+test('production startup blockers require jwt, rpc, and the Solana program', () => {
   const prev = {
     APP_ENV: process.env.APP_ENV,
     JWT_SECRET: process.env.JWT_SECRET,
-    CHAIN_RPC_URL: process.env.CHAIN_RPC_URL,
-    PROPERTY_FACTORY_ADDRESS: process.env.PROPERTY_FACTORY_ADDRESS,
-    VITE_PROPERTY_FACTORY_ADDRESS: process.env.VITE_PROPERTY_FACTORY_ADDRESS,
+    SOLANA_RPC_URL: process.env.SOLANA_RPC_URL,
+    VITE_SOLANA_RPC_URL: process.env.VITE_SOLANA_RPC_URL,
+    SOLANA_PROGRAM_ID: process.env.SOLANA_PROGRAM_ID,
+    VITE_SOLANA_PROGRAM_ID: process.env.VITE_SOLANA_PROGRAM_ID,
   };
   const prevDemo = process.env.DEMO_MODE;
   process.env.APP_ENV = 'production';
   process.env.DEMO_MODE = 'false';
   delete process.env.JWT_SECRET;
-  delete process.env.CHAIN_RPC_URL;
-  delete process.env.PROPERTY_FACTORY_ADDRESS;
-  delete process.env.VITE_PROPERTY_FACTORY_ADDRESS;
+  delete process.env.SOLANA_RPC_URL;
+  delete process.env.VITE_SOLANA_RPC_URL;
+  delete process.env.SOLANA_PROGRAM_ID;
+  delete process.env.VITE_SOLANA_PROGRAM_ID;
   try {
     const blockers = readiness.startupBlockers();
-    assert.ok(blockers.length >= 3);
+    assert.equal(blockers.length, 3);
   } finally {
     if (prevDemo === undefined) delete process.env.DEMO_MODE;
     else process.env.DEMO_MODE = prevDemo;
-    if (prev.APP_ENV === undefined) delete process.env.APP_ENV;
-    else process.env.APP_ENV = prev.APP_ENV;
-    if (prev.JWT_SECRET === undefined) delete process.env.JWT_SECRET;
-    else process.env.JWT_SECRET = prev.JWT_SECRET;
-    if (prev.CHAIN_RPC_URL === undefined) delete process.env.CHAIN_RPC_URL;
-    else process.env.CHAIN_RPC_URL = prev.CHAIN_RPC_URL;
-    if (prev.PROPERTY_FACTORY_ADDRESS === undefined) delete process.env.PROPERTY_FACTORY_ADDRESS;
-    else process.env.PROPERTY_FACTORY_ADDRESS = prev.PROPERTY_FACTORY_ADDRESS;
-    if (prev.VITE_PROPERTY_FACTORY_ADDRESS === undefined) delete process.env.VITE_PROPERTY_FACTORY_ADDRESS;
-    else process.env.VITE_PROPERTY_FACTORY_ADDRESS = prev.VITE_PROPERTY_FACTORY_ADDRESS;
+    for (const [key, value] of Object.entries(prev)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
   }
 });
 

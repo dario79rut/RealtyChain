@@ -6,19 +6,19 @@ A decentralized real estate platform built with React, Vite, and Web3 technologi
 
 - Browse and explore real estate properties
 - JWT login against `/api/auth/login` (invalid passwords are rejected)
-- Mock KYC application, admin review, wallet bind, then on-chain ONCHAINID + claim registration
-- Admin catalog create/delete and on-chain offering deploy
-- Transfer-restricted ERC-20 property shares with a USDC primary offering
-- Wallet integration via RainbowKit (MetaMask, WalletConnect, and others)
+- Mock KYC application, admin review, and Solana wallet bind
+- Admin catalog create/delete and property operations
+- Property shares settled on the Solana program, with USDC as the cash leg
+- Wallet connection via Phantom and Solflare
 - KYC-gated secondary asks (list / fill / cancel) and P2P share transfer
 - Admin occupancy, appraisal calendar, NAV per share, and monthly expense waterfall
-- KYC-gated Get USDC: demo MockUSDC mint plus optional MoonPay (not a bank)
+- KYC-gated Get USDC: demo mint on the Solana program, plus optional MoonPay (not a bank)
 - Listing CMS: OpenStreetMap embed, unit mix, illustrative comps (not an appraisal)
 - Listing image service: landing hero from `/api/images/seed/hero.jpg`, plus admin upload/ingest
 - Property-sale exit: freeze transfers, deposit USDC proceeds, holders burn shares for a snapshot payout
 - Chain event indexer (buys, rent claims, fills, transfers, redemptions) with average cost basis
 - Authenticated document vault and a demo tax worksheet CSV (not a K-1 or 1099)
-- Support for multiple chains (Ethereum, Polygon, Optimism, Arbitrum, Base, and Sepolia testnet)
+- Solana devnet by default, with an institutional Corda desk that settles a commitment onto that program
 
 ## Getting Started
 
@@ -46,9 +46,6 @@ A decentralized real estate platform built with React, Vite, and Web3 technologi
    The launcher automatically:
 
    - installs dependencies when they are missing;
-   - starts a local Hardhat chain on port `8545`;
-   - deploys MockUSDC and the RealtyChain protocol;
-   - writes the generated contract addresses to `.env`;
    - starts the Express API on port `4000`, or the next free port if `4000` is busy;
    - starts the Vite app on port `3000`.
 
@@ -58,32 +55,21 @@ A decentralized real estate platform built with React, Vite, and Web3 technologi
    - User: `test1@gmail.com` / `pass1234`
    - Admin: `admin@defi.estate` / `admin1234`
    - Property owner: `owner@defi.estate` / `owner1234`
+   - Institution: `institution@defi.estate` / `institution1234` (Corda desk at `/institution`; Solana sees the settlement only)
 
    Sign-in calls `POST /api/auth/login`. The catalog is served from `GET /api/properties` (JWT required).
 
    Buy path:
    1. Submit `/kyc` and have `admin@defi.estate` approve the application under Admin → Investors.
-   2. Connect a wallet so it can be linked to the account.
-   3. Admin **Register on-chain** (`InvestorOnboarder.onboard`) with the protocol deployer wallet. That deploys an ONCHAINID, issues demo KYC/accredited claims, and registers the wallet. `isVerified` is claim-backed, not a boolean whitelist.
-   4. Investor approves USDC, then calls `Offering.buy(amount)` (`price * amount`). If the listing has a documents hash, the wallet signs an EIP-712 subscription first (`subscribe`).
-   5. After someone holds shares, Admin → Contracts → **Deposit rent**. Holders **Claim** from My Dashboard.
-   6. Holders **List** or **Send** shares from My Dashboard. Verified buyers **Fill** asks on Market. This is not an open DEX.
-   7. Admin → Investors can **Freeze** a wallet, **Recover** identity + listing shares to a replacement, or **Move shares** (agent forced transfer). Frozen wallets cannot buy, transfer, claim, or redeem.
-   8. Admin → Contracts → **Finalize** an escrowed raise (close window + min raise). Failed raises **Refund** from My Dashboard (burn + USDC).
-   9. Admin → Contracts → **Enable exit** (needs outstanding shares) freezes transfers and pauses the sale. **Deposit proceeds**, then holders **Redeem** from My Dashboard or the property page. Unclaimed USDC stays in the vault.
-   10. **Sync activity** (dashboard or Admin → Contracts) to index events. Export a demo tax CSV from My Dashboard → Transactions. Admin → Properties → **Docs** for the file vault.
+   2. Connect Phantom or Solflare and link that address on the account.
+   3. Buy, list, transfer, claim, and redeem from the demo ledger. When `VITE_SOLANA_PROGRAM_ID` is set, those actions also send the matching program instruction.
+   4. Export a demo tax CSV from My Dashboard → Transactions. Admin → Properties → **Docs** for the file vault.
 
-   Admin origination: Admin → Add property (catalog, optional vault file), then **Deploy** to call `PropertyFactory.createListing`. Pause/unpause live offerings on the Contracts tab. Admin → Ops for occupancy, appraisals, and the monthly waterfall. Admin → Properties → **Edit listing** for copy, photos, map pin, unit mix, and comps (listing polish, not RWA). Seed deploy still creates listings for ids **1, 3, and 5**. Do not seed `createRedemption`; exit is per listing after shares exist.
+   Admin origination: Admin → Add property. Admin → Ops for occupancy, appraisals, and the monthly waterfall. Admin → Properties → **Edit listing** for copy, photos, map pin, unit mix, and comps.
 
-4. To use MetaMask, add the local network:
+4. Connect a Solana wallet from the app. Phantom and Solflare are supported. The default cluster is devnet (`VITE_SOLANA_RPC_URL`). On-chain actions use the RealtyChain program in `programs/realty_chain` after `VITE_SOLANA_PROGRAM_ID` is set to the deployed program address.
 
-   - RPC URL: `http://127.0.0.1:8545`
-   - Chain ID: `31337`
-   - Currency symbol: `ETH`
-
-   Import one of the development accounts printed by Hardhat. These accounts and keys are for local testing only.
-
-Optional MoonPay handoff (third-party; not a bank) can be added to `.env` with `VITE_MOONPAY_PUBLISHABLE_KEY` and `VITE_MOONPAY_SANDBOX=true`. The default local run uses the MockUSDC faucet.
+Optional MoonPay handoff (third-party; not a bank) can be added to `.env` with `VITE_MOONPAY_PUBLISHABLE_KEY` and `VITE_MOONPAY_SANDBOX=true`. The default local run uses the demo USDC mint on the Solana program.
 
 ## Deploy on Netlify
 
@@ -93,9 +79,10 @@ This repo is set up as a Vite static site plus a Netlify Function that wraps the
 2. Set environment variables in the Netlify UI. At minimum:
    - `JWT_SECRET` — long random string
    - `DEMO_MODE=true` and `VITE_DEMO_MODE=true` (already defaulted in `netlify.toml`)
-   - `VITE_WALLETCONNECT_PROJECT_ID` — from [WalletConnect Cloud](https://cloud.walletconnect.com) (MetaMask still works without it)
+   - `VITE_SOLANA_RPC_URL` — Solana cluster URL (devnet by default). Phantom and Solflare connect without a WalletConnect id.
+   - `VITE_SOLANA_PROGRAM_ID` — deployed `programs/realty_chain` address, when transactions should land.
    - `ALLOWED_LOGIN_IPS` — comma-separated IPs that may sign in (for example `203.0.113.10,198.51.100.22`). Redeploy after changing this so the function picks it up.
-3. For on-chain features, set the `VITE_*` contract addresses, `CHAIN_ID`, and a public `CHAIN_RPC_URL` (for example Sepolia). Do not point RPC at `127.0.0.1`. See `.env.example`.
+3. See `.env.example` for the Solana mint and RPC variables.
 4. Redeploy after changing any `VITE_*` variable so the frontend rebuilds.
 
 Login is limited to the allowlist. Configure it in either place:
@@ -107,24 +94,22 @@ Default allowlist is only loopback (`127.0.0.1`), so a Netlify deploy will rejec
 
 `/api/*`, `/health`, and `/ready` are proxied to the function. Client-side routes such as `/home` fall back to `index.html`.
 
-Local production-like preview: `npx netlify dev` (after `npm install`) uses the same function + redirects. `npm start` remains the Hardhat + Vite interview stack.
+Local production-like preview: `npx netlify dev` (after `npm install`) uses the same function + redirects. `npm start` starts the API and Vite.
 
 ## Available Scripts
 
-- `npm start` - Install if needed, start Hardhat, deploy contracts, write `.env`, and start API + Vite
-- `npm run dev` - Start only API + Vite (assumes chain, deployment, and `.env` already exist)
+- `npm start` - Install if needed, then start the API and Vite
+- `npm run dev` - Start the API and Vite
 - `npm run build` - Build for production
 - `npm run preview` - Preview a production build
 - `npm run lint` - Run ESLint
-- `npm test` - Run API tests and Hardhat contract tests
-- `npm run deploy:protocol` - Deploy identity stack (topics, trusted issuers, ClaimIssuer, IdentityRegistry, InvestorOnboarder), MockUSDC (if needed), PropertyFactory, ShareMarket, and seed listings (`--network sepolia` or `base` after setting RPC + deployer key; see PRODUCTION.md)
-- `npm run deploy:factory` - Legacy AssetFactory deploy (not used by the app)
+- `npm test` - Run the API tests
 
 ## Tech Stack
 
 - **Frontend**: React 18, Vite
 - **Styling**: Tailwind CSS
-- **Web3**: Wagmi, Viem, RainbowKit
+- **Chain**: Solana (`@solana/web3.js`, Phantom, Solflare) and the program in `programs/realty_chain`
 - **Routing**: React Router DOM
 - **Animations**: Framer Motion
 - **Icons**: Lucide React
@@ -136,12 +121,12 @@ src/
 ├── components/     # Reusable UI components
 ├── pages/         # Page components
 ├── context/       # React context providers
-├── hooks/         # Data hooks (properties catalog, factory listings)
+├── hooks/         # Data hooks (properties catalog, Solana reads)
 ├── utils/         # Utility functions and types
 └── styles/        # Global styles
 server/
 ├── routes/        # Auth, properties, KYC, settings, activity, vault
 └── mock/          # Seed users + property catalog
-contracts/         # Identity stack (ONCHAINID + claims), PropertyShare, Offering, Distributor, ShareMarket, Redemption, PropertyFactory
+programs/realty_chain/  # Solana program: buys, transfers, compliance config, Corda settlement
 ```
 

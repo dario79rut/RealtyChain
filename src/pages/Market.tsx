@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronDownIcon, SearchIcon } from 'lucide-react';
-import { formatUnits } from 'viem';
+import { formatUnits } from '../utils/units';
 import { useAccount, usePublicClient, useReadContract, useWriteContract } from 'wagmi';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -227,6 +227,18 @@ export default function Market() {
       setCancellingId(null);
     }
   };
+
+  if (user?.role === 'institution') {
+    return (
+      <div className="min-h-screen w-full">
+        <div className="max-w-xl mx-auto px-4 py-20 text-center">
+          <h1 className="font-display text-3xl font-bold text-cream-100 mb-3">Exchange</h1>
+          <p className="text-cream-400 mb-6">Institutional positions settle from the Corda desk onto Solana. They do not enter the public order book.</p>
+          <Button onClick={() => navigate('/institution')}>Open Corda desk</Button>
+        </div>
+      </div>
+    );
+  }
 
   if (user?.role === 'owner') {
     return (

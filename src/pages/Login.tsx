@@ -28,7 +28,7 @@ export default function Login() {
     try {
       const session = await loginRequest(email, password);
       applySession(session.token, session.user);
-      navigate('/home');
+      navigate(session.user.role === 'institution' ? '/institution' : '/home');
     } catch (err) {
       const message = err instanceof Error ? err.message : '';
       if (/ip address is not allowed/i.test(message)) {

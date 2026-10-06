@@ -5,19 +5,24 @@ function currentUser(req) {
   return persistence.data.users.find((u) => String(u.id) === String(req.user?.sub)) || null;
 }
 
+function canonicalWallet(value) {
+  const raw = String(value || '').trim();
+  return raw.startsWith('0x') ? raw.toLowerCase() : raw;
+}
+
 function requestedWallet(req) {
-  const query = String(req.query.wallet || '').trim().toLowerCase();
+  const query = canonicalWallet(req.query.wallet || '');
   const account = currentUser(req);
   if (query) {
     if (account?.role === 'admin') return query;
-    if (account?.walletAddress && account.walletAddress.toLowerCase() === query) return query;
+    if (account?.walletAddress && canonicalWallet(account.walletAddress) === query) return query;
     const err = Object.assign(new Error('Wallet does not match this account.'), { status: 403 });
     throw err;
   }
   if (!account?.walletAddress) {
     throw Object.assign(new Error('Link a wallet before reading activity.'), { status: 400 });
   }
-  return account.walletAddress.toLowerCase();
+  return canonicalWallet(account.walletAddress);
 }
 
 function sendError(res, err) {

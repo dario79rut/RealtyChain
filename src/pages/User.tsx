@@ -9,7 +9,7 @@ import { useWallet } from '../context/WalletContext';
 import { useAuth } from '../context/AuthContext';
 import { useProperties } from '../hooks/useProperties';
 import { ConnectWalletButton } from '../components/ui/ConnectWalletButton';
-import { formatUnits } from 'viem';
+import { formatUnits } from '../utils/units';
 import { useReadContracts, usePublicClient, useWriteContract } from 'wagmi';
 import {
   erc20Abi,
@@ -103,6 +103,7 @@ export default function User() {
 
   useEffect(() => {
     if (user?.role === 'admin') navigate('/admin', { replace: true });
+    if (user?.role === 'institution') navigate('/institution', { replace: true });
   }, [user, navigate]);
   const ownedProperties = properties.filter((property) => user?.id != null && Number(property.ownerId) === Number(user.id));
   const ownedValue = ownedProperties.reduce((sum, property) => sum + Number(property.price || 0), 0);

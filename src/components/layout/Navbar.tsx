@@ -22,6 +22,7 @@ import { AuthUser, mediaUrl } from '../../utils/api';
 import { Logo } from '../ui/Logo';
 import { AdminBar } from './AdminBar';
 import { OwnerBar } from './OwnerBar';
+import { InstitutionBar } from './InstitutionBar';
 
 function initials(user: AuthUser) {
   const source = (user.name || user.email || '?').trim();
@@ -32,6 +33,7 @@ function initials(user: AuthUser) {
 function roleLabel(role: string) {
   if (role === 'owner') return 'Property owner';
   if (role === 'admin') return 'Admin';
+  if (role === 'institution') return 'Institution';
   return 'Investor';
 }
 
@@ -154,6 +156,10 @@ export function Navbar() {
 
   if (user?.role === 'owner') {
     return <OwnerBar />;
+  }
+
+  if (user?.role === 'institution') {
+    return <InstitutionBar />;
   }
 
   const navLinks = [

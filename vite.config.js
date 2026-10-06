@@ -11,6 +11,8 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+        wagmi: path.resolve(__dirname, './src/solana/wagmi.ts'),
+        buffer: 'buffer',
       },
     },
     server: {
@@ -26,6 +28,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: true,
     },
     define: {
+      global: 'globalThis',
       'process.env.NEXT_PUBLIC_ENABLE_TESTNETS': JSON.stringify(process.env.NEXT_PUBLIC_ENABLE_TESTNETS || 'false'),
     },
   }

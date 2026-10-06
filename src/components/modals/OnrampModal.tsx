@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from 'lucide-react';
-import { formatUnits } from 'viem';
+import { formatUnits } from '../../utils/units';
 import { useAccount, usePublicClient, useReadContract, useWriteContract } from 'wagmi';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
