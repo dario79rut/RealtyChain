@@ -8,7 +8,7 @@ A decentralized real estate platform built with React, Vite, and Web3 technologi
 - JWT login against `/api/auth/login` (invalid passwords are rejected)
 - Mock KYC application, admin review, and Solana wallet bind
 - Admin catalog create/delete and property operations
-- Property shares settled on the Solana program, with USDC as the cash leg
+- Property shares settled on the Solana program, with USDC as the cash leg. Each property is a Token-2022 mint with a freeze authority, a permanent delegate, and a transfer hook. The program config account stores the admin, the trusted issuer, the USDC mint, KYC claim topic 1, accredited claim topic 2, and whether holders must be verified
 - Wallet connection via Phantom and Solflare
 - KYC-gated secondary asks (list / fill / cancel) and P2P share transfer
 - Admin occupancy, appraisal calendar, NAV per share, and monthly expense waterfall
