@@ -7,7 +7,6 @@ interface ImportMetaEnv {
   readonly VITE_SOLANA_USDC_MINT: string
   readonly VITE_MOONPAY_PUBLISHABLE_KEY: string
   readonly VITE_MOONPAY_SANDBOX: string
-  readonly VITE_SIMULATE_WALLET_EXTENSION_ERROR: string
 }
 
 interface ImportMeta {

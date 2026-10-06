@@ -7,22 +7,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { XIcon } from 'lucide-react';
 import { useWalletNotice } from '../../solana/provider';
 
-/**
- * Interview defect: show a fake browser-extension error instead of opening
- * the wallet modal. Flip this constant, or set
- * VITE_SIMULATE_WALLET_EXTENSION_ERROR=true|false in .env.
- */
-const SIMULATE_WALLET_EXTENSION_ERROR_DEFAULT = false;
-
-export function simulateWalletExtensionErrorEnabled(): boolean {
-  const env = import.meta.env.VITE_SIMULATE_WALLET_EXTENSION_ERROR?.trim().toLowerCase();
-  if (env === 'true') return true;
-  if (env === 'false') return false;
-  return SIMULATE_WALLET_EXTENSION_ERROR_DEFAULT;
-}
-
-const EXTENSION_ERROR = 'Could not reach your wallet browser extension.';
 const WALLET_MISSING = 'Install Phantom or Solflare, then try connecting again.';
+const EXTENSION_ERROR = 'Could not reach your wallet browser extension.';
+
+/** Set to true to drop the connection after a wallet is chosen and show EXTENSION_ERROR. */
+const SIMULATE_WALLET_EXTENSION_ERROR = false;
 
 type ConnectWalletButtonProps = {
   showBalance?: boolean;
@@ -33,13 +22,13 @@ function shortAddress(value: string) {
 }
 
 export function ConnectWalletButton({ showBalance: _showBalance = true }: ConnectWalletButtonProps) {
-  const simulateExtensionError = simulateWalletExtensionErrorEnabled();
   const { connected, connecting, publicKey, disconnect, wallet } = useWallet();
   const { setVisible } = useWalletModal();
   const { notice, clearNotice } = useWalletNotice();
   const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState(EXTENSION_ERROR);
+  const [toastMessage, setToastMessage] = useState('');
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
+  const connectAttempt = useRef(false);
 
   const hideToast = () => {
     clearTimeout(hideTimer.current);
@@ -66,21 +55,25 @@ export function ConnectWalletButton({ showBalance: _showBalance = true }: Connec
   }, [connected]);
 
   useEffect(() => {
-    if (!wallet || connected || connecting) return;
+    if (!wallet || connected || connecting || SIMULATE_WALLET_EXTENSION_ERROR) return;
     if (wallet.readyState === WalletReadyState.NotDetected || wallet.readyState === WalletReadyState.Unsupported) {
       showToast(WALLET_MISSING);
     }
-  }, [wallet, connected, connecting]);
+  }, [wallet, connected, connecting, SIMULATE_WALLET_EXTENSION_ERROR]);
+
+  useEffect(() => {
+    if (!SIMULATE_WALLET_EXTENSION_ERROR || !connectAttempt.current || !wallet) return;
+    connectAttempt.current = false;
+    showToast(EXTENSION_ERROR);
+    disconnect().catch(() => undefined);
+  }, [SIMULATE_WALLET_EXTENSION_ERROR, wallet, disconnect]);
 
   const onClick = () => {
-    if (simulateExtensionError && !connected) {
-      showToast(EXTENSION_ERROR);
-      return;
-    }
     if (connected) {
       disconnect().catch(() => undefined);
       return;
     }
+    connectAttempt.current = true;
     setVisible(true);
   };
 
