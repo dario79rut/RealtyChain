@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogOutIcon, MenuIcon, XIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Logo } from '../ui/Logo';
+import { ConnectWalletButton } from '../ui/ConnectWalletButton';
+import { useWallet } from '../../context/WalletContext';
 
 const LINKS = [
   { label: 'Corda desk', to: '/institution' },
@@ -11,6 +13,7 @@ const LINKS = [
 
 export function InstitutionBar() {
   const { user, logout } = useAuth();
+  const { disconnectWallet } = useWallet();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
@@ -35,6 +38,7 @@ export function InstitutionBar() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            <ConnectWalletButton />
             <div className="hidden md:block text-right">
               <div className="text-sm text-cream-100 leading-tight truncate max-w-[12rem]">{user?.name || user?.email}</div>
               <div className="text-[11px] uppercase tracking-wider text-cream-400">Corda node</div>
@@ -42,6 +46,7 @@ export function InstitutionBar() {
             <button
               type="button"
               onClick={() => {
+                disconnectWallet();
                 logout();
                 navigate('/');
               }}

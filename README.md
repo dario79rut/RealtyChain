@@ -67,7 +67,7 @@ A decentralized real estate platform built with React, Vite, and Web3 technologi
 
    Admin origination: Admin → Add property. Admin → Ops for occupancy, appraisals, and the monthly waterfall. Admin → Properties → **Edit listing** for copy, photos, map pin, unit mix, and comps.
 
-4. Connect a Solana wallet from the app. Phantom and Solflare are supported. The default cluster is devnet (`VITE_SOLANA_RPC_URL`). On-chain actions use the RealtyChain program in `programs/realty_chain` after `VITE_SOLANA_PROGRAM_ID` is set to the deployed program address.
+4. Use **Connect Wallet** to choose Solana (Phantom, Solflare, and Wallet Standard wallets) or an installed Ethereum/EVM browser wallet, such as MetaMask. Ethereum wallets are discovered individually through EIP-6963, with a legacy injected-provider fallback; no wallet API key is required. Ethereum connections display the address and chain ID, follow account/network changes, and can be disconnected from the app. Solana remains the network for account linking and RealtyChain on-chain actions; Ethereum connection does not enable Ethereum trading or wallet-based sign-in. Mobile wallets need to expose a compatible provider through their in-app browser; WalletConnect QR pairing is not included. The default Solana cluster is devnet (`VITE_SOLANA_RPC_URL`). On-chain actions use the RealtyChain program in `programs/realty_chain` after `VITE_SOLANA_PROGRAM_ID` is set to the deployed program address.
 
 Optional MoonPay handoff (third-party; not a bank) can be added to `.env` with `VITE_MOONPAY_PUBLISHABLE_KEY` and `VITE_MOONPAY_SANDBOX=true`. The default local run uses the demo USDC mint on the Solana program.
 

@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { LogOutIcon, MenuIcon, PlusIcon, XIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Logo } from '../ui/Logo';
+import { ConnectWalletButton } from '../ui/ConnectWalletButton';
+import { useWallet } from '../../context/WalletContext';
 
 export const OWNER_LINKS = [
   { id: 'dashboard', label: 'Dashboard', to: '/user' },
@@ -14,6 +16,7 @@ export const OWNER_LINKS = [
 
 export function OwnerBar() {
   const { user, logout } = useAuth();
+  const { disconnectWallet } = useWallet();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [params] = useSearchParams();
@@ -29,6 +32,7 @@ export function OwnerBar() {
             <span className="hidden sm:block text-[11px] uppercase tracking-[0.2em] text-cream-400 border-l border-void-600 pl-3">Owner</span>
           </Link>
           <div className="flex items-center gap-2">
+            <ConnectWalletButton />
             <Link
               to="/user?tab=add"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-void-950"
@@ -43,6 +47,7 @@ export function OwnerBar() {
             <button
               type="button"
               onClick={() => {
+                disconnectWallet();
                 logout();
                 navigate('/');
               }}

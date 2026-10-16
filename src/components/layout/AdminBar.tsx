@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { LogOutIcon, MenuIcon, XIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Logo } from '../ui/Logo';
+import { ConnectWalletButton } from '../ui/ConnectWalletButton';
+import { useWallet } from '../../context/WalletContext';
 
 export const ADMIN_SECTIONS = [
   { id: 'dashboard', label: 'Dashboard', to: '/admin' },
@@ -19,6 +21,7 @@ export const ADMIN_SECTIONS = [
 
 export function AdminBar() {
   const { user, logout } = useAuth();
+  const { disconnectWallet } = useWallet();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [params] = useSearchParams();
@@ -26,6 +29,7 @@ export function AdminBar() {
   const current = pathname.startsWith('/admin') ? (params.get('section') || 'dashboard') : '';
 
   const signOut = () => {
+    disconnectWallet();
     logout();
     navigate('/');
   };
@@ -39,6 +43,7 @@ export function AdminBar() {
             <span className="hidden sm:block text-[11px] uppercase tracking-[0.2em] text-cream-400 border-l border-void-600 pl-3">Console</span>
           </Link>
           <div className="flex items-center gap-3">
+            <ConnectWalletButton />
             <div className="hidden md:block text-right">
               <div className="text-sm text-cream-100 leading-tight truncate max-w-[12rem]">{user?.name || user?.email}</div>
               <div className="text-[11px] uppercase tracking-wider text-cream-400">Administrator</div>

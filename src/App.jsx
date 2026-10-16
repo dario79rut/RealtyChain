@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 import { SolanaProviders } from './solana/provider';
 import { WalletProvider } from './context/WalletContext';
+import { EthereumWalletProvider } from './context/EthereumContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { getToken } from './utils/api';
 import { Layout } from './components/layout/Layout';
@@ -78,11 +79,13 @@ function App() {
   return (
     <SolanaProviders>
       <QueryClientProvider client={client}>
-        <WalletProvider>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </WalletProvider>
+        <EthereumWalletProvider>
+          <WalletProvider>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </WalletProvider>
+        </EthereumWalletProvider>
       </QueryClientProvider>
     </SolanaProviders>
   );

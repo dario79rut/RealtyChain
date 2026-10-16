@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { useEthereumWallet } from './EthereumContext';
 import { useAccount, useDisconnect } from '../solana/wagmi';
 
 type WalletContextType = {
@@ -25,6 +27,8 @@ export function WalletProvider({
 }) {
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
+  const { disconnect: disconnectEthereum } = useEthereumWallet();
+  const { setVisible } = useWalletModal();
   const [isAdmin, setIsAdmin] = useState(false);
 
   // Check if connected address is an admin
@@ -37,14 +41,11 @@ export function WalletProvider({
     }
   }, [address, isConnected]);
 
-  const connectWallet = () => {
-    // This function is kept for compatibility but actual connection
-    // is handled by RainbowKit's ConnectButton component
-    // The wallet connection will be triggered by the ConnectButton
-  };
+  const connectWallet = useCallback(() => setVisible(true), [setVisible]);
 
   const disconnectWallet = () => {
-    disconnect();
+    disconnect().catch(() => undefined);
+    disconnectEthereum();
   };
 
   const value = useMemo(
@@ -55,7 +56,7 @@ export function WalletProvider({
       connectWallet,
       disconnectWallet,
     }),
-    [isConnected, address, isAdmin, disconnect]
+    [isConnected, address, isAdmin, disconnect, disconnectEthereum, connectWallet]
   );
 
   return (
