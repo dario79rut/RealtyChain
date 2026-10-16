@@ -1,10 +1,11 @@
 const persistence = require('../mock/persistence');
 const { usesVercelStorage } = require('./blobs');
+const { usesPostgresStorage } = require('./postgres');
 
 // For views that lazily initialize demo data or calculate accruals. The reader
 // must be safe to repeat: never pass an order, loan, payment or vote submission.
 async function readSnapshot(read) {
-  const hosted = usesVercelStorage();
+  const hosted = usesVercelStorage() || usesPostgresStorage();
   for (let attempt = 0; attempt < 4; attempt += 1) {
     try {
       const out = await read();

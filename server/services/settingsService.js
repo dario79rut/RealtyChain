@@ -17,7 +17,7 @@ const DEFAULT_SETTINGS = {
 const MAX_LOGIN_ATTEMPTS = 10;
 
 function storageError() {
-  return Object.assign(new Error('Login settings storage is unavailable. Check the configured Blob store.'), { status: 503 });
+  return Object.assign(new Error('Login settings storage is unavailable. Check the configured data store.'), { status: 503 });
 }
 
 async function load() {
@@ -25,7 +25,7 @@ async function load() {
   if (store) {
     try {
       const raw = await store.get('settings', { type: 'text', consistency: 'strong' });
-      return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
+      return raw !== null ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
     } catch (err) {
       console.error('Error reading login settings:', err.message);
       throw storageError();

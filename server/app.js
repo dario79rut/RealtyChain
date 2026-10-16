@@ -23,6 +23,7 @@ const opsController = require('./controllers/opsController');
 const readiness = require('./services/readiness');
 const persistence = require('./mock/persistence');
 const { usesVercelStorage } = require('./storage/blobs');
+const { usesPostgresStorage } = require('./storage/postgres');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -31,8 +32,8 @@ const PORT = process.env.PORT || 4000;
 // filtering sees the visitor address rather than the edge node.
 app.set('trust proxy', true);
 app.use(cors());
-if (usesVercelStorage()) {
-  app.use(require('./middleware/vercelStorage').createStorageMiddleware(persistence));
+if (usesVercelStorage() || usesPostgresStorage()) {
+  app.use(require('./middleware/persistentStorage').createStorageMiddleware(persistence));
 }
 app.use(async (_req, _res, next) => {
   try {

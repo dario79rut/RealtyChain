@@ -9,7 +9,8 @@
     "server": "node server/app.js",
     "lint": "eslint .",
     "test": "npm run test:server",
-    "test:server": "node --test server/tests/*.test.js"
+    "test:server": "node --test server/tests/*.test.js",
+    "migrate:postgres": "node scripts/migrate-postgres.js"
   },
   "engines": {
     "node": ">=22"

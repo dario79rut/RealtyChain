@@ -2,6 +2,7 @@ let stores = new Map();
 let unavailable = false;
 let lambdaEvent = null;
 let connected = false;
+const { usesPostgresStorage, recordStores, createPostgresStore } = require('./postgres');
 
 function usesVercelStorage() {
   if (process.env.STORAGE_PROVIDER) return process.env.STORAGE_PROVIDER === 'vercel';
@@ -14,6 +15,7 @@ function inLambda() {
 
 function blobsEnabled() {
   return Boolean(
+    usesPostgresStorage() ||
     usesVercelStorage() ||
     lambdaEvent ||
     process.env.NETLIFY_BLOBS_CONTEXT ||
@@ -65,6 +67,7 @@ function credentialsFromEvent(event) {
 }
 
 async function getBlobStore(name, { consistency } = {}) {
+  if (usesPostgresStorage() && recordStores.has(name)) return createPostgresStore(name);
   const cacheKey = `${name}:${consistency || 'eventual'}`;
   if (usesVercelStorage()) {
     if (!stores.has(cacheKey)) {

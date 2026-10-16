@@ -2,13 +2,14 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const { blobsEnabled, skipFsWrites, getBlobStore, usesVercelStorage } = require('../storage/blobs');
+const { usesPostgresStorage } = require('../storage/postgres');
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 const BLOB_STORE = 'app-data';
 const BLOB_KEY = 'data.json';
 
 function writeFile(payload) {
-  if (skipFsWrites()) return;
+  if (usesPostgresStorage() || skipFsWrites()) return;
   try {
     fs.writeFileSync(DATA_FILE, JSON.stringify(payload, null, 2), 'utf8');
   } catch (err) {
@@ -361,7 +362,7 @@ async function flushBlobs() {
 
 async function ready({ refresh = false } = {}) {
   if (!blobsEnabled()) return;
-  if (usesVercelStorage()) {
+  if (usesVercelStorage() || usesPostgresStorage()) {
     if (refresh) readyPromise = null;
     if (!readyPromise) {
       readyPromise = (async () => {
@@ -370,13 +371,14 @@ async function ready({ refresh = false } = {}) {
         if (!store) throw Object.assign(new Error('App data storage is unavailable.'), { status: 503 });
         // Fail closed on read/auth errors: never replace existing data with seeds.
         const raw = await store.get(BLOB_KEY, { type: 'text' });
-        const next = raw ? JSON.parse(raw) : freshSeed();
+        const exists = raw !== null;
+        const next = exists ? JSON.parse(raw) : freshSeed();
         if (!next || !Array.isArray(next.users) || !Array.isArray(next.properties)) throw new Error('Invalid saved app data.');
         replaceData(next);
         // Initialize an empty store once. Reapplying catalog seeds on refresh
         // would resurrect properties deliberately deleted by an administrator.
-        if (!raw) runEnsures();
-        dirty = !raw;
+        if (!exists) runEnsures();
+        dirty = !exists;
       })().catch((err) => {
         readyPromise = null;
         throw err;
@@ -406,7 +408,7 @@ async function ready({ refresh = false } = {}) {
 }
 
 function save() {
-  if (usesVercelStorage()) {
+  if (usesVercelStorage() || usesPostgresStorage()) {
     dirty = true;
     return;
   }
@@ -416,4 +418,8 @@ function save() {
   }
 }
 
-module.exports = { data, getData: () => data, save, ready, commit };
+function discardChanges() {
+  dirty = false;
+}
+
+module.exports = { data, getData: () => data, save, ready, commit, discardChanges };
