@@ -169,3 +169,69 @@ test('deleted seed listings are not resurrected by the next request', async () =
   assert.equal((await request('/health')).status, 200);
   assert.equal(state().properties.some((property) => property.id === id), false);
 });
+
+test('opening Market retries a competing update and preserves the newer snapshot', async () => {
+  const authenticated = await login('test1@gmail.com', 'pass1234');
+  let conflicts = 0;
+  sdk.beforePut = async (path) => {
+    if (path === statePath && conflicts === 0) {
+      conflicts += 1;
+      sdk.write(statePath, JSON.stringify({ ...state(), concurrentMarker: 'market-open' }));
+    }
+  };
+  try {
+    const market = await request('/api/market', { token: authenticated.data.token });
+    assert.equal(market.status, 200);
+    assert.ok(market.data.quotes.length > 0);
+    assert.equal(conflicts, 1);
+    assert.equal(state().concurrentMarker, 'market-open');
+    assert.ok(state().market.orders.length > 0);
+    const writes = sdk.calls.filter((call) => call.method === 'put' && call.path === statePath).length;
+    assert.equal((await request('/api/market', { token: authenticated.data.token })).status, 200);
+    assert.equal(sdk.calls.filter((call) => call.method === 'put' && call.path === statePath).length, writes);
+  } finally { sdk.beforePut = null; }
+});
+
+test('Market setup stops retrying under sustained contention and recovers afterward', async () => {
+  const authenticated = await login('test1@gmail.com', 'pass1234');
+  const uninitialized = state();
+  delete uninitialized.market;
+  sdk.write(statePath, JSON.stringify(uninitialized));
+  let conflicts = 0;
+  sdk.beforePut = async (path) => {
+    if (path === statePath) {
+      conflicts += 1;
+      sdk.write(statePath, JSON.stringify({ ...state(), concurrentMarker: `busy-${conflicts}` }));
+    }
+  };
+  try {
+    const market = await request('/api/market', { token: authenticated.data.token });
+    assert.equal(market.status, 409);
+    assert.equal(conflicts, 4);
+    assert.equal(state().market, undefined, 'Failed attempts must not replace newer data');
+    assert.equal(state().concurrentMarker, 'busy-4');
+  } finally { sdk.beforePut = null; }
+  assert.equal((await request('/api/market', { token: authenticated.data.token })).status, 200);
+});
+
+test('an order submission is not automatically replayed when its commit conflicts', async () => {
+  const authenticated = await login('test1@gmail.com', 'pass1234');
+  const original = state();
+  const property = original.properties[0];
+  const count = original.market.orders.length;
+  let attempts = 0;
+  sdk.beforePut = async (path) => {
+    if (path === statePath) {
+      attempts += 1;
+      sdk.write(statePath, JSON.stringify({ ...state(), concurrentMarker: 'order-conflict' }));
+    }
+  };
+  try {
+    const order = await request('/api/market/orders', { method: 'POST', token: authenticated.data.token,
+      body: { propertyId: String(property.id), side: 'bid', price: 1, shares: 1, open: true } });
+    assert.equal(order.status, 409);
+    assert.equal(attempts, 1);
+    assert.equal(state().market.orders.length, count);
+    assert.equal(state().concurrentMarker, 'order-conflict');
+  } finally { sdk.beforePut = null; }
+});

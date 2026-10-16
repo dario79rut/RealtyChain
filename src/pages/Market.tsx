@@ -71,6 +71,7 @@ export default function Market() {
   const propertyMenuRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(true);
   const [params] = useSearchParams();
@@ -86,33 +87,35 @@ export default function Market() {
 
   useEffect(() => {
     let cancelled = false;
-    const load = (first: boolean) => {
-      fetchMarket()
-        .then((next) => {
-          if (cancelled) return;
-          setBook(next);
-          setSelectedId((current) => {
-            if (requestedId && !appliedQuery.current) {
-              appliedQuery.current = true;
-              return requestedId;
-            }
-            return current || next.quotes[0]?.propertyId || null;
-          });
-          if (first) setLoading(false);
-        })
-        .catch((err) => {
-          if (cancelled) return;
-          if (first) {
-            setError(err instanceof Error ? err.message : 'Could not load the market.');
-            setLoading(false);
+    let timer: ReturnType<typeof window.setTimeout>;
+    const load = async () => {
+      try {
+        const next = await fetchMarket();
+        if (cancelled) return;
+        setBook(next);
+        setLoadError('');
+        setSelectedId((current) => {
+          if (requestedId && !appliedQuery.current) {
+            appliedQuery.current = true;
+            return requestedId;
           }
+          return current || next.quotes[0]?.propertyId || null;
         });
+      } catch (err) {
+        if (!cancelled) setLoadError(err instanceof Error ? err.message : 'Could not load the market.');
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+          // Wait for this request before polling again, including while the
+          // server is resolving an initial storage conflict.
+          timer = window.setTimeout(load, 4000);
+        }
+      }
     };
-    load(true);
-    const timer = window.setInterval(() => load(false), 4000);
+    load();
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
+      window.clearTimeout(timer);
     };
   }, []);
 
@@ -277,7 +280,7 @@ export default function Market() {
             <p className="text-cream-400">Loading the market…</p>
           ) : !book || !quote ? (
             <div className="p-8 rounded-2xl border border-void-700 bg-void-800/40 text-cream-400">
-              {error || 'No listings to trade.'}
+              {loadError || 'No listings to trade.'}
             </div>
           ) : (
             <>
