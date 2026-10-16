@@ -1,6 +1,6 @@
 const marketService = require('../services/marketService');
 const persistence = require('../mock/persistence');
-const { usesVercelStorage } = require('../storage/blobs');
+const { readSnapshot } = require('../storage/readSnapshot');
 
 function sendError(res, err) {
   const status = err.status || 500;
@@ -9,26 +9,10 @@ function sendError(res, err) {
 }
 
 async function snapshot(req, res) {
-  const hosted = usesVercelStorage();
-  // Opening Market lazily initializes charts, liquidity and demo balances.
-  // Retry that read-time setup against fresh data, never an order submission.
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    try {
-      const out = marketService.snapshot(req.user.sub);
-      if (hosted) await persistence.commit();
-      return res.json(out);
-    } catch (err) {
-      if (!hosted || err.status !== 409) return sendError(res, err);
-      try {
-        // Also discard the failed changes on the last attempt, so the response
-        // middleware doesn't try to commit that stale snapshot again.
-        await persistence.ready({ refresh: true });
-      } catch (readError) {
-        return sendError(res, readError);
-      }
-      if (attempt === 3) return sendError(res, err);
-      await new Promise((resolve) => setTimeout(resolve, 20 * (attempt + 1)));
-    }
+  try {
+    return res.json(await readSnapshot(() => marketService.snapshot(req.user.sub)));
+  } catch (err) {
+    return sendError(res, err);
   }
 }
 

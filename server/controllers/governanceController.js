@@ -1,4 +1,5 @@
 const governanceService = require('../services/governanceService');
+const { readSnapshot } = require('../storage/readSnapshot');
 
 function sendError(res, err) {
   const status = err.status || 500;
@@ -6,9 +7,9 @@ function sendError(res, err) {
   return res.status(status).json({ error: err.message || 'Request failed' });
 }
 
-function list(req, res) {
+async function list(req, res) {
   try {
-    return res.json(governanceService.list(req.user.sub, req.query.propertyId));
+    return res.json(await readSnapshot(() => governanceService.list(req.user.sub, req.query.propertyId)));
   } catch (err) {
     return sendError(res, err);
   }

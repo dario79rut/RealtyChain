@@ -235,3 +235,93 @@ test('an order submission is not automatically replayed when its commit conflict
     assert.equal(state().concurrentMarker, 'order-conflict');
   } finally { sdk.beforePut = null; }
 });
+
+for (const view of [
+  { name: 'Lend', key: 'lending', path: '/api/lend' },
+  { name: 'Govern', key: 'governance', path: '/api/governance?propertyId=3' },
+]) {
+  test(`opening ${view.name} recovers from a competing setup write`, async () => {
+    const authenticated = await login('test1@gmail.com', 'pass1234');
+    const uninitialized = state();
+    delete uninitialized[view.key];
+    sdk.write(statePath, JSON.stringify(uninitialized));
+    let conflicts = 0;
+    sdk.beforePut = async (path) => {
+      if (path === statePath && conflicts === 0) {
+        conflicts += 1;
+        sdk.write(statePath, JSON.stringify({ ...state(), concurrentMarker: `${view.name}-open` }));
+      }
+    };
+    try {
+      const response = await request(view.path, { token: authenticated.data.token });
+      assert.equal(response.status, 200);
+      assert.equal(conflicts, 1);
+      assert.equal(state().concurrentMarker, `${view.name}-open`);
+      assert.ok(state()[view.key]);
+      if (view.key === 'lending') assert.ok(response.data.poolUsdc > 0);
+      else {
+        assert.ok(response.data.proposals.length > 0);
+        assert.ok(response.data.proposals.every((proposal) => proposal.propertyId === '3'));
+      }
+      const writes = sdk.calls.filter((call) => call.method === 'put' && call.path === statePath).length;
+      assert.equal((await request(view.path, { token: authenticated.data.token })).status, 200);
+      assert.equal(sdk.calls.filter((call) => call.method === 'put' && call.path === statePath).length, writes,
+        'An unchanged view should not write the shared snapshot again');
+    } finally { sdk.beforePut = null; }
+  });
+}
+
+for (const action of [
+  { name: 'Lend supply', path: '/api/lend/supply', body: { usdc: 1 } },
+  { name: 'Govern vote', path: '/api/governance/gov-manager/vote', body: { choice: 'for' } },
+]) {
+  test(`${action.name} is not replayed after a conflicting commit`, async () => {
+    const authenticated = await login('test1@gmail.com', 'pass1234');
+    const before = state();
+    let attempts = 0;
+    sdk.beforePut = async (path) => {
+      if (path === statePath) {
+        attempts += 1;
+        sdk.write(statePath, JSON.stringify({ ...state(), concurrentMarker: action.name }));
+      }
+    };
+    try {
+      const result = await request(action.path, { method: 'POST', token: authenticated.data.token, body: action.body });
+      assert.equal(result.status, 409);
+      assert.equal(attempts, 1);
+      assert.deepEqual(state().lending, before.lending);
+      assert.deepEqual(state().governance, before.governance);
+      assert.deepEqual(state().users, before.users);
+    } finally { sdk.beforePut = null; }
+  });
+}
+
+test('Lend still commits accrued interest once when a read needs conflict recovery', async () => {
+  const authenticated = await login('test1@gmail.com', 'pass1234');
+  const original = state();
+  const user = original.users.find((row) => row.email === 'test1@gmail.com');
+  original.lending.supplies = [{ userId: user.id, principalCents: 1_000_000, accruedCents: 0,
+    updatedAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString() }];
+  sdk.write(statePath, JSON.stringify(original));
+  let conflicts = 0;
+  sdk.beforePut = async (path) => {
+    if (path === statePath && conflicts === 0) {
+      conflicts += 1;
+      const latest = state();
+      latest.users.find((row) => row.id === user.id).cashCents += 100;
+      sdk.write(statePath, JSON.stringify(latest));
+    }
+  };
+  try {
+    const desk = await request('/api/lend', { token: authenticated.data.token });
+    assert.equal(desk.status, 200);
+    assert.equal(conflicts, 1);
+    assert.equal(desk.data.supply.interest, 400);
+    assert.equal(state().lending.supplies[0].accruedCents, 40_000);
+    assert.equal(desk.data.cashUsdc, (user.cashCents + 100) / 100);
+    const refreshed = await request('/api/lend', { token: authenticated.data.token });
+    assert.equal(refreshed.status, 200);
+    assert.equal(refreshed.data.supply.interest, 400);
+    assert.equal(state().lending.supplies[0].accruedCents, 40_000);
+  } finally { sdk.beforePut = null; }
+});

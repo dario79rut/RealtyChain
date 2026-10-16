@@ -1,4 +1,5 @@
 const lending = require('../services/lendingService');
+const { readSnapshot } = require('../storage/readSnapshot');
 
 function sendError(res, err) {
   const status = err.status || 500;
@@ -6,9 +7,9 @@ function sendError(res, err) {
   return res.status(status).json({ error: err.message || 'Request failed' });
 }
 
-function snapshot(req, res) {
+async function snapshot(req, res) {
   try {
-    return res.json(lending.snapshot(req.user.sub));
+    return res.json(await readSnapshot(() => lending.snapshot(req.user.sub)));
   } catch (err) {
     return sendError(res, err);
   }

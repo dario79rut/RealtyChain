@@ -155,12 +155,15 @@ function collateralOptions(user) {
 }
 
 function snapshot(userId) {
+  const previous = JSON.stringify(persistence.data.lending);
   touch();
   const user = market.findUser(userId);
   const book = store();
   const supply = userSupply(user.id);
   const mine = userLoan(user.id);
-  persistence.save();
+  // Empty, unchanged desks need no write on every page load. Accrual and
+  // initialization changes still persist, as do user defaults in findUser().
+  if (JSON.stringify(book) !== previous) persistence.save();
   return {
     terms: {
       maxLtv: MAX_LTV_BPS / 10000,
