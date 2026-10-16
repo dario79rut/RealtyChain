@@ -98,6 +98,21 @@ Default allowlist is only loopback (`127.0.0.1`), so a Netlify deploy will rejec
 
 Local production-like preview: `npx netlify dev` (after `npm install`) uses the same function + redirects. `npm start` starts the API and Vite.
 
+## Deploy on Vercel with a private Blob store
+
+The Vite frontend and Express API deploy together using `vercel.json` and `api/index.js`. The API stores JSON records, settings, login activity, images, and vault files in **private Vercel Blob storage**. File downloads continue through the existing API routes; vault routes still require authentication.
+
+1. Import the repository into Vercel. Use the Vite preset, `npm run build`, output directory `dist`, and Node.js 22.
+2. Connect your **private** Blob store to this project and the intended environment. Use the credentials Vercel provides: `BLOB_STORE_ID` with platform OIDC, or `BLOB_READ_WRITE_TOKEN`. These are server-only variables; never use a `VITE_` prefix.
+3. Set `STORAGE_PROVIDER=vercel`, a long random `JWT_SECRET`, `DEMO_MODE=true`, `VITE_DEMO_MODE=true`, and your public IP in `ALLOWED_LOGIN_IPS`. Add the optional Solana and Sumsub variables from `.env.example` as needed. When using Sumsub webhooks, also set `NODEJS_HELPERS=0` in the project environment so Express can capture the original signed request bytes.
+4. Deploy. Open `/health`, then `/adminuseradmin_useradminuser` to check your detected IP and the allowlist. Sign in and check that the recent successful login appears. Change a listing or upload a file and verify that it remains available after redeploying.
+
+Reads bypass Blob caching. API requests reload the latest saved snapshot, wait for uploads and data commits, and return a conflict (409) if another instance changed the snapshot first. Refresh before retrying a conflicting change. This remains a demo JSON snapshot store, with no database transactions spanning records, uploads, or external chain operations.
+
+By default, blob paths are namespaced under `realtychain/<VERCEL_ENV>/` (`realtychain/development/` locally). Set `BLOB_PREFIX` for a different namespace, such as a separate preview branch. Use separate stores or prefixes for production and testing. A new store starts with demo seeds; existing Netlify data is **not** copied automatically.
+
+For local use of Vercel Blob, put `STORAGE_PROVIDER=vercel` and the private store's `BLOB_READ_WRITE_TOKEN` in `.env`, using a development store/prefix. Without these variables, local development continues using files. Netlify deployments continue using Netlify Blobs unless Vercel storage is explicitly selected or its credentials are configured.
+
 ## Available Scripts
 
 - `npm start` - Install if needed, then start the API and Vite

@@ -17,7 +17,7 @@ const DEFAULT_SETTINGS = {
 const MAX_LOGIN_ATTEMPTS = 10;
 
 function storageError() {
-  return Object.assign(new Error('Login settings storage is unavailable. Check Netlify Blobs configuration.'), { status: 503 });
+  return Object.assign(new Error('Login settings storage is unavailable. Check the configured Blob store.'), { status: 503 });
 }
 
 async function load() {
@@ -74,6 +74,8 @@ function getClientIp(req) {
   if (!req) return '';
   const forwarded = headerValue(req, ['x-forwarded-for']);
   const candidates = [
+    // On Vercel, use the platform's forwarded address before other proxy headers.
+    ...(process.env.VERCEL ? forwarded.split(',').map((part) => part.trim()) : []),
     headerValue(req, ['x-nf-client-connection-ip']),
     headerValue(req, ['client-ip']),
     headerValue(req, ['true-client-ip']),
@@ -190,6 +192,10 @@ async function getSettings(req) {
 
 async function setAllowedIps(ips, req) {
   const s = await load();
+  return persistAllowedIps(ips, req, s);
+}
+
+async function persistAllowedIps(ips, req, s) {
   const fromEnv = new Set(envAllowedIps());
   // Env IPs stay in ALLOWED_LOGIN_IPS (Netlify / .env). Only extra addresses
   // from this form are persisted to blobs or the local settings file.
@@ -208,7 +214,9 @@ async function allowCurrentIp(req) {
   }
   const s = await load();
   const next = [...storedIps(s), current];
-  return setAllowedIps(next, req);
+  // Keep the ETag from this read: reloading before the write could hide an
+  // intervening change and overwrite an address added by another instance.
+  return persistAllowedIps(next, req, s);
 }
 
 module.exports = {

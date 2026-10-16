@@ -22,6 +22,7 @@ const bridgeRoutes = require('./routes/bridge');
 const opsController = require('./controllers/opsController');
 const readiness = require('./services/readiness');
 const persistence = require('./mock/persistence');
+const { usesVercelStorage } = require('./storage/blobs');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -30,6 +31,9 @@ const PORT = process.env.PORT || 4000;
 // filtering sees the visitor address rather than the edge node.
 app.set('trust proxy', true);
 app.use(cors());
+if (usesVercelStorage()) {
+  app.use(require('./middleware/vercelStorage').createStorageMiddleware(persistence));
+}
 app.use(async (_req, _res, next) => {
   try {
     await persistence.ready();
@@ -96,6 +100,11 @@ if (fs.existsSync(path.join(distDir, 'index.html'))) {
     res.sendFile(path.join(distDir, 'index.html'), (err) => (err ? next(err) : undefined));
   });
 }
+
+app.use((err, _req, res, _next) => {
+  console.error('API request failed:', err.message);
+  res.status(err.status || 503).json({ error: 'The service is temporarily unavailable. Please try again.' });
+});
 
 // Start the HTTP listener only when run directly (node server/app.js).
 // When imported (e.g. by a Netlify Function via serverless-http) the app is

@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { URL } = require('url');
 const { skipFsWrites, getBlobStore } = require('../storage/blobs');
+const { scheduleWrite } = require('../storage/writes');
 
 const IMAGES_ROOT = path.join(__dirname, '..', 'images');
 const SEED_DIR = path.join(IMAGES_ROOT, 'seed');
@@ -99,27 +100,23 @@ function detectType(buffer, filename) {
 }
 
 function persistUpload(stored, buffer, mime) {
-  uploadCache.set(stored, { buffer, contentType: mime });
+  const persistBlob = async () => {
+    const store = await getBlobStore(BLOB_STORE);
+    if (!store) throw new Error('Image storage is unavailable.');
+    await store.set(stored, buffer, { metadata: { contentType: mime } });
+    uploadCache.set(stored, { buffer, contentType: mime });
+  };
   if (skipFsWrites()) {
-    void getBlobStore(BLOB_STORE).then((store) => {
-      if (!store) return;
-      return store.set(stored, buffer, { metadata: { contentType: mime } });
-    }).catch((err) => {
-      console.error('Failed to write listing image to Netlify Blobs:', err.message);
-    });
+    scheduleWrite(persistBlob);
     return;
   }
   try {
     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
     fs.writeFileSync(path.join(UPLOAD_DIR, stored), buffer);
+    uploadCache.set(stored, { buffer, contentType: mime });
   } catch (err) {
     console.error('Failed to write listing image:', err.message);
-    void getBlobStore(BLOB_STORE).then((store) => {
-      if (!store) return;
-      return store.set(stored, buffer, { metadata: { contentType: mime } });
-    }).catch((blobErr) => {
-      console.error('Failed to write listing image to Netlify Blobs:', blobErr.message);
-    });
+    scheduleWrite(persistBlob);
   }
 }
 
@@ -252,7 +249,7 @@ async function readUpload(file) {
         return payload;
       }
     } catch (err) {
-      console.error('Error reading listing image from Netlify Blobs:', err.message);
+      console.error('Error reading listing image from Blob storage:', err.message);
     }
   }
   return null;

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
-const { blobsEnabled, skipFsWrites, getBlobStore } = require('../storage/blobs');
+const { blobsEnabled, skipFsWrites, getBlobStore, usesVercelStorage } = require('../storage/blobs');
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 const BLOB_STORE = 'app-data';
@@ -28,10 +28,10 @@ function loadFromDisk() {
 
 function freshSeed() {
   const initial = require('./data');
-  return {
+  return structuredClone({
     users: initial.users || [],
     properties: initial.properties || [],
-  };
+  });
 }
 
 function replaceData(next) {
@@ -339,6 +339,15 @@ if (!blobsEnabled()) {
 }
 
 let readyPromise = null;
+let dirty = false;
+
+async function commit() {
+  if (!dirty) return;
+  const store = await getBlobStore(BLOB_STORE);
+  if (!store) throw Object.assign(new Error('App data storage is unavailable.'), { status: 503 });
+  await store.set(BLOB_KEY, JSON.stringify(data));
+  dirty = false;
+}
 
 async function flushBlobs() {
   const store = await getBlobStore(BLOB_STORE);
@@ -350,8 +359,31 @@ async function flushBlobs() {
   }
 }
 
-async function ready() {
+async function ready({ refresh = false } = {}) {
   if (!blobsEnabled()) return;
+  if (usesVercelStorage()) {
+    if (refresh) readyPromise = null;
+    if (!readyPromise) {
+      readyPromise = (async () => {
+        dirty = false;
+        const store = await getBlobStore(BLOB_STORE);
+        if (!store) throw Object.assign(new Error('App data storage is unavailable.'), { status: 503 });
+        // Fail closed on read/auth errors: never replace existing data with seeds.
+        const raw = await store.get(BLOB_KEY, { type: 'text' });
+        const next = raw ? JSON.parse(raw) : freshSeed();
+        if (!next || !Array.isArray(next.users) || !Array.isArray(next.properties)) throw new Error('Invalid saved app data.');
+        replaceData(next);
+        // Initialize an empty store once. Reapplying catalog seeds on refresh
+        // would resurrect properties deliberately deleted by an administrator.
+        if (!raw) runEnsures();
+        dirty = !raw;
+      })().catch((err) => {
+        readyPromise = null;
+        throw err;
+      });
+    }
+    return readyPromise;
+  }
   if (!readyPromise) {
     readyPromise = (async () => {
       const store = await getBlobStore(BLOB_STORE);
@@ -374,10 +406,14 @@ async function ready() {
 }
 
 function save() {
+  if (usesVercelStorage()) {
+    dirty = true;
+    return;
+  }
   writeFile(data);
   if (blobsEnabled()) {
     void flushBlobs();
   }
 }
 
-module.exports = { data, getData: () => data, save, ready };
+module.exports = { data, getData: () => data, save, ready, commit };

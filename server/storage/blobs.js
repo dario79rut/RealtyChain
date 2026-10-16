@@ -3,12 +3,18 @@ let unavailable = false;
 let lambdaEvent = null;
 let connected = false;
 
+function usesVercelStorage() {
+  if (process.env.STORAGE_PROVIDER) return process.env.STORAGE_PROVIDER === 'vercel';
+  return Boolean(process.env.VERCEL || process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
+}
+
 function inLambda() {
   return Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
 }
 
 function blobsEnabled() {
   return Boolean(
+    usesVercelStorage() ||
     lambdaEvent ||
     process.env.NETLIFY_BLOBS_CONTEXT ||
     process.env.NETLIFY ||
@@ -17,6 +23,7 @@ function blobsEnabled() {
 }
 
 function skipFsWrites() {
+  if (usesVercelStorage()) return true;
   if (process.env.NETLIFY_DEV === 'true' || process.env.NETLIFY_LOCAL === 'true') return false;
   return Boolean(lambdaEvent || inLambda() || (process.env.NETLIFY && process.env.NETLIFY_DEV !== 'true'));
 }
@@ -59,6 +66,13 @@ function credentialsFromEvent(event) {
 
 async function getBlobStore(name, { consistency } = {}) {
   const cacheKey = `${name}:${consistency || 'eventual'}`;
+  if (usesVercelStorage()) {
+    if (!stores.has(cacheKey)) {
+      const { createVercelStore } = require('./vercel');
+      stores.set(cacheKey, createVercelStore(name));
+    }
+    return stores.get(cacheKey);
+  }
   if (!blobsEnabled()) return null;
   if (unavailable) return null;
   if (stores.has(cacheKey)) return stores.get(cacheKey);
@@ -85,4 +99,4 @@ async function getBlobStore(name, { consistency } = {}) {
   }
 }
 
-module.exports = { blobsEnabled, skipFsWrites, getBlobStore, attachLambdaEvent };
+module.exports = { blobsEnabled, skipFsWrites, getBlobStore, attachLambdaEvent, usesVercelStorage };

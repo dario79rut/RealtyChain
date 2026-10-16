@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { skipFsWrites, getBlobStore } = require('../storage/blobs');
+const { scheduleWrite } = require('../storage/writes');
 
 const VAULT_ROOT = path.join(__dirname, '..', 'vault');
 const SEED_DIR = path.join(VAULT_ROOT, 'seed');
@@ -133,28 +134,24 @@ function blobKey(propertyId, file) {
 
 function persistUpload(propertyId, stored, buffer) {
   const key = blobKey(propertyId, stored);
-  uploadCache.set(key, buffer);
+  const persistBlob = async () => {
+    const store = await getBlobStore(BLOB_STORE);
+    if (!store) throw new Error('Document storage is unavailable.');
+    await store.set(key, buffer);
+    uploadCache.set(key, buffer);
+  };
   if (skipFsWrites()) {
-    void getBlobStore(BLOB_STORE).then((store) => {
-      if (!store) return;
-      return store.set(key, buffer);
-    }).catch((err) => {
-      console.error('Failed to write vault file to Netlify Blobs:', err.message);
-    });
+    scheduleWrite(persistBlob);
     return;
   }
   const dir = propertyDir(propertyId);
   try {
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, stored), buffer);
+    uploadCache.set(key, buffer);
   } catch (err) {
     console.error('Failed to write vault file:', err.message);
-    void getBlobStore(BLOB_STORE).then((store) => {
-      if (!store) return;
-      return store.set(key, buffer);
-    }).catch((blobErr) => {
-      console.error('Failed to write vault file to Netlify Blobs:', blobErr.message);
-    });
+    scheduleWrite(persistBlob);
   }
 }
 
@@ -194,12 +191,10 @@ function removeStoredFile(url) {
       // ignore missing files
     }
   }
-  void getBlobStore(BLOB_STORE).then((store) => {
-    if (!store || typeof store.delete !== 'function') return;
-    return store.delete(key);
-  }).catch(() => {
-    // ignore missing blobs
-  });
+  scheduleWrite(async () => {
+    const store = await getBlobStore(BLOB_STORE);
+    if (store) await store.delete(key);
+  }, { afterCommit: true });
 }
 
 function generatedSeed(file) {
@@ -238,7 +233,7 @@ async function readPropertyFile(propertyId, file) {
         return buffer;
       }
     } catch (err) {
-      console.error('Error reading vault file from Netlify Blobs:', err.message);
+      console.error('Error reading vault file from Blob storage:', err.message);
     }
   }
   return null;
