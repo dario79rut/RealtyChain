@@ -155,13 +155,13 @@ export default function AdminUserAdmin() {
                     )}
                   </div>
                   <p className="text-xs text-cream-400/70 mt-3">
-                    On Netlify and Railway this is the visitor address from <code className="text-cream-300">X-Forwarded-For</code>.
+                    This is the visitor address reported by the hosting provider.
                     Sign-in stays closed until the address is added here.
                   </p>
                 </div>
               )}
 
-              <LoginAttempts />
+              <LoginAttempts onSettingsChange={setSettings} />
 
               {/* Allowed admin IPs */}
               {settings && (

@@ -18,7 +18,7 @@ function ago(at: string) {
   return `${Math.round(minutes / 60)}h ago`;
 }
 
-export function LoginAttempts() {
+export function LoginAttempts({ onSettingsChange }: { onSettingsChange?: (settings: ServerSettings) => void }) {
   const [settings, setSettings] = useState<ServerSettings | null>(null);
   const [error, setError] = useState('');
   const [savingIp, setSavingIp] = useState('');
@@ -30,6 +30,7 @@ export function LoginAttempts() {
         const next = await apiFetch<ServerSettings>('/api/settings');
         if (!cancelled) {
           setSettings(next);
+          onSettingsChange?.(next);
           setError('');
         }
       } catch (err) {
@@ -42,7 +43,7 @@ export function LoginAttempts() {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, []);
+  }, [onSettingsChange]);
 
   const allow = async (ip: string) => {
     if (!settings || savingIp) return;
@@ -54,6 +55,7 @@ export function LoginAttempts() {
         body: JSON.stringify({ allowedAdminIps: [...settings.allowedAdminIps, ip] }),
       });
       setSettings(next);
+      onSettingsChange?.(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not allow that address.');
     } finally {
@@ -62,21 +64,45 @@ export function LoginAttempts() {
   };
 
   const attempts = settings?.loginAttempts || [];
+  const recentLogins = settings?.recentLogins || [];
   const allowed = new Set(settings?.allowedAdminIps || []);
   const now = Date.now();
 
   return (
     <div className="rounded-2xl border border-void-700 bg-void-800/80 p-6">
       <div className="flex items-center justify-between gap-3 mb-1">
-        <h2 className="font-display text-lg font-semibold text-cream-100">Trying to sign in</h2>
+        <h2 className="font-display text-lg font-semibold text-cream-100">Login activity</h2>
         {!settings && !error && <LoaderIcon size={16} className="animate-spin text-cream-400" />}
       </div>
       <p className="text-sm text-cream-400 mb-4">
         Addresses that are not on the allowlist are refused. Allow one here to let that person sign in.
       </p>
       {error && <p className="text-sm text-red-400 mb-3">{error}</p>}
-      {settings && attempts.length === 0 && (
-        <p className="text-sm text-cream-400">No one is trying to sign in.</p>
+      {settings?.loginActivityError && <p className="text-sm text-red-400 mb-3">{settings.loginActivityError}</p>}
+      {settings && !settings.loginActivityError && attempts.length === 0 && (
+        <p className="text-sm text-cream-400">No recent sign-in attempts recorded.</p>
+      )}
+      {settings && !settings.loginActivityError && (
+        <div className="mb-5">
+          <h3 className="text-sm font-medium text-cream-100 mb-2">Recent successful logins</h3>
+          <p className="text-xs text-cream-400 mb-3">Last successful sign-in for each address. This does not indicate who is currently online.</p>
+          {recentLogins.length === 0 ? (
+            <p className="text-sm text-cream-400">No successful sign-ins recorded yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {recentLogins.map((login) => (
+                <li key={login.id} className="rounded-xl border border-void-600 bg-void-700/50 px-4 py-2.5">
+                  <p className="text-sm text-cream-100">{login.email || 'Unknown account'}</p>
+                  <p className="text-xs text-cream-400 mt-0.5">
+                    <code className="text-cream-300">{login.ip}</code>
+                    {' · '}
+                    <time dateTime={login.at} title={new Date(login.at).toLocaleString()}>{ago(login.at)}</time>
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
       {attempts.length > 0 && (
         <ul className="space-y-2">
@@ -88,7 +114,7 @@ export function LoginAttempts() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm text-cream-100 font-medium">{attempt.email || 'Unknown account'}</span>
-                    {recent && <span className="text-[10px] uppercase tracking-wide text-accent">Now</span>}
+                    {recent && <span className="text-[10px] uppercase tracking-wide text-accent">Recent</span>}
                   </div>
                   <p className="text-xs text-cream-400 mt-0.5">
                     <code className="text-cream-300">{attempt.ip}</code>

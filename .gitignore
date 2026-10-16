@@ -45,3 +45,6 @@ yarn-error.log*
 attach.js
 INTERVIEW.md
 
+
+# Local login activity
+/server/mock/login-activity.json

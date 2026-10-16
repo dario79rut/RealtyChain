@@ -90,6 +90,8 @@ Login is limited to the allowlist. Configure it in either place:
 - **Netlify UI (recommended for deploy):** Site configuration → Environment variables → `ALLOWED_LOGIN_IPS`
 - **In the app:** open `/adminuseradmin_useradminuser` on the live site (no login required), confirm **Your IP address**, and click **Allow this IP**. Extra addresses are stored in Netlify Blobs.
 
+Allowlist reads use strong consistency so a saved address is available to the next login request. The settings page also shows the last ten sign-in addresses and the last successful login for up to ten addresses, persisted in the site-wide `login-activity` Blobs store. These are login records, not live sessions. Activity starts accumulating after deploying this version; earlier in-memory records cannot be recovered.
+
 Default allowlist is only loopback (`127.0.0.1`), so a Netlify deploy will reject sign-in until you add your public IP with one of the methods above.
 
 `/api/*`, `/health`, and `/ready` are proxied to the function. Client-side routes such as `/home` fall back to `index.html`.

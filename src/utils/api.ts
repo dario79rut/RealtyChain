@@ -12,6 +12,8 @@ export type ServerSettings = {
   currentIp: string;
   ipAllowed: boolean;
   loginAttempts?: LoginAttempt[];
+  recentLogins?: LoginAttempt[];
+  loginActivityError?: string;
 };
 
 export type KycStatus = 'unverified' | 'pending' | 'approved' | 'rejected';

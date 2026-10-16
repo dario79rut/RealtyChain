@@ -57,10 +57,11 @@ function credentialsFromEvent(event) {
   }
 }
 
-async function getBlobStore(name) {
+async function getBlobStore(name, { consistency } = {}) {
+  const cacheKey = `${name}:${consistency || 'eventual'}`;
   if (!blobsEnabled()) return null;
   if (unavailable) return null;
-  if (stores.has(name)) return stores.get(name);
+  if (stores.has(cacheKey)) return stores.get(cacheKey);
   try {
     const blobs = await loadBlobsModule();
     if (lambdaEvent && typeof blobs.connectLambda === 'function' && !connected) {
@@ -69,13 +70,13 @@ async function getBlobStore(name) {
     }
     let store;
     try {
-      store = blobs.getStore({ name });
+      store = blobs.getStore({ name, consistency });
     } catch (first) {
       const creds = credentialsFromEvent(lambdaEvent);
       if (!creds.siteID || !creds.token) throw first;
-      store = blobs.getStore({ name, siteID: creds.siteID, token: creds.token });
+      store = blobs.getStore({ name, consistency, siteID: creds.siteID, token: creds.token });
     }
-    stores.set(name, store);
+    stores.set(cacheKey, store);
     return store;
   } catch (err) {
     unavailable = true;

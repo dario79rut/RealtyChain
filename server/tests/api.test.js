@@ -56,6 +56,11 @@ test('issues a JWT for the seed user', async () => {
   assert.equal(status, 200);
   assert.ok(data.token);
   assert.equal(data.user.email, 'test1@gmail.com');
+  const settings = await request('/api/settings');
+  const success = settings.data.recentLogins.find((row) => row.email === 'test1@gmail.com');
+  assert.ok(success);
+  assert.equal(success.ip, '127.0.0.1');
+  assert.equal(success.result, 'signed-in');
 });
 
 test('rejects login from an IP that is not on the allowlist', async () => {

@@ -1,80 +1,52 @@
 const fs = require('fs');
 const path = require('path');
-const { getBlobStore, blobsEnabled, skipFsWrites } = require('../storage/blobs');
+const { isIP } = require('net');
+const { createHash, randomUUID } = require('crypto');
+const { getBlobStore, skipFsWrites } = require('../storage/blobs');
 
 const SETTINGS_FILE = path.join(__dirname, '..', 'mock', 'settings.json');
 const BLOB_STORE = 'server-settings';
+const ACTIVITY_FILE = path.join(__dirname, '..', 'mock', 'login-activity.json');
+const ACTIVITY_STORE = 'login-activity';
+const strongStore = (name) => getBlobStore(name, { consistency: 'strong' });
 
 const DEFAULT_SETTINGS = {
   allowedAdminIps: ['127.0.0.1', '::1', '::ffff:127.0.0.1'],
 };
 
-// In-memory copy of the last known settings. Used as a fallback so the flag
-// toggle never fails even if the blob store cannot be written (e.g. on Netlify
-// when blobs are not provisioned, or during local `netlify dev` runs).
-let memorySettings = null;
 const MAX_LOGIN_ATTEMPTS = 10;
-let loginAttempts = [];
 
-async function load() {
-  const store = await getBlobStore(BLOB_STORE);
-  if (store) {
-    try {
-      const raw = await store.get('settings', { type: 'text' });
-      if (raw) {
-        memorySettings = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
-        return { ...memorySettings };
-      }
-    } catch (err) {
-      console.error('Error reading blob settings:', err.message);
-    }
-    // No blob data (or the read failed): use the last in-memory copy.
-    return memorySettings ? { ...memorySettings } : { ...DEFAULT_SETTINGS };
-  }
-
-  // Local development: read/write the JSON file.
-  if (fs.existsSync(SETTINGS_FILE)) {
-    try {
-      const parsed = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
-      memorySettings = { ...DEFAULT_SETTINGS, ...parsed };
-      return { ...memorySettings };
-    } catch (err) {
-      console.error('Error reading settings file, falling back to defaults:', err);
-    }
-  }
-  if (memorySettings) return { ...memorySettings };
-  const fresh = { ...DEFAULT_SETTINGS };
-  memorySettings = fresh;
-  try {
-    fs.mkdirSync(path.dirname(SETTINGS_FILE), { recursive: true });
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(fresh, null, 2), 'utf8');
-  } catch (err) {
-    console.error('Failed to write initial settings file:', err);
-  }
-  return fresh;
+function storageError() {
+  return Object.assign(new Error('Login settings storage is unavailable. Check Netlify Blobs configuration.'), { status: 503 });
 }
 
-// Never throws: persistence is best-effort and the in-memory copy always
-// reflects the latest change so callers keep working.
+async function load() {
+  const store = await strongStore(BLOB_STORE);
+  if (store) {
+    try {
+      const raw = await store.get('settings', { type: 'text', consistency: 'strong' });
+      return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
+    } catch (err) {
+      console.error('Error reading login settings:', err.message);
+      throw storageError();
+    }
+  }
+  if (skipFsWrites()) throw storageError();
+  if (fs.existsSync(SETTINGS_FILE)) {
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) };
+  }
+  return { ...DEFAULT_SETTINGS };
+}
+
 async function save(settings) {
-  memorySettings = { ...settings };
-  const store = await getBlobStore(BLOB_STORE);
+  const store = await strongStore(BLOB_STORE);
   if (store) {
     await store.set('settings', JSON.stringify(settings));
     return;
   }
-  if (skipFsWrites()) {
-    throw new Error(
-      'Could not save the IP allowlist on Netlify. Confirm Netlify Blobs is enabled for this site, or set ALLOWED_LOGIN_IPS in Site configuration → Environment variables.'
-    );
-  }
-  try {
-    fs.mkdirSync(path.dirname(SETTINGS_FILE), { recursive: true });
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
-  } catch (err) {
-    console.error('Failed to write settings file:', err);
-    throw new Error('Failed to write settings file.');
-  }
+  if (skipFsWrites()) throw storageError();
+  fs.mkdirSync(path.dirname(SETTINGS_FILE), { recursive: true });
+  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
 }
 
 // Normalize IPv4-mapped IPv6 and loopback aliases so matching is consistent.
@@ -83,7 +55,9 @@ function normalizeIp(ip) {
   let value = String(ip).trim().toLowerCase();
   if (value.startsWith('::ffff:')) value = value.slice(7);
   if (value === '::1') value = '127.0.0.1';
-  return value;
+  if (value.includes('%') || !isIP(value)) return '';
+  // Canonicalize equivalent IPv6 spellings before exact allowlist matching.
+  return isIP(value) === 6 ? new URL(`http://[${value}]/`).hostname.slice(1, -1) : value;
 }
 
 function headerValue(req, names) {
@@ -100,7 +74,10 @@ function getClientIp(req) {
   if (!req) return '';
   const forwarded = headerValue(req, ['x-forwarded-for']);
   const candidates = [
-    headerValue(req, ['x-nf-client-connection-ip', 'client-ip', 'true-client-ip', 'cf-connecting-ip']),
+    headerValue(req, ['x-nf-client-connection-ip']),
+    headerValue(req, ['client-ip']),
+    headerValue(req, ['true-client-ip']),
+    headerValue(req, ['cf-connecting-ip']),
     ...(forwarded ? forwarded.split(',').map((part) => part.trim()) : []),
     req.ip,
     req.socket && req.socket.remoteAddress,
@@ -133,19 +110,58 @@ function isIpAllowed(ip, settings) {
 
 async function isRequestIpAllowed(req) {
   if (process.env.LOGIN_OPEN === 'true') return true;
+  const ip = getClientIp(req);
+  if (envAllowedIps().includes(ip)) return true;
   const s = await load();
-  return isIpAllowed(getClientIp(req), s);
+  return isIpAllowed(ip, s);
 }
 
-function recordLoginAttempt(req, { email, result }) {
+function recentByIp(rows) {
+  const seen = new Set();
+  return rows.sort((a, b) => b.at.localeCompare(a.at) || b.id.localeCompare(a.id)).filter((row) => {
+    if (seen.has(row.ip)) return false;
+    seen.add(row.ip);
+    return true;
+  }).slice(0, MAX_LOGIN_ATTEMPTS);
+}
+
+async function activityRows() {
+  const store = await strongStore(ACTIVITY_STORE);
+  if (store) {
+    const { blobs } = await store.list({ prefix: 'addresses/' });
+    const rows = await Promise.all(blobs.map(({ key }) => store.get(key, { type: 'json', consistency: 'strong' })));
+    return rows.filter(Boolean);
+  }
+  if (skipFsWrites()) throw storageError();
+  return fs.existsSync(ACTIVITY_FILE) ? JSON.parse(fs.readFileSync(ACTIVITY_FILE, 'utf8')) : [];
+}
+
+async function recordLoginAttempt(req, { email, result }) {
   const entry = {
-    id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    id: `${Date.now().toString(36)}-${randomUUID()}`,
     ip: getClientIp(req) || 'unknown',
     email: String(email || '').trim().toLowerCase().slice(0, 160),
     result,
     at: new Date().toISOString(),
   };
-  loginAttempts = [entry, ...loginAttempts.filter((row) => row.ip !== entry.ip)].slice(0, MAX_LOGIN_ATTEMPTS);
+  try {
+    const store = await strongStore(ACTIVITY_STORE);
+    // Separate address/result keys avoid losing another visitor's login when
+    // different function instances write at the same time. Keep successes even
+    // if the same address later submits an unsuccessful attempt.
+    if (store) {
+      const address = createHash('sha256').update(entry.ip).digest('hex');
+      await store.set(`addresses/${address}/${result}`, JSON.stringify(entry));
+    } else {
+      if (skipFsWrites()) throw storageError();
+      const rows = await activityRows();
+      const next = [entry, ...rows.filter((row) => row.ip !== entry.ip || row.result !== result)];
+      fs.writeFileSync(ACTIVITY_FILE, JSON.stringify(next, null, 2), 'utf8');
+    }
+  } catch (err) {
+    // A telemetry outage must not turn valid credentials into a failed login.
+    console.error('Could not persist login activity:', err.message);
+  }
   return entry;
 }
 
@@ -153,12 +169,22 @@ async function getSettings(req) {
   const s = await load();
   const currentIp = getClientIp(req);
   const envIps = envAllowedIps();
+  let rows = [];
+  let loginActivityError;
+  try {
+    rows = await activityRows();
+  } catch (err) {
+    console.error('Could not read login activity:', err.message);
+    loginActivityError = 'Login activity could not be loaded. Try again shortly.';
+  }
   return {
     allowedAdminIps: effectiveIps(s),
     envAllowedIps: envIps,
     currentIp,
     ipAllowed: isIpAllowed(currentIp, s),
-    loginAttempts,
+    loginAttempts: recentByIp([...rows]),
+    recentLogins: recentByIp(rows.filter((row) => row.result === 'signed-in')),
+    ...(loginActivityError ? { loginActivityError } : {}),
   };
 }
 

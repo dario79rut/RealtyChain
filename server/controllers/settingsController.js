@@ -2,11 +2,12 @@ const settingsService = require('../services/settingsService');
 
 async function getSettings(req, res) {
   try {
+    res.set('Cache-Control', 'no-store');
     const out = await settingsService.getSettings(req);
     res.json(out);
   } catch (err) {
     console.error('getSettings error:', err);
-    res.status(500).json({ error: 'Failed to load settings' });
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load settings' });
   }
 }
 
