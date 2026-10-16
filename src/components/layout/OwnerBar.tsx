@@ -12,6 +12,7 @@ export const OWNER_LINKS = [
   { id: 'funding', label: 'Funding', to: '/user?tab=funding' },
   { id: 'tokenize', label: 'Tokenize', to: '/user?tab=tokenize' },
   { id: 'financing', label: 'Financing', to: '/user?tab=financing' },
+  { id: 'governance', label: 'Govern', to: '/governance' },
 ] as const;
 
 export function OwnerBar() {
@@ -21,7 +22,7 @@ export function OwnerBar() {
   const { pathname } = useLocation();
   const [params] = useSearchParams();
   const [open, setOpen] = useState(false);
-  const current = pathname.startsWith('/user') ? (params.get('tab') || 'dashboard') : '';
+  const current = pathname === '/governance' ? 'governance' : pathname.startsWith('/user') ? (params.get('tab') || 'dashboard') : '';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-void-700 bg-void-950/95 backdrop-blur-xl">

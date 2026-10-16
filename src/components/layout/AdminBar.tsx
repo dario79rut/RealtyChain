@@ -17,6 +17,7 @@ export const ADMIN_SECTIONS = [
   { id: 'distributions', label: 'Distributions', to: '/admin?section=distributions' },
   { id: 'financials', label: 'Financials', to: '/admin?section=financials' },
   { id: 'compliance', label: 'Compliance', to: '/admin?section=compliance' },
+  { id: 'governance', label: 'Govern', to: '/governance' },
 ] as const;
 
 export function AdminBar() {
@@ -26,7 +27,7 @@ export function AdminBar() {
   const { pathname } = useLocation();
   const [params] = useSearchParams();
   const [open, setOpen] = useState(false);
-  const current = pathname.startsWith('/admin') ? (params.get('section') || 'dashboard') : '';
+  const current = pathname === '/governance' ? 'governance' : pathname.startsWith('/admin') ? (params.get('section') || 'dashboard') : '';
 
   const signOut = () => {
     disconnectWallet();

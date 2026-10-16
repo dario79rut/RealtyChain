@@ -31,4 +31,20 @@ function vote(req, res) {
   }
 }
 
-module.exports = { list, create, vote };
+function respond(req, res) {
+  try {
+    return res.json(governanceService.respond(req.user.sub, req.params.id, req.body || {}));
+  } catch (err) {
+    return sendError(res, err);
+  }
+}
+
+function configureAgreement(req, res) {
+  try {
+    return res.json(governanceService.configureAgreement(req.user.sub, req.params.propertyId, req.body || {}));
+  } catch (err) {
+    return sendError(res, err);
+  }
+}
+
+module.exports = { list, create, vote, respond, configureAgreement };

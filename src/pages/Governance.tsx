@@ -4,11 +4,14 @@ import { useAuth } from '../context/AuthContext';
 import {
   GovernanceBalance,
   GovernanceProposal,
+  GovernanceSetup,
   castVote,
   createProposal,
   fetchGovernance,
 } from '../utils/api';
 import { Button } from '../components/ui/Button';
+import { GovernanceFlow, ProposalWorkflow } from '../components/governance/ProposalWorkflow';
+import { GovernanceAgreementSetup } from '../components/governance/GovernanceAgreementSetup';
 
 const KIND_LABELS: Record<GovernanceProposal['kind'], string> = {
   budget: 'Budget',
@@ -41,10 +44,12 @@ export function ProposalCard({
   proposal,
   onVote,
   busy,
+  onUpdate,
 }: {
   proposal: GovernanceProposal;
   onVote?: (choice: 'for' | 'against') => void;
   busy?: boolean;
+  onUpdate?: (proposal: GovernanceProposal) => void;
 }) {
   const cast = proposal.forShares + proposal.againstShares;
   const forPct = cast > 0 ? (proposal.forShares / cast) * 100 : 0;
@@ -106,6 +111,7 @@ export function ProposalCard({
           )}
         </div>
       )}
+      <ProposalWorkflow proposal={proposal} onUpdate={onUpdate} />
     </article>
   );
 }
@@ -117,12 +123,14 @@ export default function Governance() {
   const propertyId = params.get('property') || '';
   const [proposals, setProposals] = useState<GovernanceProposal[]>([]);
   const [balances, setBalances] = useState<GovernanceBalance[]>([]);
+  const [setup, setSetup] = useState<GovernanceSetup | null>(null);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]['id']>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [votingId, setVotingId] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const isInvestor = !user?.role || user.role === 'user';
   const [draft, setDraft] = useState({
     propertyId: '',
     kind: 'budget' as GovernanceProposal['kind'],
@@ -137,6 +145,7 @@ export default function Governance() {
       .then((res) => {
         setProposals(res.proposals);
         setBalances(res.balances);
+        setSetup(res.setup);
         setDraft((current) => ({
           ...current,
           propertyId: current.propertyId || propertyId || res.balances[0]?.propertyId || '',
@@ -181,14 +190,14 @@ export default function Governance() {
     }
   };
 
-  if (user?.role === 'owner' || user?.role === 'admin' || user?.role === 'institution') {
+  if (user?.role === 'institution') {
     return (
       <div className="min-h-screen w-full">
         <div className="max-w-xl mx-auto px-4 py-20 text-center">
           <h1 className="font-display text-3xl font-bold text-cream-100 mb-3">Governance</h1>
           <p className="text-cream-400 mb-6">Shareholder votes are an investor action.</p>
-          <Button onClick={() => navigate(user.role === 'admin' ? '/admin' : user.role === 'institution' ? '/institution' : '/user')}>
-            {user.role === 'admin' ? 'Open admin' : user.role === 'institution' ? 'Open Corda desk' : 'Open owner desk'}
+          <Button onClick={() => navigate('/institution')}>
+            Open Corda desk
           </Button>
         </div>
       </div>
@@ -206,10 +215,16 @@ export default function Governance() {
               One share is one vote. Open proposals cover budgets, managers, sales, and distributions.
             </p>
           </div>
-          <Button type="button" variant="outline" onClick={() => setShowForm((open) => !open)}>
+          {isInvestor && <Button type="button" variant="outline" disabled={!balances.some((row) => row.shares > 0)} onClick={() => setShowForm((open) => !open)}>
             {showForm ? 'Close' : 'New proposal'}
-          </Button>
+          </Button>}
         </div>
+
+        <GovernanceFlow />
+        {setup && <GovernanceAgreementSetup setup={setup} onSave={(result) => {
+          setSetup(result.setup);
+          setProposals(result.proposals.filter((proposal) => !propertyId || proposal.propertyId === propertyId));
+        }} />}
 
         {balances.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
@@ -238,8 +253,9 @@ export default function Governance() {
           <p className="text-cream-300 mb-4">Votes for {propertyName}</p>
         )}
 
-        {showForm && (
+        {showForm && isInvestor && (
           <form onSubmit={handleCreate} className="rounded-2xl border border-void-700 bg-void-800/50 p-5 mb-6 space-y-4">
+            <p className="text-sm text-cream-400">You are the ticket creator. The SPV coordinates the response under the DAO agreement. If approved, the SPV reviews the decision and assigns work to its representative or the property owner. The assigned party acknowledges its existing duty and reports progress.</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <label className="block text-sm text-cream-400">
                 Property
@@ -282,6 +298,9 @@ export default function Governance() {
             <label className="block text-sm text-cream-400">
               Title
               <input
+                required
+                minLength={8}
+                maxLength={120}
                 value={draft.title}
                 onChange={(event) => setDraft({ ...draft, title: event.target.value })}
                 className="mt-1 w-full bg-void-700 border border-void-600 rounded-xl px-3 py-2.5 text-cream-100"
@@ -291,6 +310,9 @@ export default function Governance() {
             <label className="block text-sm text-cream-400">
               Summary
               <textarea
+                required
+                minLength={20}
+                maxLength={800}
                 value={draft.summary}
                 onChange={(event) => setDraft({ ...draft, summary: event.target.value })}
                 rows={3}
@@ -338,7 +360,8 @@ export default function Governance() {
                 key={proposal.id}
                 proposal={proposal}
                 busy={votingId === proposal.id}
-                onVote={(choice) => handleVote(proposal, choice)}
+                onVote={isInvestor ? (choice) => handleVote(proposal, choice) : undefined}
+                onUpdate={(updated) => setProposals((rows) => rows.map((row) => row.id === updated.id ? updated : row))}
               />
             ))}
           </div>

@@ -110,7 +110,7 @@ function findUser(userId) {
   const user = persistence.data.users.find((row) => String(row.id) === String(userId));
   if (!user) fail('Unauthorized', 401);
   if (!user.shareBalances || typeof user.shareBalances !== 'object') user.shareBalances = {};
-  if (demoOn() && user.role !== 'admin' && !user.governanceSeeded) {
+  if (demoOn() && (!user.role || user.role === 'user') && !user.governanceSeeded) {
     const held = Object.values(user.shareBalances).some((value) => Number(value) > 0);
     if (!held) Object.assign(user.shareBalances, DEMO_BALANCES);
     user.governanceSeeded = true;
@@ -123,6 +123,45 @@ function sharesOf(user, propertyId) {
   const value = Number(user.shareBalances?.[String(propertyId)] || 0);
   if (!Number.isFinite(value) || value <= 0) return 0;
   return Math.floor(value);
+}
+
+function canRespond(user, propertyId) {
+  const property = propertyById(propertyId);
+  return user.role === 'admin' || (user.role === 'owner' && property
+    && String(property.ownerId) === String(user.id));
+}
+
+function agreementFor(proposal) {
+  // Preserve the agreement and SPV responsible when work was assigned.
+  return proposal.execution?.agreement || propertyById(proposal.propertyId)?.governanceAgreement || null;
+}
+
+function canCoordinate(user, proposal) {
+  const agreement = agreementFor(proposal);
+  return user.role === 'admin' && agreement
+    && String(agreement.representativeId) === String(user.id);
+}
+
+function executionFor(proposal) {
+  const execution = proposal.execution || {};
+  const legacy = execution.acceptedBy != null;
+  return {
+    ...execution,
+    status: !execution.status || execution.status === 'awaiting_acceptance'
+      ? 'awaiting_spv_review' : execution.status,
+    assignedTo: execution.assignedTo ?? execution.acceptedBy ?? null,
+    acknowledgedBy: execution.acknowledgedBy ?? execution.acceptedBy ?? null,
+    legacy,
+  };
+}
+
+function actor(userId) {
+  const user = persistence.data.users.find((row) => String(row.id) === String(userId));
+  return user ? { id: String(user.id), name: user.name || 'Member' } : null;
+}
+
+function canParticipate(user) {
+  return !user.role || user.role === 'user';
 }
 
 function tally(proposal, userId) {
@@ -148,6 +187,12 @@ function tally(proposal, userId) {
 }
 
 function present(proposal, user) {
+  const result = tally(proposal, user.id);
+  const owner = actor(propertyById(proposal.propertyId)?.ownerId);
+  const agreement = agreementFor(proposal);
+  const execution = executionFor(proposal);
+  const coordinator = Boolean(canCoordinate(user, proposal));
+  const assignee = canRespond(user, proposal.propertyId) && String(execution.assignedTo) === String(user.id);
   return {
     id: proposal.id,
     propertyId: String(proposal.propertyId),
@@ -157,8 +202,31 @@ function present(proposal, user) {
     kind: proposal.kind,
     endsAt: proposal.endsAt,
     createdAt: proposal.createdAt,
-    votingPower: sharesOf(user, proposal.propertyId),
-    ...tally(proposal, user.id),
+    createdBy: actor(proposal.createdBy),
+    responder: actor(agreement?.representativeId),
+    propertyOwner: owner,
+    agreement: agreement ? {
+      spvName: agreement.spvName,
+      reference: agreement.reference,
+      representative: actor(agreement.representativeId),
+    } : null,
+    canRespond: Boolean(canRespond(user, proposal.propertyId)),
+    canCoordinate: coordinator,
+    canAcknowledge: Boolean(assignee && execution.status === 'awaiting_acknowledgment'),
+    canManageExecution: Boolean(coordinator || assignee),
+    execution: {
+      status: result.status === 'active' ? 'awaiting_vote'
+        : result.status === 'rejected' ? 'not_approved'
+          : execution.status,
+      assignedTo: actor(execution.assignedTo),
+      acknowledgedBy: actor(execution.acknowledgedBy),
+      dueAt: execution.dueAt || null,
+      agreementReference: execution.agreementReference || agreement?.reference || null,
+      legacy: execution.legacy,
+    },
+    updates: (proposal.updates || []).map((update) => ({ ...update, author: actor(update.userId), userId: undefined })),
+    votingPower: canParticipate(user) ? sharesOf(user, proposal.propertyId) : 0,
+    ...result,
   };
 }
 
@@ -191,18 +259,51 @@ function list(userId, propertyId) {
     if (b.status === 'active' && a.status !== 'active') return 1;
     return new Date(a.endsAt).getTime() - new Date(b.endsAt).getTime();
   });
-  return { proposals, balances: balancesOf(user) };
+  return {
+    proposals, balances: balancesOf(user),
+    setup: user.role === 'admin' ? {
+      properties: (persistence.data.properties || []).map((property) => ({
+        id: String(property.id), title: property.title, agreement: property.governanceAgreement || null,
+      })),
+      representatives: persistence.data.users.filter((row) => row.role === 'admin').map((row) => actor(row.id)),
+    } : null,
+  };
+}
+
+function configureAgreement(userId, propertyId, input) {
+  const user = findUser(userId);
+  if (user.role !== 'admin') fail('Only an admin can configure the DAO agreement.', 403);
+  const property = propertyById(propertyId);
+  if (!property) fail('Property not found.', 404);
+  const { spvName, representativeId, reference } = input || {};
+  if (typeof spvName !== 'string' || spvName.trim().length < 2 || spvName.length > 200) {
+    fail('SPV legal name must be 2–200 characters.', 400);
+  }
+  if (typeof reference !== 'string' || reference.trim().length < 3 || reference.length > 300) {
+    fail('DAO agreement reference must be 3–300 characters.', 400);
+  }
+  const representative = persistence.data.users.find((row) => String(row.id) === String(representativeId) && row.role === 'admin');
+  if (!representative) fail('Choose an admin account authorized to represent the SPV.', 400);
+  const agreement = {
+    spvName: spvName.trim(), representativeId: String(representative.id), reference: reference.trim(),
+    recordedBy: user.id, recordedAt: new Date().toISOString(),
+  };
+  property.governanceAgreement = agreement;
+  if (!Array.isArray(property.governanceAgreementHistory)) property.governanceAgreementHistory = [];
+  property.governanceAgreementHistory.push({ ...agreement });
+  persistence.save();
+  return list(userId);
 }
 
 function create(userId, input) {
   ensureStore();
   const user = findUser(userId);
+  if (!canParticipate(user)) fail('Only investor accounts can open shareholder votes.', 403);
   const source = input && typeof input === 'object' ? input : {};
   const propertyId = String(source.propertyId || '').trim();
   const property = propertyById(propertyId);
   if (!property) fail('Property not found.', 404);
-  const ownsListing = user.role === 'owner' && String(property.ownerId) === String(user.id);
-  if (sharesOf(user, propertyId) <= 0 && !ownsListing) fail('You need shares in this property to propose.', 403);
+  if (sharesOf(user, propertyId) <= 0) fail('You need shares in this property to propose.', 403);
   const title = String(source.title || '').trim();
   const summary = String(source.summary || '').trim();
   const kind = String(source.kind || '').trim();
@@ -238,6 +339,7 @@ function create(userId, input) {
 function vote(userId, proposalId, input) {
   ensureStore();
   const user = findUser(userId);
+  if (!canParticipate(user)) fail('Only investor accounts can vote.', 403);
   const proposal = persistence.data.governance.find((row) => row.id === String(proposalId));
   if (!proposal) fail('Proposal not found.', 404);
   if (Date.now() >= new Date(proposal.endsAt).getTime()) fail('This vote is closed.', 400);
@@ -263,4 +365,68 @@ function vote(userId, proposalId, input) {
   return { proposal: present(proposal, user) };
 }
 
-module.exports = { list, create, vote, seedProposals };
+function respond(userId, proposalId, input) {
+  ensureStore();
+  const user = findUser(userId);
+  const proposal = persistence.data.governance.find((row) => row.id === String(proposalId));
+  if (!proposal) fail('Proposal not found.', 404);
+  if (!canRespond(user, proposal.propertyId)) fail('Only this property’s owner or an admin can respond.', 403);
+  const { action, note, dueAt, assignee } = input || {};
+  if (!['respond', 'assign', 'acknowledge', 'block', 'resume', 'complete'].includes(action)) fail('Choose a valid response action.', 400);
+  if (typeof note !== 'string' || note.trim().length < 10 || note.trim().length > 2000) {
+    fail('Response must be 10–2,000 characters.', 400);
+  }
+  const status = tally(proposal, user.id).status;
+  const execution = executionFor(proposal);
+  if (action !== 'respond') {
+    if (status !== 'passed') fail('Work can begin only after the vote passes.', 400);
+    const current = execution.status;
+    if (action === 'assign') {
+      if (!canCoordinate(user, proposal)) fail('Only the recorded SPV representative can assign agreement duties.', 403);
+      if (current !== 'awaiting_spv_review') fail('Work has already been assigned.', 409);
+      if (typeof dueAt !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(dueAt)
+        || !Number.isFinite(Date.parse(dueAt)) || new Date(dueAt).toISOString().slice(0, 10) !== dueAt
+        || Date.parse(`${dueAt}T23:59:59.999Z`) <= Date.now()) {
+        fail('Choose a valid future target date.', 400);
+      }
+      const agreement = agreementFor(proposal);
+      let assignedTo;
+      if (assignee === 'owner') {
+        const owner = persistence.data.users.find((row) => String(row.id) === String(propertyById(proposal.propertyId)?.ownerId) && row.role === 'owner');
+        if (!owner) fail('This property has no owner account available for assignment.', 400);
+        assignedTo = owner.id;
+      } else if (assignee === 'spv') {
+        assignedTo = user.id;
+      } else {
+        fail('Assign work to the property owner or SPV representative.', 400);
+      }
+      Object.assign(execution, {
+        status: 'awaiting_acknowledgment', assignedTo, assignedBy: user.id, dueAt,
+        agreement: { ...agreement }, agreementReference: agreement.reference,
+      });
+    } else if (action === 'acknowledge') {
+      if (String(execution.assignedTo) !== String(user.id)) fail('Only the assigned party can acknowledge its duty.', 403);
+      if (current !== 'awaiting_acknowledgment') fail('This duty is not awaiting acknowledgment.', 409);
+      Object.assign(execution, { status: 'in_progress', acknowledgedBy: user.id });
+    } else {
+      if (!canCoordinate(user, proposal) && String(execution.assignedTo) !== String(user.id)) {
+        fail('Only the assigned party or SPV representative can update execution.', 403);
+      }
+      const allowed = action === 'resume' ? ['blocked'] : action === 'block'
+        ? ['awaiting_acknowledgment', 'in_progress'] : ['in_progress'];
+      if (!allowed.includes(current)) fail('That action is not available at this stage.', 409);
+      execution.status = action === 'complete' ? 'completed' : action === 'block' ? 'blocked'
+        : execution.acknowledgedBy ? 'in_progress' : 'awaiting_acknowledgment';
+    }
+  }
+  proposal.execution = execution;
+  if (!Array.isArray(proposal.updates)) proposal.updates = [];
+  proposal.updates.push({
+    userId: user.id, action, note: note.trim(), at: new Date().toISOString(),
+    ...(action === 'assign' ? { assignedTo: actor(execution.assignedTo), dueAt, agreementReference: execution.agreementReference } : {}),
+  });
+  persistence.save();
+  return { proposal: present(proposal, user) };
+}
+
+module.exports = { list, create, vote, respond, configureAgreement, seedProposals };

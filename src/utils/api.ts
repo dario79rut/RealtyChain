@@ -254,6 +254,23 @@ export type GovernanceProposal = {
   kind: 'budget' | 'sale' | 'manager' | 'distribution';
   endsAt: string;
   createdAt: string;
+  createdBy: { id: string; name: string } | null;
+  responder: { id: string; name: string } | null;
+  propertyOwner: { id: string; name: string } | null;
+  agreement: { spvName: string; reference: string; representative: { id: string; name: string } | null } | null;
+  canRespond: boolean;
+  canCoordinate: boolean;
+  canAcknowledge: boolean;
+  canManageExecution: boolean;
+  execution: {
+    status: 'awaiting_vote' | 'not_approved' | 'awaiting_spv_review' | 'awaiting_acknowledgment' | 'in_progress' | 'blocked' | 'completed';
+    assignedTo: { id: string; name: string } | null;
+    acknowledgedBy: { id: string; name: string } | null;
+    legacy: boolean;
+    dueAt: string | null;
+    agreementReference: string | null;
+  };
+  updates: { action: string; note: string; at: string; author: { id: string; name: string } | null; assignedTo?: { id: string; name: string }; dueAt?: string; agreementReference?: string }[];
   votingPower: number;
   forShares: number;
   againstShares: number;
@@ -270,9 +287,22 @@ export type GovernanceBalance = {
   shares: number;
 };
 
+export type GovernanceSetup = {
+  properties: { id: string; title: string; agreement: { spvName: string; representativeId: string; reference: string } | null }[];
+  representatives: { id: string; name: string }[];
+};
+
+export type GovernanceList = { proposals: GovernanceProposal[]; balances: GovernanceBalance[]; setup: GovernanceSetup | null };
+
+export function configureGovernanceAgreement(propertyId: string, payload: { spvName: string; representativeId: string; reference: string }) {
+  return apiFetch<GovernanceList>(`/api/governance/properties/${encodeURIComponent(propertyId)}/agreement`, {
+    method: 'PUT', body: JSON.stringify(payload),
+  });
+}
+
 export function fetchGovernance(propertyId?: string) {
   const query = propertyId ? `?propertyId=${encodeURIComponent(propertyId)}` : '';
-  return apiFetch<{ proposals: GovernanceProposal[]; balances: GovernanceBalance[] }>(`/api/governance${query}`);
+  return apiFetch<GovernanceList>(`/api/governance${query}`);
 }
 
 export function createProposal(payload: {
@@ -292,6 +322,20 @@ export function castVote(id: string, choice: 'for' | 'against') {
   return apiFetch<{ proposal: GovernanceProposal }>(`/api/governance/${id}/vote`, {
     method: 'POST',
     body: JSON.stringify({ choice }),
+  });
+}
+
+export type GovernanceResponse = {
+  action: 'respond' | 'assign' | 'acknowledge' | 'block' | 'resume' | 'complete';
+  note: string;
+  dueAt?: string;
+  assignee?: 'owner' | 'spv';
+};
+
+export function respondToProposal(id: string, payload: GovernanceResponse) {
+  return apiFetch<{ proposal: GovernanceProposal }>(`/api/governance/${id}/respond`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
   });
 }
 

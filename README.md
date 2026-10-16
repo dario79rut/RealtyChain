@@ -20,6 +20,21 @@ A decentralized real estate platform built with React, Vite, and Web3 technologi
 - Authenticated document vault and a demo tax worksheet CSV (not a K-1 or 1099)
 - Solana devnet by default, with an institutional Corda desk that settles a commitment onto that program
 
+## Govern ticket flow
+
+The DAO agreement is between investors, the SPV, and the property owner. Govern records performance of duties under that agreement. The SPV is the primary accountable party for coordinating tickets; assignment to the property owner does not remove SPV coordination responsibility.
+
+1. **Configure:** Admin → Govern → SPV and DAO agreement setup records each property's SPV legal name, agreement/document reference and version, and authorized representative. Representatives use explicitly designated admin accounts in the existing account system; being a platform admin does not by itself make someone the SPV representative. Configuration changes are recorded in the property's agreement history. The app does not seed fictitious legal parties or verify authority or agreement validity.
+2. **Submit and respond:** an investor holding property shares opens a budget, sale, manager, or distribution proposal. Its creator, accountable SPV, SPV response contact, and property owner are shown. The SPV coordinates the response. The property's owner and platform admins can also post attributed responses. Missing SPV details are explicitly flagged for admin setup.
+3. **Vote:** investor shareholders vote for or against, weighted by their current app share balance when they cast or change their vote. At the deadline, turnout must reach the recorded quorum and votes for must exceed votes against. Ties and missed quorum reject the proposal. New proposals use a quorum of 20% of `tokensSold` (rounded), with a minimum of 20 shares. Windows are 3, 7, 14, or 30 days, with at most three open votes per property. These are app voting rules; the agreement must authorize the decision. There is no share snapshot or on-chain governance execution.
+4. **SPV review and assignment:** a passed proposal requires SPV review. Only the recorded SPV representative can assign work to the listed property owner or to itself, with a target completion date (end of that day, UTC). The assignment note should identify the relevant agreement clause, scope, and timing. Assignment records a copy of the SPV/representative/agreement configuration, so subsequent configuration changes do not silently change existing work obligations in the record.
+5. **Acknowledge:** only the assigned party acknowledges its duty. The duty remains governed by the DAO agreement before acknowledgment; lack of a click does not waive it or transfer it to another party. The app distinguishes assignment from acknowledgment and shows overdue assigned work even if unacknowledged.
+6. **Track:** the assigned party or recorded SPV representative reports blockers, resumes work, and reports completion from the in-progress stage. A blocker before acknowledgment must return to acknowledgment when resumed. Each action requires a note and adds an attributed, timestamped history entry. Completion is self-reported; notes should reference supporting documents. Blockers document issues and do not automatically excuse duties. Historical acceptance records are preserved and explicitly labeled for SPV review.
+
+`PUT /api/governance/properties/:propertyId/agreement` is admin-only and takes `spvName`, `representativeId`, and `reference`. `POST /api/governance/:id/respond` takes `action` (`respond`, `assign`, `acknowledge`, `block`, `resume`, `complete`) and `note`; assignment also requires `dueAt` (`YYYY-MM-DD`) and `assignee` (`owner` or `spv`). Permissions and transitions are enforced on the server. Records use existing app persistence.
+
+The agreement defines response deadlines, permitted refusal reasons, escalation, remedies, and the effect of approved votes. This implementation does not invent those terms or enforce them automatically, validate agreements, execute contracts, release funds, or send notifications. Follow up with the SPV when tickets stall; contact a platform admin if the representative is missing. The recorded target date does not override contractual deadlines.
+
 ## Getting Started
 
 ### Prerequisites
