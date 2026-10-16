@@ -86,6 +86,8 @@ Set these server environment variables, then deploy the updated code:
 
 On Vercel, retain the private Blob store credentials and `STORAGE_PROVIDER=vercel` for files. On Netlify, files can continue using Netlify Blobs. Keep server credentials free of the `VITE_` prefix. Preview/development deployments should use a different database branch or `DATA_NAMESPACE`.
 
+For Netlify's fully managed Database, the app also accepts the automatically supplied `NETLIFY_DB_URL`. In Project configuration → Environment variables, add `DATA_STORAGE_PROVIDER=postgres` and `DATA_NAMESPACE=production` with Functions scope (or all scopes), then deploy this code. You do not need to copy the managed connection URL into `DATABASE_URL`. An explicitly configured `DATABASE_URL` takes precedence; remove that override if you want to use the Netlify-managed database. A separate Netlify database has separate records from the Vercel database, even when both use the same namespace.
+
 The app creates `realtychain_records` automatically. Existing app state is stored in a JSONB record; settings and login history use separate records. Each request uses a database transaction and a namespace lock across function instances, so simultaneous saves wait rather than rejecting each other through Blob version checks. This retains the current service model while moving persistence into PostgreSQL. Binary files remain in object storage.
 
 After deploying, check `/health`, sign in, and open Market, Lend, and Govern. A brand-new database starts with demo seed data. Existing Blob records are preserved in the old store and are not automatically copied.

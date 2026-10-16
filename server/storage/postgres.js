@@ -7,7 +7,7 @@ let schemaReady = null;
 
 function usesPostgresStorage() {
   if (process.env.DATA_STORAGE_PROVIDER) return process.env.DATA_STORAGE_PROVIDER === 'postgres';
-  return Boolean(process.env.DATABASE_URL);
+  return Boolean(process.env.DATABASE_URL || process.env.NETLIFY_DB_URL);
 }
 
 function namespace() {
@@ -34,8 +34,8 @@ async function ensureSchema(pool) {
 }
 
 async function beginTransaction() {
-  if (!process.env.DATABASE_URL) {
-    throw Object.assign(new Error('DATABASE_URL is required for PostgreSQL storage.'), { status: 503 });
+  if (!process.env.DATABASE_URL && !process.env.NETLIFY_DB_URL) {
+    throw Object.assign(new Error('DATABASE_URL or NETLIFY_DB_URL is required for PostgreSQL storage.'), { status: 503 });
   }
   const { pool } = require('../db');
   await ensureSchema(pool);
