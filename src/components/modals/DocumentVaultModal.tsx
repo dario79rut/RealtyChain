@@ -103,7 +103,7 @@ export function DocumentVaultModal({ isOpen, property, onClose, onUpdated }: Doc
                 </button>
               </div>
               <p className="text-cream-400 text-sm mb-5">
-                Files for {property.title}. Seed PDFs are demo placeholders, not recorded instruments.
+                Files for {property.title}. Sample PDFs use Luxury Downtown Apartment as a shared example across all listings.
               </p>
               <div className="space-y-2 mb-6">
                 {docs.length === 0 ? (

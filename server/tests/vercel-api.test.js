@@ -161,6 +161,37 @@ test('vault files stay protected and are deleted only after the metadata commit 
   assert.equal(sdk.values.has(key), false);
 });
 
+test('existing hosted catalog documents upgrade once without losing uploads or restoring removed samples', async () => {
+  const authenticated = await login();
+  const token = authenticated.data.token;
+  const external = state();
+  const property = external.properties.find((row) => row.id === '6');
+  delete property.sampleDocumentsVersion;
+  property.documents = [
+    { name: 'Property Deed', url: '/api/vault/seed/6-deed.pdf' },
+    { name: 'Historic Designation', url: '/api/vault/seed/6-financials.pdf' },
+    { name: 'Renovation Permits', url: '/api/vault/seed/6-financials.pdf' },
+    { name: 'Uploaded insurance', url: '/api/vault/6/insurance.pdf' },
+  ];
+  sdk.write(statePath, JSON.stringify(external));
+  const refreshed = await request('/api/properties/6', { token });
+  assert.equal(refreshed.status, 200);
+  assert.deepEqual(refreshed.data.property.documents.map((doc) => doc.name),
+    ['Property Deed', 'Financial Projections', 'Uploaded insurance', 'Inspection Report']);
+  assert.equal(state().properties.find((row) => row.id === '6').sampleDocumentsVersion, 2);
+  assert.equal(refreshed.data.property.documents[0].url, '/api/vault/seed/sample-deed.pdf');
+  const removed = await request('/api/properties/6/documents/3', { method: 'DELETE', token });
+  assert.equal(removed.status, 200);
+  const next = await request('/api/properties/6', { token });
+  assert.equal(next.data.property.documents.some((doc) => doc.name === 'Inspection Report'), false);
+  assert.equal((await request('/api/vault/seed/6-deed.pdf')).status, 401);
+  const pdf = await fetch(`${base}/api/vault/seed/6-deed.pdf`, { headers: {
+    Authorization: `Bearer ${token}`, 'X-Forwarded-For': '127.0.0.1',
+  } });
+  assert.equal(pdf.status, 200);
+  assert.match(Buffer.from(await pdf.arrayBuffer()).toString('latin1'), /\/Count 2\b/);
+});
+
 test('deleted seed listings are not resurrected by the next request', async () => {
   const authenticated = await login();
   const id = state().properties[0].id;

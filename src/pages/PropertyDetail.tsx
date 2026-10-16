@@ -325,6 +325,9 @@ export default function PropertyDetail() {
                     <h2 className="font-display text-lg font-semibold text-cream-100 mb-3">
                       Documents
                     </h2>
+                    {(property.documents || []).some((doc) => doc.url?.startsWith('/api/vault/seed/')) && (
+                      <p className="text-sm text-cream-400 mb-3">Shared samples for Luxury Downtown Apartment, used across all listings.</p>
+                    )}
                     <div className="space-y-2">
                       {(property.documents || []).map((doc, index) => (
                         <button

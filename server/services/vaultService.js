@@ -5,7 +5,9 @@ const { skipFsWrites, getBlobStore } = require('../storage/blobs');
 const { scheduleWrite } = require('../storage/writes');
 
 const VAULT_ROOT = path.join(__dirname, '..', 'vault');
-const SEED_DIR = path.join(VAULT_ROOT, 'seed');
+const ASSET_DIR = path.join(__dirname, '..', 'assets', 'vault');
+const SAMPLE_DOCUMENTS_VERSION = 2;
+const CATALOG_IDS = new Set(require('../mock/properties').properties.map((property) => String(property.id)));
 const MAX_BYTES = 1_500_000;
 const NAME_RE = /^[A-Za-z0-9._-]+$/;
 const BLOB_STORE = 'vault-files';
@@ -25,72 +27,45 @@ function seedKindForName(name) {
 }
 
 function seedDocUrl(propertyId, kind) {
-  return `/api/vault/seed/${propertyId}-${kind}.pdf`;
-}
-
-function minimalPdf(title) {
-  const label = String(title || 'RealtyChain document').replace(/[()\\]/g, ' ').slice(0, 80);
-  const stream = `BT /F1 16 Tf 72 720 Td (${label}) Tj T* /F1 11 Tf (Demo vault file — not a recorded instrument.) Tj ET`;
-  const streamLen = Buffer.byteLength(stream, 'utf8');
-  const objects = [
-    '1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj',
-    '2 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj',
-    '3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources<< /Font<< /F1 5 0 R >> >> >>endobj',
-    `4 0 obj<< /Length ${streamLen} >>stream\n${stream}\nendstream\nendobj`,
-    '5 0 obj<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>endobj',
-  ];
-  let body = '%PDF-1.1\n';
-  const offsets = [0];
-  for (const obj of objects) {
-    offsets.push(Buffer.byteLength(body, 'utf8'));
-    body += `${obj}\n`;
-  }
-  const xrefAt = Buffer.byteLength(body, 'utf8');
-  let xref = `xref\n0 ${offsets.length}\n0000000000 65535 f \n`;
-  for (let i = 1; i < offsets.length; i += 1) {
-    xref += `${String(offsets[i]).padStart(10, '0')} 00000 n \n`;
-  }
-  body += `${xref}trailer<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n${xrefAt}\n%%EOF\n`;
-  return Buffer.from(body, 'utf8');
-}
-
-function ensureSeedFiles(properties) {
-  if (skipFsWrites()) return;
-  try {
-    fs.mkdirSync(SEED_DIR, { recursive: true });
-  } catch (err) {
-    console.error('Failed to create vault seed directory:', err.message);
-    return;
-  }
-  for (const property of properties || []) {
-    const id = String(property.id);
-    const kinds = [
-      ['deed', `${property.title} — Property Deed`],
-      ['financials', `${property.title} — Financial projections`],
-      ['inspection', `${property.title} — Inspection / leases`],
-    ];
-    for (const [kind, title] of kinds) {
-      const file = path.join(SEED_DIR, `${id}-${kind}.pdf`);
-      if (!fs.existsSync(file)) {
-        try {
-          fs.writeFileSync(file, minimalPdf(title));
-        } catch (err) {
-          console.error('Failed to write vault seed file:', err.message);
-        }
-      }
-    }
-  }
+  return `/api/vault/seed/sample-${kind}.pdf`;
 }
 
 function rewritePlaceholderDocs(properties) {
   let changed = false;
   for (const property of properties || []) {
     if (!Array.isArray(property.documents)) continue;
-    const next = property.documents.map((doc) => {
+    let next = property.documents.map((doc) => {
       const url = String(doc?.url || '').trim();
       if (url && url !== '#') return doc;
       return { name: doc.name, url: seedDocUrl(property.id, seedKindForName(doc.name)) };
     });
+    // Migrate catalog links to one shared reference set. Keep uploaded files
+    // and preserve removals from the previous sample version.
+    const id = String(property.id);
+    const kinds = { deed: 'Property Deed', financials: 'Financial Projections', inspection: 'Inspection Report' };
+    if (property.sampleDocumentsVersion !== SAMPLE_DOCUMENTS_VERSION && CATALOG_IDS.has(id)
+      && Object.keys(kinds).every((kind) => fs.existsSync(path.join(ASSET_DIR, `sample-${kind}.pdf`)))) {
+      const seen = new Set();
+      next = next.map((doc) => {
+        const match = Object.keys(kinds).find((kind) => doc.url === seedDocUrl(id, kind)
+          || doc.url === `/api/vault/seed/${id}-${kind}.pdf`);
+        return match ? { ...doc, name: kinds[match], url: seedDocUrl(id, match) } : doc;
+      }).filter((doc) => {
+        if (!Object.keys(kinds).some((kind) => doc.url === seedDocUrl(id, kind))) return true;
+        if (seen.has(doc.url)) return false;
+        seen.add(doc.url);
+        return true;
+      });
+      if (!property.sampleDocumentsVersion) {
+        for (const [kind, name] of Object.entries(kinds)) {
+          if (!next.some((doc) => doc.name === name || doc.url === seedDocUrl(id, kind))) {
+            next.push({ name, url: seedDocUrl(id, kind) });
+          }
+        }
+      }
+      property.sampleDocumentsVersion = SAMPLE_DOCUMENTS_VERSION;
+      changed = true;
+    }
     if (JSON.stringify(next) !== JSON.stringify(property.documents)) {
       property.documents = next;
       changed = true;
@@ -108,9 +83,11 @@ function safeName(name) {
 function seedPath(file) {
   const name = safeName(file);
   if (!name) return null;
-  const full = path.join(SEED_DIR, name);
-  if (!full.startsWith(SEED_DIR) || !fs.existsSync(full)) return null;
-  return full;
+  // Older property-specific URLs remain aliases to the same three files.
+  const match = name.match(/^[A-Za-z0-9_-]+-(deed|financials|inspection)\.pdf$/i);
+  if (!match) return null;
+  const full = path.join(ASSET_DIR, `sample-${match[1].toLowerCase()}.pdf`);
+  return fs.existsSync(full) ? full : null;
 }
 
 function propertyDir(propertyId) {
@@ -197,23 +174,10 @@ function removeStoredFile(url) {
   }, { afterCommit: true });
 }
 
-function generatedSeed(file) {
-  const name = safeName(file);
-  if (!name) return null;
-  const match = name.match(/^([A-Za-z0-9_-]+)-(deed|financials|inspection)\.pdf$/i);
-  if (!match) return null;
-  const titles = {
-    deed: `Property ${match[1]} — Property Deed`,
-    financials: `Property ${match[1]} — Financial projections`,
-    inspection: `Property ${match[1]} — Inspection / leases`,
-  };
-  return minimalPdf(titles[match[2].toLowerCase()]);
-}
-
 async function readSeed(file) {
   const fromDisk = seedPath(file);
   if (fromDisk) return fs.readFileSync(fromDisk);
-  return generatedSeed(file);
+  return null;
 }
 
 async function readPropertyFile(propertyId, file) {
@@ -241,7 +205,6 @@ async function readPropertyFile(propertyId, file) {
 
 module.exports = {
   VAULT_ROOT,
-  ensureSeedFiles,
   rewritePlaceholderDocs,
   seedDocUrl,
   seedPath,

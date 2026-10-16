@@ -34,6 +34,10 @@ yarn-error.log*
 # generated document vault (seed PDFs + admin uploads)
 /server/vault
 
+# Generated PDF delivery copies and visual review renders (bundled assets are tracked)
+/output/pdf/
+/tmp/pdfs/
+
 # generated listing uploads
 /server/images
 

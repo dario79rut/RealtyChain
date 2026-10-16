@@ -64,7 +64,7 @@ const properties = [
     bathrooms: null,
     documents: [
       { name: 'Property Deed', url: '#' },
-      { name: 'Tenant Agreements', url: '#' },
+      { name: 'Inspection Report', url: '#' },
       { name: 'Financial Projections', url: '#' },
     ],
     returnRate: 7.8,
@@ -110,7 +110,7 @@ const properties = [
     bathrooms: null,
     documents: [
       { name: 'Property Deed', url: '#' },
-      { name: 'Market Analysis', url: '#' },
+      { name: 'Inspection Report', url: '#' },
       { name: 'Financial Projections', url: '#' },
     ],
     returnRate: 8.7,
@@ -133,8 +133,8 @@ const properties = [
     bathrooms: 3.5,
     documents: [
       { name: 'Property Deed', url: '#' },
-      { name: 'Historic Designation', url: '#' },
-      { name: 'Renovation Permits', url: '#' },
+      { name: 'Financial Projections', url: '#' },
+      { name: 'Inspection Report', url: '#' },
     ],
     returnRate: 6.9,
   },

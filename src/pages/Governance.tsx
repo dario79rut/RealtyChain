@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { CircleHelpIcon } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -10,7 +11,8 @@ import {
   fetchGovernance,
 } from '../utils/api';
 import { Button } from '../components/ui/Button';
-import { GovernanceFlow, ProposalWorkflow } from '../components/governance/ProposalWorkflow';
+import { ProposalWorkflow } from '../components/governance/ProposalWorkflow';
+import { GovernanceHelpDialog } from '../components/governance/GovernanceHelpDialog';
 import { GovernanceAgreementSetup } from '../components/governance/GovernanceAgreementSetup';
 
 const KIND_LABELS: Record<GovernanceProposal['kind'], string> = {
@@ -129,6 +131,7 @@ export default function Governance() {
   const [error, setError] = useState('');
   const [votingId, setVotingId] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const helpDialog = useRef<HTMLDialogElement>(null);
   const [saving, setSaving] = useState(false);
   const isInvestor = !user?.role || user.role === 'user';
   const [draft, setDraft] = useState({
@@ -215,12 +218,23 @@ export default function Governance() {
               One share is one vote. Open proposals cover budgets, managers, sales, and distributions.
             </p>
           </div>
-          {isInvestor && <Button type="button" variant="outline" disabled={!balances.some((row) => row.shares > 0)} onClick={() => setShowForm((open) => !open)}>
-            {showForm ? 'Close' : 'New proposal'}
-          </Button>}
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <button
+              type="button"
+              aria-haspopup="dialog"
+              onClick={() => helpDialog.current?.showModal()}
+              className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-cream-400 hover:text-cream-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            >
+              <CircleHelpIcon size={17} aria-hidden="true" />
+              How it works
+            </button>
+            {isInvestor && <Button type="button" variant="outline" disabled={!balances.some((row) => row.shares > 0)} onClick={() => setShowForm((open) => !open)}>
+              {showForm ? 'Close' : 'New proposal'}
+            </Button>}
+          </div>
         </div>
 
-        <GovernanceFlow />
+        <GovernanceHelpDialog ref={helpDialog} />
         {setup && <GovernanceAgreementSetup setup={setup} onSave={(result) => {
           setSetup(result.setup);
           setProposals(result.proposals.filter((proposal) => !propertyId || proposal.propertyId === propertyId));
@@ -255,7 +269,13 @@ export default function Governance() {
 
         {showForm && isInvestor && (
           <form onSubmit={handleCreate} className="rounded-2xl border border-void-700 bg-void-800/50 p-5 mb-6 space-y-4">
-            <p className="text-sm text-cream-400">You are the ticket creator. The SPV coordinates the response under the DAO agreement. If approved, the SPV reviews the decision and assigns work to its representative or the property owner. The assigned party acknowledges its existing duty and reports progress.</p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-display text-lg font-semibold text-cream-100">New proposal</h2>
+              <button type="button" aria-haspopup="dialog" onClick={() => helpDialog.current?.showModal()} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
+                <CircleHelpIcon size={16} aria-hidden="true" />
+                Who handles my proposal?
+              </button>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <label className="block text-sm text-cream-400">
                 Property

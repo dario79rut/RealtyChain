@@ -237,7 +237,6 @@ function ensureActivity() {
 function ensureDocumentVault() {
   if (!data || !Array.isArray(data.properties)) return;
   const vault = require('../services/vaultService');
-  vault.ensureSeedFiles(data.properties);
   if (vault.rewritePlaceholderDocs(data.properties)) writeFile(data);
 }
 
@@ -378,7 +377,9 @@ async function ready({ refresh = false } = {}) {
         // Initialize an empty store once. Reapplying catalog seeds on refresh
         // would resurrect properties deliberately deleted by an administrator.
         if (!exists) runEnsures();
-        dirty = !exists;
+        const upgradedSamples = exists
+          && require('../services/vaultService').rewritePlaceholderDocs(data.properties);
+        dirty = !exists || upgradedSamples;
       })().catch((err) => {
         readyPromise = null;
         throw err;

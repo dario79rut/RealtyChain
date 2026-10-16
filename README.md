@@ -20,6 +20,20 @@ A decentralized real estate platform built with React, Vite, and Web3 technologi
 - Authenticated document vault and a demo tax worksheet CSV (not a K-1 or 1099)
 - Solana devnet by default, with an institutional Corda desk that settles a commitment onto that program
 
+## Sample property documents
+
+One reference property, Luxury Downtown Apartment, supplies three shared two-page PDFs: Property Deed, Financial Projections, and Inspection Report. All catalog listings link to this same set, rather than storing copies per property. Download them from the property Documents section or the admin vault. Every page is marked as a fictional sample: deeds are unsigned and unrecorded, projections disclose assumptions, and inspection findings are invented rather than site observations.
+
+The three PDFs are bundled as `sample-deed.pdf`, `sample-financials.pdf`, and `sample-inspection.pdf` in `server/assets/vault/`, served through the authenticated `/api/vault/seed/:file` route. Netlify includes `server/assets/**`; Vercel includes these assets through `server/**`. Older property-specific sample URLs remain aliases to the shared set. Existing document links are upgraded, preserving uploaded files and earlier admin removals.
+
+To regenerate with Python 3, ReportLab, and Node on PATH:
+
+```bash
+python3 scripts/generate_sample_documents.py --bundle
+```
+
+This generates only the reference property's three documents, with review/download copies in `output/pdf/` and deployment copies in `server/assets/vault/`. Financial assumptions use the reference property's catalog data: 3% annual rent growth, 2.5% expense/reserve growth, and an 80% distribution of positive cash after reserves. These sample assumptions do not describe other properties, amend any DAO agreement, or promise returns.
+
 ## Govern ticket flow
 
 The DAO agreement is between investors, the SPV, and the property owner. Govern records performance of duties under that agreement. The SPV is the primary accountable party for coordinating tickets; assignment to the property owner does not remove SPV coordination responsibility.

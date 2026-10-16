@@ -17,25 +17,6 @@ const ACTIONS: Record<GovernanceResponse['action'], string> = {
   resume: 'Resume work', complete: 'Report completion',
 };
 
-export function GovernanceFlow() {
-  return (
-    <section aria-label="How governance works" className="rounded-2xl border border-void-700 bg-void-800/50 p-5 mb-6">
-      <h2 className="font-display text-lg font-semibold text-cream-100">Who handles a Govern ticket?</h2>
-      <ol className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-cream-400">
-        <li><strong className="block text-cream-100">1. Shareholder submits</strong>An investor with shares in this property opens a proposal describing the decision, cost, and timing.</li>
-        <li><strong className="block text-cream-100">2. SPV responds</strong>The SPV is accountable for coordinating the response under the DAO agreement. Its recorded representative responds; the property owner provides property details.</li>
-        <li><strong className="block text-cream-100">3. Shareholders vote</strong>One share is one vote. At the deadline, quorum and more votes for than against are required to pass. A tie or missed quorum rejects the proposal.</li>
-        <li><strong className="block text-cream-100">4. SPV assigns, responsible party acknowledges</strong>After approval, the SPV assigns work to its representative or the property owner under the agreement, with a target date. The assigned party acknowledges the duty, reports blockers, and records completion.</li>
-      </ol>
-      <p className="mt-4 text-sm text-cream-400 border-t border-void-700 pt-4">
-        The DAO agreement between investors, the SPV, and the property owner defines their duties and the effect of approved votes.
-        The SPV remains accountable for coordination while the assigned party performs its work. Acknowledgment records an existing assigned duty; a missing acknowledgment does not waive that duty.
-        Agreement references are recorded, not legally verified. Follow the agreement for deadlines, permitted refusal reasons, escalation, and remedies; these terms are not automatically enforced here. Contact the SPV for stalled tickets; contact an admin if its representative is missing.
-      </p>
-    </section>
-  );
-}
-
 export function ProposalWorkflow({ proposal, onUpdate }: {
   proposal: GovernanceProposal;
   onUpdate?: (proposal: GovernanceProposal) => void;
