@@ -11,6 +11,7 @@ if (process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT) {
 
 const { attachLambdaEvent } = require('../../server/storage/blobs');
 const persistence = require('../../server/mock/persistence');
+const { usesPostgresStorage } = require('../../server/storage/postgres');
 const app = require('../../server/app');
 
 function header(headers, name) {
@@ -82,6 +83,7 @@ const handle = serverless(app, {
 
 exports.handler = async (event, context) => {
   attachLambdaEvent(event);
-  await persistence.ready();
+  // PostgreSQL initialization belongs inside the request transaction middleware.
+  if (!usesPostgresStorage()) await persistence.ready();
   return handle(event, context);
 };

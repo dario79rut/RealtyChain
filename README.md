@@ -71,6 +71,38 @@ A decentralized real estate platform built with React, Vite, and Web3 technologi
 
 Optional MoonPay handoff (third-party; not a bank) can be added to `.env` with `VITE_MOONPAY_PUBLISHABLE_KEY` and `VITE_MOONPAY_SANDBOX=true`. The default local run uses the demo USDC mint on the Solana program.
 
+## Deploy with PostgreSQL on Vercel or Netlify
+
+For Vercel, create **Neon → PostgreSQL** in Storage/Marketplace and connect it to this project. Neon has a free plan; use the integration's pooled `DATABASE_URL`. Keep the existing private Blob store for uploaded images and documents. PostgreSQL is also supported on Netlify with the same database environment variables.
+
+Set these server environment variables, then deploy the updated code:
+
+- `DATABASE_URL` — pooled PostgreSQL connection URL, including its TLS parameters
+- `DATA_STORAGE_PROVIDER=postgres` — requires PostgreSQL and prevents a silent fallback
+- `DATA_NAMESPACE=production` — use the same value on both hosts to share records
+- `JWT_SECRET` — a long random secret; preserve the existing value to retain valid tokens
+- `ALLOWED_LOGIN_IPS` — your public sign-in addresses
+- `DEMO_MODE=true` and `VITE_DEMO_MODE=true` for the hosted demo
+
+On Vercel, retain the private Blob store credentials and `STORAGE_PROVIDER=vercel` for files. On Netlify, files can continue using Netlify Blobs. Keep server credentials free of the `VITE_` prefix. Preview/development deployments should use a different database branch or `DATA_NAMESPACE`.
+
+The app creates `realtychain_records` automatically. Existing app state is stored in a JSONB record; settings and login history use separate records. Each request uses a database transaction and a namespace lock across function instances, so simultaneous saves wait rather than rejecting each other through Blob version checks. This retains the current service model while moving persistence into PostgreSQL. Binary files remain in object storage.
+
+After deploying, check `/health`, sign in, and open Market, Lend, and Govern. A brand-new database starts with demo seed data. Existing Blob records are preserved in the old store and are not automatically copied.
+
+### Preserve existing Vercel Blob records
+
+Run the migration during a maintenance window while users are not changing the old deployment. Configure the old private store's credentials, `BLOB_PREFIX=realtychain/production` (or its actual prefix), the new `DATABASE_URL`, and `DATA_NAMESPACE=production` locally in `.env`.
+
+```bash
+npm run migrate:postgres
+npm run migrate:postgres -- --apply
+```
+
+The first command reads the source and prints record counts without writing to PostgreSQL. The second copies app state, settings, and login history in one SQL transaction. It leaves Blob data and uploaded files untouched. If the SQL destination already contains app data, migration refuses replacement. Inspect it before deliberately using `--apply --replace-existing`; this makes a backup under a separate database namespace before replacing the destination records.
+
+To run the real PostgreSQL integration tests, point `TEST_DATABASE_URL` at a disposable database on localhost. Tests refuse non-local URLs and clean up their own namespaces. Without that variable, the PostgreSQL integration test is skipped.
+
 ## Deploy on Netlify
 
 This repo is set up as a Vite static site plus a Netlify Function that wraps the Express API (`netlify.toml`, `netlify/functions/api.js`). Catalog, KYC, settings, listing images, and the document vault persist in [Netlify Blobs](https://docs.netlify.com/blobs/overview/) because Functions have no writable filesystem.
