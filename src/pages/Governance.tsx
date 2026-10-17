@@ -13,6 +13,7 @@ import {
 import { Button } from '../components/ui/Button';
 import { ProposalWorkflow } from '../components/governance/ProposalWorkflow';
 import { GovernanceHelpDialog } from '../components/governance/GovernanceHelpDialog';
+import { GovernanceTrackingExample } from '../components/governance/GovernanceTrackingExample';
 import { GovernanceAgreementSetup } from '../components/governance/GovernanceAgreementSetup';
 
 const KIND_LABELS: Record<GovernanceProposal['kind'], string> = {
@@ -26,6 +27,7 @@ const FILTERS = [
   { id: 'all', label: 'All' },
   { id: 'active', label: 'Open' },
   { id: 'passed', label: 'Passed' },
+  { id: 'in_progress', label: 'In progress' },
   { id: 'rejected', label: 'Rejected' },
 ] as const;
 
@@ -129,6 +131,8 @@ export default function Governance() {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]['id']>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [votingId, setVotingId] = useState('');
   const [showForm, setShowForm] = useState(false);
   const helpDialog = useRef<HTMLDialogElement>(null);
@@ -143,9 +147,14 @@ export default function Governance() {
   });
 
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
+    setLastChecked(null);
+    setError('');
     fetchGovernance(propertyId || undefined)
       .then((res) => {
+        if (cancelled) return;
+        setLastChecked(new Date());
         setProposals(res.proposals);
         setBalances(res.balances);
         setSetup(res.setup);
@@ -154,11 +163,12 @@ export default function Governance() {
           propertyId: current.propertyId || propertyId || res.balances[0]?.propertyId || '',
         }));
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Could not load votes.'))
-      .finally(() => setLoading(false));
-  }, [propertyId]);
+      .catch((err) => { if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load votes.'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [propertyId, refreshKey]);
 
-  const visible = proposals.filter((proposal) => filter === 'all' || proposal.status === filter);
+  const visible = proposals.filter((proposal) => filter === 'all' || (filter === 'in_progress' ? proposal.execution.status === 'in_progress' : proposal.status === filter));
   const propertyName = balances.find((row) => row.propertyId === propertyId)?.propertyTitle
     || proposals.find((proposal) => proposal.propertyId === propertyId)?.propertyTitle;
 
@@ -348,11 +358,22 @@ export default function Governance() {
           </form>
         )}
 
+        <div className="rounded-2xl border border-void-700 bg-void-800/40 p-4 mb-5">
+          <p className="text-sm text-cream-300">Track your DAO ticket here: select a property, check Ticket progress for the responsible party and target date, then read Responses &amp; work history for updates, blockers, and evidence references. Contact the accountable SPV if work stalls.</p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <Button type="button" variant="outline" disabled={loading} onClick={() => setRefreshKey((value) => value + 1)}>{loading ? 'Checking…' : 'Refresh updates'}</Button>
+            {lastChecked && <p className="text-xs text-cream-400">Last checked {lastChecked.toLocaleString()} · refresh to see new reports</p>}
+          </div>
+        </div>
+
+        <GovernanceTrackingExample />
+
         <div className="flex flex-wrap gap-2 mb-5">
           {FILTERS.map((item) => (
             <button
               key={item.id}
               type="button"
+              aria-pressed={filter === item.id}
               onClick={() => setFilter(item.id)}
               className={`rounded-full border px-3 py-1.5 text-sm ${
                 filter === item.id

@@ -34,6 +34,7 @@ export const GovernanceHelpDialog = forwardRef<HTMLDialogElement>(function Gover
         <li><strong className="block text-cream-100">3. Shareholders vote</strong>One share is one vote. At the deadline, quorum and more votes for than against are required to pass. A tie or missed quorum rejects the proposal.</li>
         <li><strong className="block text-cream-100">4. SPV assigns, responsible party acknowledges</strong>After approval, the SPV assigns work to its representative or the property owner under the agreement, with a target date. The assigned party acknowledges the duty, reports blockers, and records completion.</li>
       </ol>
+      <p className="mt-4 text-sm text-cream-300">To track execution, open Govern, select the property, and choose In progress. Each ticket shows milestones, its latest update, the assigned party, and target date. Expand Responses &amp; work history for dated reports and evidence references. Use Refresh updates to check for new reports. The tracking example illustrates a ticket after approval; the vote bar shows shareholder support, not work completion.</p>
       <p className="mt-4 text-sm text-cream-400 border-t border-void-700 pt-4">
         The DAO agreement between investors, the SPV, and the property owner defines their duties and the effect of approved votes.
         The SPV remains accountable for coordination while the assigned party performs its work. Acknowledgment records an existing assigned duty; a missing acknowledgment does not waive that duty.

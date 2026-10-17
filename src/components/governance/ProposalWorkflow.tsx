@@ -28,6 +28,11 @@ export function ProposalWorkflow({ proposal, onUpdate }: {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const { execution } = proposal;
+  const latestUpdate = proposal.updates[proposal.updates.length - 1];
+  const steps = ['Vote passed', 'Work assigned', 'In progress · acknowledged', 'Reported complete'];
+  const stepIndex = execution.status === 'completed' ? 3
+    : execution.status === 'in_progress' || (execution.status === 'blocked' && execution.acknowledgedBy) ? 2
+      : execution.status === 'awaiting_acknowledgment' || execution.status === 'blocked' ? 1 : 0;
   const overdue = execution.dueAt && ['awaiting_acknowledgment', 'in_progress', 'blocked'].includes(execution.status)
     && Date.parse(`${execution.dueAt}T23:59:59.999Z`) < Date.now();
   const options: GovernanceResponse['action'][] = ['respond'];
@@ -56,6 +61,28 @@ export function ProposalWorkflow({ proposal, onUpdate }: {
   const fieldClass = 'mt-1 w-full bg-void-700 border border-void-600 rounded-xl px-3 py-2.5 text-cream-100';
   return (
     <div className="mt-5 border-t border-void-700 pt-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h3 className="font-semibold text-cream-100">Ticket progress</h3>
+        <span className="text-xs text-cream-400">{proposal.id}</span>
+      </div>
+      {proposal.status === 'passed' && (
+        <ol aria-label="Execution milestones" className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+          {steps.map((step, index) => (
+            <li key={step} aria-current={index === stepIndex ? 'step' : undefined}
+              className={`rounded-lg border px-3 py-2 text-xs ${index <= stepIndex ? 'border-accent/40 bg-accent/10 text-accent' : 'border-void-700 text-cream-400'}`}>
+              <span className="block font-semibold mb-1">{index < stepIndex || execution.status === 'completed' ? '✓' : index + 1}</span>
+              {step}
+            </li>
+          ))}
+        </ol>
+      )}
+      {latestUpdate && (
+        <div className="rounded-xl bg-void-900/50 p-3 mb-4 text-sm">
+          <p className="text-cream-100 font-medium">Latest update · {latestUpdate.author?.name || 'Former member'}</p>
+          <time className="text-xs text-cream-400" dateTime={latestUpdate.at}>{new Date(latestUpdate.at).toLocaleString()}</time>
+          <p className="mt-1 text-cream-300 whitespace-pre-wrap break-words">{latestUpdate.note}</p>
+        </div>
+      )}
       <dl className="grid sm:grid-cols-2 gap-3 text-sm">
         <div><dt className="text-cream-400">Created by</dt><dd className="text-cream-100">{proposal.createdBy?.name || 'Demo / legacy record · creator not recorded'}</dd></div>
         <div><dt className="text-cream-400">Accountable SPV</dt><dd className="text-cream-100">{proposal.agreement?.spvName || 'Not configured · admin setup required'}</dd></div>
@@ -68,7 +95,7 @@ export function ProposalWorkflow({ proposal, onUpdate }: {
         <div><dt className="text-cream-400">DAO agreement reference (unverified)</dt><dd className="text-cream-100 break-words">{execution.agreementReference || 'Not recorded · admin must link the DAO agreement'}</dd></div>
       </dl>
       {execution.legacy && <p className="mt-3 text-sm text-cream-400">Legacy work record: previous acceptance is preserved as acknowledgment. The SPV should review the assignment against the DAO agreement.</p>}
-      <details className="mt-4" open={proposal.canRespond || undefined}>
+      <details className="mt-4" open={proposal.canRespond || execution.status === 'in_progress' || execution.status === 'blocked' || undefined}>
         <summary className="cursor-pointer text-sm text-cream-100">Responses & work history ({proposal.updates.length})</summary>
         {proposal.updates.length === 0 ? <p className="text-sm text-cream-400 mt-3">No response recorded yet.</p> : (
           <ol className="space-y-3 mt-3">
