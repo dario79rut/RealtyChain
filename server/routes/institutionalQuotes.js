@@ -1,0 +1,13 @@
+const router = require('express').Router();
+const { requireAuth } = require('../middleware/auth');
+const service = require('../services/institutionalQuoteService');
+const endpoint = (action, status = 200) => (req, res) => { try { res.status(status).json(action(req)); } catch (error) { res.status(error.status || 500).json({ error: error.message }); } };
+router.use(requireAuth);
+router.get('/', endpoint((req) => service.snapshot(req.user.sub)));
+router.post('/', endpoint((req) => service.request(req.user.sub, req.body || {}), 201));
+router.post('/:id/quote', endpoint((req) => service.quote(req.user.sub, req.params.id, req.body || {})));
+router.post('/:id/confirm', endpoint((req) => service.confirm(req.user.sub, req.params.id)));
+router.post('/:id/accept', endpoint((req) => service.accept(req.user.sub, req.params.id)));
+router.post('/:id/cancel', endpoint((req) => service.cancel(req.user.sub, req.params.id)));
+router.post('/:id/settle', endpoint((req) => service.settle(req.user.sub, req.params.id)));
+module.exports = router;

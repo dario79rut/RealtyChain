@@ -1,0 +1,37 @@
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { InvestmentPlanDesk, fetchInvestmentPlans, createInvestmentPlan, changeInvestmentPlan, runInvestmentPlans } from '../../utils/api';
+import { Button } from '../ui/Button';
+const field='mt-1 w-full rounded-lg border border-void-600 bg-void-700 p-2.5 text-cream-100';
+const money=(n:number)=>n.toLocaleString(undefined,{maximumFractionDigits:2});
+export function InvestmentPlansPanel({propertyId}:{propertyId:string}) {
+  const {user}=useAuth();
+  const [desk,setDesk]=useState<InvestmentPlanDesk|null>(null);
+  const [error,setError]=useState('');const [busy,setBusy]=useState(false);
+  const [draft,setDraft]=useState({frequency:'monthly',budgetUsdc:'100',maxPrice:'',startDate:new Date().toISOString().slice(0,10),authorized:false});
+  useEffect(()=>{let active=true;if(user?.role==='user'||(user&&!user.role))fetchInvestmentPlans(propertyId).then(data=>{if(active)setDesk(data);}).catch(err=>{if(active)setError(err.message);});return()=>{active=false;};},[propertyId,user?.role]);
+  async function run(action:()=>Promise<InvestmentPlanDesk>){if(busy)return;setBusy(true);setError('');try{setDesk(await action());}catch(err){setError(err instanceof Error?err.message:'Request failed.');}finally{setBusy(false);}}
+  if(!user||user.role&&user.role!=='user')return null;
+  return <section className="mb-8 rounded-2xl border border-void-600 bg-void-900/40 p-5" aria-label="Recurring investment and reinvestment">
+    <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs uppercase tracking-widest text-accent">Build your position</p><h2 className="mt-1 font-display text-xl text-cream-100">Recurring investment &amp; reinvestment</h2></div><Button size="sm" variant="outline" disabled={busy} onClick={()=>run(()=>fetchInvestmentPlans(propertyId))}>Refresh plans</Button></div>
+    <p className="mt-2 text-xs text-cream-400">Purchase whole shares from account-backed sell orders using available ledger cash. Every plan has a budget and maximum price. Unspent funds remain cash; wallet signatures and bank debits are not automated.</p>
+    {error&&<p role="alert" className="mt-3 text-sm text-red-300">{error}</p>}
+    {desk&&<>
+      <p className={`mt-3 rounded-xl border p-3 text-xs ${desk.schedulerConfigured?'border-accent/30 text-cream-300':'border-amber-400/30 text-amber-200'}`}>{desk.schedulerConfigured?desk.runnerCadence:'The automatic runner needs deployment configuration. Use Run due now to process eligible plans manually. Weekly/monthly dates and distribution eligibility are still enforced.'}</p>
+      {!desk.eligible&&<p className="mt-3 text-sm text-cream-400">Approved KYC, accreditation, and an unrestricted investor account are required to enable purchase plans.</p>}
+      <details className="mt-4"><summary className="cursor-pointer text-sm font-medium text-cream-100">Create an investment plan</summary><form className="mt-3 space-y-3" onSubmit={event=>{event.preventDefault();run(()=>createInvestmentPlan({...draft,propertyId,budgetUsdc:Number(draft.budgetUsdc),maxPrice:Number(draft.maxPrice)}));}}>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="text-xs text-cream-400">Plan type<select className={field} value={draft.frequency} onChange={e=>setDraft({...draft,frequency:e.target.value})}><option value="weekly">Weekly investment</option><option value="monthly">Monthly investment</option><option value="reinvest">Reinvest new distributions</option></select></label>
+          <label className="text-xs text-cream-400">{draft.frequency==='reinvest'?'Maximum per distribution':'Budget per scheduled purchase'} · USDC<input required type="number" min="0.01" step="0.01" className={field} value={draft.budgetUsdc} onChange={e=>setDraft({...draft,budgetUsdc:e.target.value})}/></label>
+          <label className="text-xs text-cream-400">Maximum price · USDC/share<input required type="number" min="0.01" step="0.01" className={field} value={draft.maxPrice} onChange={e=>setDraft({...draft,maxPrice:e.target.value})}/></label>
+          <label className="text-xs text-cream-400">Start date · UTC<input required type="date" min={new Date().toISOString().slice(0,10)} className={field} value={draft.startDate} onChange={e=>setDraft({...draft,startDate:e.target.value})}/></label>
+        </div>
+        {draft.frequency==='reinvest'&&<p className="text-xs text-cream-400">Only new, completed ledger distributions for this property are eligible. Each distribution is used once, up to your cap and available cash. Unspent amounts stay cash.</p>}
+        <label className="flex items-start gap-2 text-xs text-cream-300"><input required type="checkbox" checked={draft.authorized} onChange={e=>setDraft({...draft,authorized:e.target.checked})} className="mt-0.5"/><span>I authorize recurring ledger purchases within this budget and maximum price until I pause or cancel the plan. Available cash and matching sell orders are required; returns and fills are not guaranteed.</span></label>
+        <Button type="submit" disabled={busy||!desk.eligible||!draft.authorized}>Activate purchase plan</Button>
+      </form></details>
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold text-cream-100">Your plans</h3><Button size="sm" variant="outline" disabled={busy||!desk.eligible} onClick={()=>run(()=>runInvestmentPlans(propertyId))}>Run due now</Button></div>
+      {desk.plans.length===0?<p className="mt-3 text-sm text-cream-400">No purchase plans for this property.</p>:<div className="mt-3 space-y-3">{desk.plans.map(plan=><article key={plan.id} className="rounded-xl border border-void-700 p-4"><div className="flex flex-wrap justify-between gap-2"><h4 className="text-sm font-semibold text-cream-100">{plan.frequency==='reinvest'?'Distribution reinvestment':`${plan.frequency==='weekly'?'Weekly':'Monthly'} investment`}</h4><span className="text-xs text-accent">{plan.status}</span></div><p className="mt-2 text-sm text-cream-300">Budget {money(plan.budgetUsdc)} USDC · max {money(plan.maxPrice)} USDC/share</p><p className="mt-1 text-xs text-cream-400">{plan.frequency==='reinvest'?'Processes eligible new distributions from':'Next eligible purchase'} {new Date(plan.nextRunAt).toLocaleString()} · {plan.sharesBought} shares purchased · {money(plan.spentUsdc)} USDC spent</p>{plan.status!=='cancelled'&&<div className="mt-3 flex gap-2"><Button size="sm" variant="outline" disabled={busy} onClick={()=>run(()=>changeInvestmentPlan(plan.id,plan.status==='active'?'paused':'active'))}>{plan.status==='active'?'Pause':'Resume'}</Button><Button size="sm" variant="outline" disabled={busy} onClick={()=>run(()=>changeInvestmentPlan(plan.id,'cancelled'))}>Cancel plan</Button></div>}<details className="mt-3 text-xs text-cream-400"><summary className="cursor-pointer">Execution history ({plan.history.length})</summary>{plan.history.length===0?<p className="mt-2">No execution attempts yet.</p>:<ol className="mt-2 space-y-2">{plan.history.map(entry=><li key={entry.id} className="border-l border-void-500 pl-3"><time dateTime={entry.at}>{new Date(entry.at).toLocaleString()}</time><p className="mt-1 text-cream-300">{entry.status} · {entry.shares} shares · {money(entry.spentUsdc)} USDC</p><p className="mt-1">{entry.note}</p></li>)}</ol>}</details></article>)}</div>}
+    </>}
+  </section>;
+}

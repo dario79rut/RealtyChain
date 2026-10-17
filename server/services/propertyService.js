@@ -141,6 +141,28 @@ function asAppraisals(value) {
   });
 }
 
+const LEGAL_FIELDS = [
+  'issuerName', 'registrationNumber', 'jurisdiction', 'titleHolder', 'tenure', 'titleReference',
+  'governingLaw', 'investorRights', 'distributionRights', 'transferRestrictions', 'encumbrances', 'sourceReference',
+];
+
+function asLegalSummary(value, existing) {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (typeof value !== 'object' || Array.isArray(value)) fail('Legal summary must be an object.', 400);
+  const next = {};
+  for (const key of LEGAL_FIELDS) {
+    const raw = value[key] === undefined ? existing?.[key] : value[key];
+    if (raw !== undefined && raw !== null && typeof raw !== 'string') fail(`Legal summary ${key} must be text.`, 400);
+    next[key] = (raw || '').trim();
+    if (next[key].length > 1200) fail(`Legal summary ${key} must be at most 1,200 characters.`, 400);
+  }
+  if (!Object.values(next).some(Boolean)) return null;
+  if (!next.sourceReference) fail('Include a source document reference and version for the legal summary.', 400);
+  const unchanged = LEGAL_FIELDS.every((key) => next[key] === (existing?.[key] || ''));
+  return { ...next, updatedAt: unchanged && existing?.updatedAt ? existing.updatedAt : new Date().toISOString() };
+}
+
 function create(input = {}) {
   const title = asString(input.title, 'Title', { required: true, max: 160 });
   const location = asString(input.location, 'Location', { required: true, max: 160 });
@@ -184,6 +206,7 @@ function create(input = {}) {
     reservesMonthly: asNumber(input.reservesMonthly, 'Reserves') ?? null,
     nextAppraisalAt: asString(input.nextAppraisalAt, 'Next appraisal', { max: 40 }) || '',
     appraisals: asAppraisals(input.appraisals) || [],
+    legalSummary: asLegalSummary(input.legalSummary) || null,
     tokenAddress: null,
     offeringAddress: null,
     contractAddress: null,
@@ -200,6 +223,8 @@ function update(id, input = {}) {
   const property = getById(id);
   if (!property) fail('Property not found', 404);
 
+  // Validate legal terms before changing any fields in the stored property.
+  const legalSummary = asLegalSummary(input.legalSummary, property.legalSummary);
   const assign = (key, value) => {
     if (value !== undefined) property[key] = value;
   };
@@ -249,6 +274,7 @@ function update(id, input = {}) {
     property.status = input.status;
   }
 
+  assign('legalSummary', legalSummary);
   persistence.save();
   return property;
 }

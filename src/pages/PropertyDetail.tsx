@@ -14,6 +14,10 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { PropertyMap } from '../components/ui/PropertyMap';
 import { InteriorTour } from '../components/ui/InteriorTour';
+import { PropertyLegalSummary } from '../components/property/PropertyLegalSummary';
+import { PropertyIncomePanel } from '../components/property/PropertyIncomePanel';
+import { InvestmentPlansPanel } from '../components/market/InvestmentPlansPanel';
+import { PropertyLiquidityPanel } from '../components/market/PropertyLiquidityPanel';
 import { PropertyVotes } from '../components/governance/PropertyVotes';
 import { TransactionModal } from '../components/modals/TransactionModal';
 import { FillAskModal } from '../components/modals/FillAskModal';
@@ -202,6 +206,10 @@ export default function PropertyDetail() {
                     </h2>
                     <p className="text-cream-400 leading-relaxed">{property.description}</p>
                   </div>
+                  <PropertyLegalSummary property={property} />
+                  <PropertyIncomePanel key={`income-${property.id}`} propertyId={property.id} />
+                  <PropertyLiquidityPanel key={property.id} propertyId={property.id} />
+                  <InvestmentPlansPanel key={`plans-${property.id}`} propertyId={property.id} />
                   <PropertyVotes propertyId={property.id} />
                   <div className="mb-8">
                     <h2 className="font-display text-lg font-semibold text-cream-100 mb-3">

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useProperties } from '../hooks/useProperties';
+import { InstitutionalQuotes } from '../components/institution/InstitutionalQuotes';
 import { Button } from '../components/ui/Button';
 import {
   BridgeDesk,
@@ -75,11 +76,13 @@ export default function Institution() {
     <div className="min-h-screen w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
         <p className="font-display text-accent text-sm uppercase tracking-widest mb-1">Corda and Solana</p>
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-cream-100">Institutional settlement</h1>
+        <h1 className="font-display text-3xl md:text-4xl font-bold text-cream-100">Institutional liquidity &amp; settlement</h1>
         <p className="text-cream-400 mt-3 max-w-3xl">
           The institution’s legal name, LEI, and full position stay on its Corda node, shared only with the operator and the notary.
           Solana receives the share amount and a commitment hash, which is how the public chain can settle the position without the private record.
         </p>
+
+        {(user?.role === 'institution' || user?.role === 'admin') && <InstitutionalQuotes />}
 
         {desk && (
           <div className="mt-8 grid gap-4 md:grid-cols-3">

@@ -7,6 +7,7 @@ import { useAccount, usePublicClient, useReadContract, useWriteContract } from '
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { PropertyThumb } from '../components/ui/PropertyThumb';
+import { PropertyLiquidityPanel } from '../components/market/PropertyLiquidityPanel';
 import { CandleChart } from '../components/market/CandleChart';
 import { FillAskModal } from '../components/modals/FillAskModal';
 import { useAsks, ShareAsk } from '../hooks/useAsks';
@@ -276,6 +277,7 @@ export default function Market() {
             {paused === true && <Badge color="yellow">Chain paused</Badge>}
           </div>
 
+          <p className="mb-5 rounded-xl border border-amber-400/25 bg-amber-400/5 p-3 text-xs text-cream-300">Application-ledger exchange{book?.demoMode ? ' · demo balances' : ''}. The chart and general order book include illustrative history and synthetic quotes. Account-backed liquidity and exit metrics below exclude synthetic orders and prints.</p>
           {loading && !book ? (
             <p className="text-cream-400">Loading the market…</p>
           ) : !book || !quote ? (
@@ -444,7 +446,7 @@ export default function Market() {
                               )}
                               {bookTab === 'trades' && tape.map((row) => (
                                 <tr key={row.id} className="border-t border-void-700/70 font-mono">
-                                  <td className="px-4 py-2 text-cream-400 font-sans text-xs whitespace-nowrap">{stamp(row.at)}</td>
+                                  <td className="px-4 py-2 text-cream-400 font-sans text-xs whitespace-nowrap">{stamp(row.at)}<span className={`block mt-1 text-[10px] ${row.simulated ? 'text-amber-200' : 'text-cream-400'}`}>{row.simulated ? 'Demo print / fill' : 'Account settlement'}</span></td>
                                   <td className="px-4 py-2 text-left font-sans text-cream-100">{row.title}</td>
                                   <td className={`px-4 py-2 text-right ${row.side === 'sell' ? 'text-red-300' : 'text-emerald-300'}`}>{money(row.price)}</td>
                                   <td className="px-4 py-2 text-right text-cream-100">{row.shares}</td>
@@ -559,6 +561,7 @@ export default function Market() {
             </>
           )}
 
+          {quote && <PropertyLiquidityPanel key={quote.propertyId} propertyId={quote.propertyId} />}
           {chainError && <p className="text-red-400 text-sm mt-6">{chainError}</p>}
           {asks.length > 0 && (
             <div className="mt-10">

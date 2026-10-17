@@ -7,7 +7,7 @@ import { ConnectWalletButton } from '../ui/ConnectWalletButton';
 import { useWallet } from '../../context/WalletContext';
 
 const LINKS = [
-  { label: 'Corda desk', to: '/institution' },
+  { label: 'Liquidity desk', to: '/institution' },
   { label: 'Properties', to: '/browse' },
 ];
 

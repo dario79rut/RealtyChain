@@ -12,8 +12,7 @@ function Metric({ label, children }: { label: string; children: React.ReactNode 
 }
 
 export function LendingOverview({ desk, account }: { desk: LendingDesk; account: string }) {
-  const deployed = desk.positions.reduce((sum, loan) => sum + loan.principal, 0);
-  const utilization = deployed + desk.poolUsdc > 0 ? deployed / (deployed + desk.poolUsdc) : 0;
+  const utilization = desk.rateModel.utilization;
   return (
     <section aria-label="Pool and counterparties" className="mt-6 rounded-2xl border border-void-700 bg-void-800/50 p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -111,14 +110,36 @@ export function LendingBook({ desk }: { desk: LendingDesk }) {
       <details className="rounded-2xl border border-void-700 p-5 text-sm text-cream-400">
         <summary className="cursor-pointer text-cream-100 font-medium">Rate, valuation &amp; settlement methodology</summary>
         <dl className="grid sm:grid-cols-2 gap-5 mt-4">
-          <Metric label="Interest convention">Current configured APR · 365-day year · simple interest on principal, calculated when the desk is accessed or a transaction occurs.</Metric>
+          <Metric label="Interest convention">Variable APR based on utilization · 365-day year · simple interest on principal. Rates apply prospectively; fractional cents carry between accrual calculations.</Metric>
           <Metric label="Term / repayment">Open-ended; no scheduled maturity or installments. Repayments cover accrued interest first, then principal. Full repayment unlocks collateral.</Metric>
           <Metric label="Collateral pricing">{desk.pool.valuationMethod} No independent oracle or appraisal verification is recorded by this lending service.</Metric>
           <Metric label="Supply withdrawals">Limited by your balance and available pool cash. A request may be partially filled; the actual withdrawn amount is recorded in activity.</Metric>
           <Metric label="Execution">Balances, collateral locks, and liquidations are recorded in the application ledger. No on-chain loan address or wallet settlement is provided by this service.</Metric>
-          <Metric label="Lender exposure">Suppliers share pool liquidity and borrower exposure. Interest is credited by the application; it is not a guarantee of available withdrawal cash.</Metric>
+          <Metric label="Lender exposure">Supplier APR = borrow APR × utilization × 85%. A 15% share of borrower interest actually repaid is protected as a reserve. Accrued supplier interest remains a liability until withdrawn; it does not guarantee available cash.</Metric>
         </dl>
       </details>
     </div>
   );
+}
+
+
+export function LendingRateModel({ desk }: { desk: LendingDesk }) {
+  const model = desk.rateModel;
+  return <section aria-label="Lending rate model and income coverage" className="mt-5 rounded-2xl border border-void-700 bg-void-800/50 p-5">
+    <h2 className="font-display text-xl text-cream-100">Variable rates &amp; pool reserves</h2>
+    <p className="mt-2 text-sm text-cream-400">Borrowing rates increase with capital utilization. The model starts at 2% APR, reaches 8% at 80% utilization, then increases to 68% at full utilization. These are this app’s configured terms; rates can change as balances change.</p>
+    <div className="mt-4 h-3 overflow-hidden rounded-full bg-void-700" role="progressbar" aria-label="Pool utilization" aria-valuenow={Math.round(model.utilization*100)} aria-valuemin={0} aria-valuemax={100}>
+      <div className={`h-full ${model.utilization>model.targetUtilization?'bg-amber-400':'bg-accent'}`} style={{width:`${model.utilization*100}%`}} />
+    </div>
+    <p className="mt-2 text-xs text-cream-400">Utilization {percent(model.utilization)} · target {percent(model.targetUtilization)} · reserve factor {percent(model.reserveFactor)}</p>
+    <dl className="mt-4 grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <Metric label="Current borrow APR">{percent(desk.terms.borrowApr)}</Metric>
+      <Metric label="Current supply APR">{percent(desk.terms.supplyApr)}</Metric>
+      <Metric label="Protected cash reserve">{usdc(desk.pool.reserveUsdc)}</Metric>
+      <Metric label="Borrower interest actually received">{usdc(desk.pool.borrowerInterestReceived)}</Metric>
+      <Metric label="Supplier interest actually withdrawn">{usdc(desk.pool.supplierInterestWithdrawn)}</Metric>
+      <Metric label="Accrued supplier interest liability">{usdc(desk.pool.supplierInterestLiability)}</Metric>
+    </dl>
+    <p className="mt-4 text-xs text-cream-400">Supplier APR = borrow APR × utilization × (1 − reserve factor). Reserved interest is excluded from withdrawable and borrowable pool cash. Historical fixed-rate balances are preserved through migration; recorded interest is an application-ledger obligation.</p>
+  </section>;
 }

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { Property } from '../../utils/types';
+import { Property, PropertyLegalSummary } from '../../utils/types';
 import { updateProperty } from '../../utils/api';
+import { LegalSummaryEditor } from '../property/LegalSummaryEditor';
 import { formatUsd, latestAppraisal, navPerShare, waterfall } from '../../utils/ops';
 
 const fieldClass =
@@ -26,6 +27,7 @@ export function OpsPropertyModal({ isOpen, property, onClose, onSaved }: OpsProp
   const [appDate, setAppDate] = useState('');
   const [appValue, setAppValue] = useState('');
   const [appNote, setAppNote] = useState('');
+  const [legalSummary, setLegalSummary] = useState<PropertyLegalSummary>({});
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -40,6 +42,7 @@ export function OpsPropertyModal({ isOpen, property, onClose, onSaved }: OpsProp
     setAppDate('');
     setAppValue('');
     setAppNote('');
+    setLegalSummary(property.legalSummary || {});
     setError('');
   }, [isOpen, property]);
 
@@ -80,6 +83,7 @@ export function OpsPropertyModal({ isOpen, property, onClose, onSaved }: OpsProp
         reservesMonthly: reservesMonthly === '' ? undefined : Number(reservesMonthly),
         nextAppraisalAt,
         appraisals,
+        legalSummary,
       });
       onSaved();
     } catch (err) {
@@ -109,7 +113,7 @@ export function OpsPropertyModal({ isOpen, property, onClose, onSaved }: OpsProp
               className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-void-700 bg-void-800 shadow-xl p-6"
             >
               <div className="flex justify-between items-center mb-5">
-                <h3 className="font-display text-xl font-semibold text-cream-100">Ops · {property.title}</h3>
+                <h3 className="font-display text-xl font-semibold text-cream-100">Property details · {property.title}</h3>
                 <button
                   onClick={handleClose}
                   disabled={saving}
@@ -119,7 +123,7 @@ export function OpsPropertyModal({ isOpen, property, onClose, onSaved }: OpsProp
                 </button>
               </div>
               <p className="text-cream-400 text-sm mb-5">
-                Admin-entered occupancy, rent, and appraisals. This is not a live property-manager feed.
+                Admin-entered operations and legal information. Legal summary entries require a source document reference and version.
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -218,9 +222,10 @@ export function OpsPropertyModal({ isOpen, property, onClose, onSaved }: OpsProp
                   </p>
                 )}
               </div>
+              <LegalSummaryEditor value={legalSummary} onChange={setLegalSummary} />
               {error && <p className="text-red-400 text-sm mt-4">{error}</p>}
               <Button className="mt-5" fullWidth disabled={saving} onClick={handleSave}>
-                {saving ? 'Saving…' : 'Save ops'}
+                {saving ? 'Saving…' : 'Save property details'}
               </Button>
             </motion.div>
           </div>

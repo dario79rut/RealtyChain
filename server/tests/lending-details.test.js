@@ -106,8 +106,8 @@ test('exposure and eligibility include accrued interest while keeping principal 
   assert.equal(desk.pool.outstandingDebt, 1300);
   assert.equal(desk.liquidations[0].borrowerId, undefined);
   assert.ok(!JSON.stringify(desk.liquidations).includes('Bob Private'));
-  assert.equal(desk.terms.borrowApr, 0.08);
-  assert.equal(desk.terms.supplyApr, 0.04);
+  assert.equal(desk.terms.borrowApr, lending.ratesFor().borrowAprBps / 10000);
+  assert.equal(desk.terms.supplyApr, lending.ratesFor().supplyAprBps / 10000);
 });
 
 test('history returns the latest 50 entries newest first and excludes other accounts', () => {
@@ -120,4 +120,38 @@ test('history returns the latest 50 entries newest first and excludes other acco
   assert.equal(desk.activity.length, 50);
   assert.equal(desk.activity[0].id, 'entry-59');
   assert.equal(desk.activity[49].id, 'entry-10');
+});
+
+
+test('utilization model prices zero, target and full usage and excludes protected reserves', () => {
+  const model = (cash, borrowed) => lending.ratesFor({ poolCents: cash, loans: [{ principalCents: borrowed }] });
+  assert.equal(model(10000, 0).borrowAprBps, 200);
+  assert.equal(model(10000, 0).supplyAprBps, 0);
+  assert.equal(model(2000, 8000).borrowAprBps, 800);
+  assert.equal(model(2000, 8000).supplyAprBps, 544);
+  assert.equal(model(0, 10000).borrowAprBps, 6800);
+  persistence.data.lending.reserveCents = 10000;
+  assert.equal(lending.availablePoolCents(), 990000);
+});
+
+test('fractional interest carries forward so frequent reads do not erase accrual', () => {
+  const start = Date.parse('2026-01-01T00:00:00Z');
+  persistence.data.lending.loans = [{ id: 'carry', userId: 1, principalCents: 100, accruedCents: 0, updatedAt: new Date(start).toISOString(), collateral: [] }];
+  persistence.data.lending.poolCents = 100;
+  persistence.data.lending.rateState = lending.ratesFor(persistence.data.lending);
+  const rate = persistence.data.lending.rateState.borrowAprBps;
+  for (let day = 1; day <= 365; day += 1) lending.touch(start + day * 86400000);
+  const accrued = persistence.data.lending.loans[0];
+  assert.ok(Math.abs(accrued.accruedCents + accrued.interestRemainderCents - rate / 100) < 1e-8);
+});
+
+test('repaid interest creates a protected reserve and supplier withdrawals use available pool cash', () => {
+  lending.borrow(1, { propertyId: '1', shares: 20, usdc: 800 });
+  persistence.data.lending.loans[0].accruedCents = 10000;
+  lending.repay(1, { usdc: 100 });
+  assert.equal(persistence.data.lending.reserveCents, 1500);
+  assert.equal(persistence.data.lending.borrowerInterestReceivedCents, 10000);
+  const desk = lending.snapshot(1);
+  assert.equal(desk.pool.reserveUsdc, 15);
+  assert.equal(desk.pool.grossCashUsdc - desk.poolUsdc, 15);
 });

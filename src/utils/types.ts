@@ -1,3 +1,19 @@
+export type PropertyLegalSummary = {
+  issuerName?: string;
+  registrationNumber?: string;
+  jurisdiction?: string;
+  titleHolder?: string;
+  tenure?: string;
+  titleReference?: string;
+  governingLaw?: string;
+  investorRights?: string;
+  distributionRights?: string;
+  transferRestrictions?: string;
+  encumbrances?: string;
+  sourceReference?: string;
+  updatedAt?: string;
+};
+
 export type Property = {
   id: string;
   title: string;
@@ -16,6 +32,8 @@ export type Property = {
     kind?: string;
     review?: string;
   }[];
+  legalSummary?: PropertyLegalSummary | null;
+  governanceAgreement?: { spvName: string; reference: string; representativeId: string; recordedAt?: string } | null;
   documentStatus?: 'unverified' | 'verified';
   projectProgress?: number;
   progressLog?: {

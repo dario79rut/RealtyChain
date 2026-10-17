@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BanknoteIcon, Building2Icon, CoinsIcon, HandCoinsIcon, KeyRoundIcon, LandmarkIcon, LineChartIcon, ShieldIcon, UsersIcon, type LucideIcon } from 'lucide-react';
+import { PropertyIncomePanel } from '../components/property/PropertyIncomePanel';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { useAuth } from '../context/AuthContext';
@@ -598,6 +599,8 @@ function Console(props: {
         <p className="text-cream-400 text-sm mb-4">Owner retains {flow.ownerPercent}% of net income. The rest is the investor distribution.</p>
         {section === 'distributions' && (
           <>
+            <PropertyIncomePanel key={property.id} propertyId={property.id} />
+            <details><summary className="cursor-pointer text-sm text-cream-400 mb-3">Legacy projection postings · no cash transfer</summary>
             <Button size="sm" disabled={busy === 'dist'} onClick={() => run('dist', { type: 'distribution-run', id: property.id }, 'Distribution posted.')}>Post distribution</Button>
             <div className="mt-4">
               <SimpleTable
@@ -606,6 +609,7 @@ function Console(props: {
                 rows={desk.distributions.map((row) => [row.at.slice(0, 10), row.title, `$${formatUsd(row.net)}`, `$${formatUsd(row.investor)}`, `$${formatUsd(row.owner)}`, row.status])}
               />
             </div>
+            </details>
           </>
         )}
       </div>

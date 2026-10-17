@@ -62,6 +62,7 @@ function ensureStore() {
         [1.012, 26],
         [1.02, 40],
       ];
+      if (!demoOn()) continue;
       bids.forEach(([mult, shares], index) => {
         orders.push(bookOrder(id, 'bid', Math.round(mid * mult), shares, index));
       });
@@ -90,6 +91,7 @@ function bookOrder(propertyId, side, priceCents, shares, index) {
 }
 
 function ensureLiquidity() {
+  if (!demoOn()) return;
   let changed = false;
   for (const property of persistence.data.properties || []) {
     const id = String(property.id);
@@ -160,14 +162,31 @@ function openOrders(propertyId, side) {
   );
 }
 
+function rfqReservations(userId, propertyId, cash) {
+  return (persistence.data.institutionalQuotes || []).filter((row) => ['quoted', 'accepted'].includes(row.status)
+    && Date.parse(row.status === 'accepted' ? row.settlementDeadline : row.quoteExpiresAt) > Date.now()
+    && (!propertyId || row.propertyId === String(propertyId)))
+    .reduce((sum, row) => {
+      const requester = String(row.userId) === String(userId) && row.status === 'accepted';
+      const counterparty = String(row.counterpartyId) === String(userId);
+      const buys = requester && row.side === 'buy' || counterparty && row.side === 'sell';
+      const sells = requester && row.side === 'sell' || counterparty && row.side === 'buy';
+      return sum + (cash && buys ? Math.round(row.notionalUsdc * 100) : !cash && sells ? row.shares : 0);
+    }, 0);
+}
+
 function reservedShares(userId, propertyId) {
-  return openOrders(propertyId, 'ask')
+  const exits = (store().exitRequests || [])
+    .filter((row) => String(row.userId) === String(userId) && String(row.propertyId) === String(propertyId)
+      && ['queued', 'partially_filled'].includes(row.status))
+    .reduce((sum, row) => sum + row.remaining, 0);
+  return exits + rfqReservations(userId, propertyId, false) + openOrders(propertyId, 'ask')
     .filter((order) => String(order.userId) === String(userId))
     .reduce((sum, order) => sum + order.remaining, 0);
 }
 
 function reservedCashCents(userId) {
-  return openOrders(null, 'bid')
+  return rfqReservations(userId, null, true) + openOrders(null, 'bid')
     .filter((order) => String(order.userId) === String(userId))
     .reduce((sum, order) => sum + order.remaining * order.priceCents, 0);
 }
@@ -201,7 +220,7 @@ function recordTrade(propertyId, priceCents, shares, buyerId, sellerId, taker) {
     taker: taker === 'sell' ? 'sell' : 'buy',
     at,
   });
-  store().trades = store().trades.slice(0, 80);
+  // Keep recorded fills for the liquidity metrics; public views still paginate their output.
   applyTradeToCandle(propertyId, priceCents, shares, at);
 }
 
@@ -316,7 +335,9 @@ function publicCandles(propertyId) {
 }
 
 function consume(order, shares) {
+  order.filled = Number(order.filled || 0) + shares;
   order.remaining -= shares;
+  order.updatedAt = new Date().toISOString();
   if (order.remaining <= 0) {
     order.remaining = 0;
     order.status = 'filled';
@@ -351,7 +372,9 @@ function rememberOrder(user, propertyId, side, priceCents, amount, remaining) {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   });
-  store().orders = store().orders.slice(0, 240);
+  // Active orders hold reservations and must never be discarded by history retention.
+  const closed = store().orders.filter((row) => row.status !== 'open').slice(0, 240);
+  store().orders = [...store().orders.filter((row) => row.status === 'open'), ...closed];
 }
 
 function place(userId, input) {
@@ -594,6 +617,7 @@ function snapshot(userId) {
       title: titles.get(id)?.title || `Property ${id}`,
       price: dollars(trade.priceCents),
       shares: trade.shares,
+      simulated: trade.buyerId == null || trade.sellerId == null,
       side: tradeSide(trade),
       at: trade.at,
     }));
@@ -628,7 +652,10 @@ function snapshot(userId) {
     positions,
     cashUsdc: dollars(user.cashCents),
     cashReserved: dollars(reservedCashCents(user.id)),
+    settlement: 'application_ledger',
+    demoMode: demoOn(),
   };
 }
 
-module.exports = { snapshot, place, cancel, findUser, markCents, availableShares, availableCashCents, dollars };
+module.exports = { snapshot, place, cancel, findUser, markCents, availableShares, availableCashCents, dollars,
+  ensureStore, openOrders, reservedCashCents, reservedShares, lockedShares, rfqReservations, applyFill, consume };

@@ -33,18 +33,37 @@ function propertyTitle(id) {
   return row ? row.title : `Property ${id}`;
 }
 
+function availablePoolCents(book = store()) {
+  return Math.max(0, Number(book.poolCents || 0) - Number(book.reserveCents || 0));
+}
+
+function ratesFor(book = store()) {
+  const borrowed = (book.loans || []).reduce((sum, loan) => sum + (Number(loan.principalCents) || 0), 0);
+  const capital = availablePoolCents(book) + borrowed;
+  const utilization = capital > 0 ? Math.min(1, borrowed / capital) : 0;
+  const target = 0.8;
+  const borrowAprBps = Math.round(200 + (utilization <= target ? 600 * utilization / target : 600 + 6000 * (utilization - target) / (1 - target)));
+  return { model: 'utilization-v1', utilization, targetUtilization: target, reserveFactor: 0.15,
+    borrowAprBps, supplyAprBps: Math.floor(borrowAprBps * utilization * 0.85) };
+}
+
 function accrue(row, aprBps, now) {
   const updated = new Date(row.updatedAt || now).getTime();
   const elapsed = Math.max(0, now - updated);
-  const interest = Math.floor((Number(row.principalCents) || 0) * (aprBps / 10000) * (elapsed / YEAR_MS));
+  const exact = (Number(row.principalCents) || 0) * (aprBps / 10000) * (elapsed / YEAR_MS) + (Number(row.interestRemainderCents) || 0);
+  const interest = Math.floor(exact);
+  row.interestRemainderCents = exact - interest;
   if (interest > 0) row.accruedCents = (Number(row.accruedCents) || 0) + interest;
   row.updatedAt = new Date(now).toISOString();
 }
 
 function touch(now = Date.now()) {
   const book = store();
-  for (const supply of book.supplies) accrue(supply, SUPPLY_APR_BPS, now);
-  for (const loan of book.loans) accrue(loan, BORROW_APR_BPS, now);
+  // Historical balances accrue once at their previous rate before prospective repricing.
+  const previous = book.rateState || { borrowAprBps: BORROW_APR_BPS, supplyAprBps: SUPPLY_APR_BPS };
+  for (const supply of book.supplies) accrue(supply, previous.supplyAprBps, now);
+  for (const loan of book.loans) accrue(loan, previous.borrowAprBps, now);
+  book.rateState = ratesFor(book);
 }
 
 function debtCents(loan) {
@@ -178,16 +197,22 @@ function snapshot(userId) {
   // initialization changes still persist, as do user defaults in findUser().
   if (JSON.stringify(book) !== previous) persistence.save();
   return {
+    rateModel: ratesFor(book),
     terms: {
       maxLtv: MAX_LTV_BPS / 10000,
       liquidationLtv: LIQUIDATION_LTV_BPS / 10000,
-      borrowApr: BORROW_APR_BPS / 10000,
-      supplyApr: SUPPLY_APR_BPS / 10000,
+      borrowApr: book.rateState.borrowAprBps / 10000,
+      supplyApr: book.rateState.supplyAprBps / 10000,
       penalty: PENALTY_BPS / 10000,
     },
     asOf: new Date().toISOString(),
     pool: {
       name: 'DeFi Estate USDC pool',
+      reserveUsdc: market.dollars(book.reserveCents || 0),
+      grossCashUsdc: market.dollars(book.poolCents),
+      supplierInterestLiability: market.dollars(book.supplies.reduce((sum, row) => sum + (Number(row.accruedCents) || 0), 0)),
+      borrowerInterestReceived: market.dollars(book.borrowerInterestReceivedCents || 0),
+      supplierInterestWithdrawn: market.dollars(book.supplierInterestWithdrawnCents || 0),
       supplierCount: new Set(book.supplies.map((row) => String(row.userId))).size,
       borrowerCount: new Set(book.loans.filter((row) => debtCents(row) > 0).map((row) => String(row.userId))).size,
       suppliedPrincipal: market.dollars(book.supplies.reduce((sum, row) => sum + (Number(row.principalCents) || 0), 0)),
@@ -198,7 +223,7 @@ function snapshot(userId) {
     positions: book.loans.filter((row) => debtCents(row) > 0).map((row) => presentPoolLoan(row, user.id)),
     activity: (book.activity || []).filter((row) => String(row.userId) === String(user.id))
       .slice(-50).reverse().map(({ userId: _userId, ...row }) => row),
-    poolUsdc: market.dollars(book.poolCents),
+    poolUsdc: market.dollars(availablePoolCents(book)),
     cashUsdc: market.dollars(market.availableCashCents(user)),
     supply: supply
       ? {
@@ -243,11 +268,12 @@ function withdraw(userId, input) {
   const row = userSupply(user.id);
   if (!row) fail('You have no USDC supplied.', 400);
   const balance = (row.principalCents || 0) + (row.accruedCents || 0);
-  const cents = Math.min(centsOf(input?.usdc, 'Amount'), balance, store().poolCents);
+  const cents = Math.min(centsOf(input?.usdc, 'Amount'), balance, availablePoolCents());
   if (cents < 1) fail('The pool cannot cover that withdrawal yet.', 400);
   let left = cents;
   const fromInterest = Math.min(left, row.accruedCents || 0);
   row.accruedCents -= fromInterest;
+  store().supplierInterestWithdrawnCents = (store().supplierInterestWithdrawnCents || 0) + fromInterest;
   left -= fromInterest;
   row.principalCents -= left;
   store().poolCents -= cents;
@@ -276,7 +302,7 @@ function borrow(userId, input) {
   const shares = sharesOf(input?.shares);
   const cents = centsOf(input?.usdc, 'Borrow amount');
   if (market.availableShares(user, propertyId) < shares) fail('Not enough free shares to lock.', 400);
-  if (store().poolCents < cents) fail('The lending pool does not have that much USDC.', 400);
+  if (availablePoolCents() < cents) fail('The lending pool does not have that much USDC.', 400);
   let loan = userLoan(user.id);
   if (!loan) {
     loan = {
@@ -318,6 +344,8 @@ function repay(userId, input) {
   let left = cents;
   const fromInterest = Math.min(left, loan.accruedCents || 0);
   loan.accruedCents -= fromInterest;
+  store().borrowerInterestReceivedCents = (store().borrowerInterestReceivedCents || 0) + fromInterest;
+  store().reserveCents = (store().reserveCents || 0) + Math.floor(fromInterest * 0.15);
   left -= fromInterest;
   loan.principalCents -= left;
   recordActivity(user.id, 'repay', cents, { loanId: loan.id });
@@ -363,6 +391,8 @@ function liquidate(userId, loanId) {
   const debt = debtCents(loan);
   if (market.availableCashCents(liquidator) < debt) fail('Not enough USDC to repay this loan.', 400);
   const borrower = market.findUser(loan.userId);
+  store().borrowerInterestReceivedCents = (store().borrowerInterestReceivedCents || 0) + (loan.accruedCents || 0);
+  store().reserveCents = (store().reserveCents || 0) + Math.floor((loan.accruedCents || 0) * 0.15);
   liquidator.cashCents -= debt;
   store().poolCents += debt;
   let seizeCents = Math.ceil(debt * (10000 + PENALTY_BPS) / 10000);
@@ -388,4 +418,4 @@ function liquidate(userId, loanId) {
   return snapshot(liquidator.id);
 }
 
-module.exports = { snapshot, supply, withdraw, borrow, repay, release, liquidate };
+module.exports = { snapshot, supply, withdraw, borrow, repay, release, liquidate, ratesFor, touch, availablePoolCents };

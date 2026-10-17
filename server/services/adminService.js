@@ -313,9 +313,9 @@ function snapshot() {
     lending: {
       maxLtv: 0.5,
       liquidationLtv: 0.65,
-      borrowApr: 0.08,
-      supplyApr: 0.04,
-      poolUsdc: money(((persistence.data.lending && persistence.data.lending.poolCents) || 0) / 100),
+      borrowApr: require('./lendingService').ratesFor().borrowAprBps / 10000,
+      supplyApr: require('./lendingService').ratesFor().supplyAprBps / 10000,
+      poolUsdc: require('./lendingService').availablePoolCents() / 100,
       loans: loansView(),
     },
     distributions: (persistence.data.distributions || []).slice(0, 20),

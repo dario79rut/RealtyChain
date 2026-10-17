@@ -331,6 +331,7 @@ test('Lend still commits accrued interest once when a read needs conflict recove
   const authenticated = await login('test1@gmail.com', 'pass1234');
   const original = state();
   const user = original.users.find((row) => row.email === 'test1@gmail.com');
+  delete original.lending.rateState; // Exercise migration from the historical fixed-rate model.
   original.lending.supplies = [{ userId: user.id, principalCents: 1_000_000, accruedCents: 0,
     updatedAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString() }];
   sdk.write(statePath, JSON.stringify(original));

@@ -20,6 +20,16 @@ A decentralized real estate platform built with React, Vite, and Web3 technologi
 - Authenticated document vault and a demo tax worksheet CSV (not a K-1 or 1099)
 - Solana devnet by default, with an institutional Corda desk that settles a commitment onto that program
 
+## Property liquidity and scheduled exits
+
+Each property detail page and the Exchange include an account-backed liquidity panel. Investors can post buy bids that reserve their full USDC value, cancel unfilled bids, inspect account-only depth and recent settlements, and estimate selling proceeds across bid levels. Synthetic orders, illustrative prints, and fills against the synthetic book are excluded from these liquidity metrics. NAV comparisons require an appraisal record.
+
+Exit requests reserve unpledged, unreserved shares and specify a minimum price and a Friday 16:00 UTC processing window (next, second, or fourth). Once eligible, an investor can trigger processing of the property queue through their own active request. Earlier eligible requests are matched first against reserved account bids, at or above each seller's minimum price. Self-matching is excluded. Partial fills credit proceeds immediately in the application ledger; cancellation releases only the unfilled remainder. The tracker records window eligibility, queue position, settled shares, proceeds, and history. There is no background scheduler, guaranteed buyer, or guaranteed settlement date.
+
+These features use application-ledger balances, including seeded balances when `DEMO_MODE=true`; they do not establish wallet escrow, bank funding, on-chain execution, or a property buyback facility. Existing Solana wallet asks and property-sale redemption remain separate flows. Existing historical trade records may have been truncated by older versions; metrics cannot reconstruct deleted history.
+
+Authenticated endpoints under `/api/market/liquidity/:propertyId` provide the snapshot, `POST /bids`, `DELETE /bids/:id`, `POST /exits`, `DELETE /exits/:id`, and `POST /exits/:id/process`. Read retries are supported through the existing storage snapshot workflow; writes are never automatically replayed after a storage conflict.
+
 ## Sample property documents
 
 One reference property, Luxury Downtown Apartment, supplies three shared two-page PDFs: Property Deed, Financial Projections, and Inspection Report. All catalog listings link to this same set, rather than storing copies per property. Download them from the property Documents section or the admin vault. Every page is marked as a fictional sample: deeds are unsigned and unrecorded, projections disclose assumptions, and inspection findings are invented rather than site observations.

@@ -13,6 +13,7 @@ export const ADMIN_SECTIONS = [
   { id: 'owners', label: 'Owners', to: '/admin?section=owners' },
   { id: 'investors', label: 'Investors', to: '/admin?section=investors' },
   { id: 'market', label: 'Market', to: '/admin?section=market' },
+  { id: 'institutional', label: 'Block quotes', to: '/institution' },
   { id: 'lending', label: 'Lending', to: '/admin?section=lending' },
   { id: 'distributions', label: 'Distributions', to: '/admin?section=distributions' },
   { id: 'financials', label: 'Financials', to: '/admin?section=financials' },

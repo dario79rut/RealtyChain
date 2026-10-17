@@ -41,3 +41,7 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+[functions.investment-plans]
+  schedule = "0 14 * * *"
+  timeout = 26

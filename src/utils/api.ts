@@ -392,10 +392,13 @@ export type MarketTrade = {
   price: number;
   shares: number;
   side: 'buy' | 'sell' | 'book';
+  simulated?: boolean;
   at: string;
 };
 
 export type MarketBook = {
+  demoMode: boolean;
+  settlement: 'application_ledger';
   quotes: MarketQuote[];
   books: Record<string, { bids: MarketLevel[]; asks: MarketLevel[] }>;
   orders: MarketOrder[];
@@ -423,6 +426,42 @@ export function placeMarketOrder(payload: {
     method: 'POST',
     body: JSON.stringify(payload),
   });
+}
+
+export type ExitRequest = {
+  id: string; propertyId: string; shares: number; remaining: number; filled: number;
+  minimumPrice: number; proceedsUsdc: number; status: 'queued' | 'awaiting_liquidity' | 'partially_filled' | 'completed' | 'cancelled';
+  eligible: boolean; queuePosition: number | null; windowAt: string; createdAt: string; updatedAt: string;
+  events: { at: string; action: string; note: string; shares?: number; proceedsUsdc?: number }[];
+};
+export type PropertyLiquidity = {
+  propertyId: string; propertyTitle: string; asOf: string; demoMode: boolean; settlement: 'application_ledger'; tradingAvailable: boolean;
+  bestBid: number | null; bestAsk: number | null; spread: number | null; crossedBook: boolean;
+  activeBuyers: number; bidDepthUsdc: number; bidDepthShares: number; volume24hUsdc: number; volume24hShares: number; trades24h: number;
+  navPerShare: number | null; lastAccountPrice: number | null; premiumToNav: number | null; appraisalDate: string | null;
+  bids: MarketLevel[]; asks: MarketLevel[]; sellableBids: MarketLevel[];
+  ownBids: { id: string; shares: number; price: number; reservedUsdc: number }[];
+  cashAvailable: number; availableShares: number; nextWindowAt: string; exitRequests: ExitRequest[];
+  recentTrades: { id: string; price: number; shares: number; at: string }[];
+};
+const liquidityPath = (propertyId: string) => `/api/market/liquidity/${encodeURIComponent(propertyId)}`;
+export function fetchPropertyLiquidity(propertyId: string) {
+  return apiFetch<PropertyLiquidity>(liquidityPath(propertyId));
+}
+export function placeFundedBid(propertyId: string, payload: { shares: number; price: number }) {
+  return apiFetch<PropertyLiquidity>(`${liquidityPath(propertyId)}/bids`, { method: 'POST', body: JSON.stringify(payload) });
+}
+export function cancelFundedBid(propertyId: string, id: string) {
+  return apiFetch<PropertyLiquidity>(`${liquidityPath(propertyId)}/bids/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+export function requestPropertyExit(propertyId: string, payload: { shares: number; price: number; windowWeeks: number }) {
+  return apiFetch<PropertyLiquidity>(`${liquidityPath(propertyId)}/exits`, { method: 'POST', body: JSON.stringify(payload) });
+}
+export function cancelPropertyExit(propertyId: string, id: string) {
+  return apiFetch<PropertyLiquidity>(`${liquidityPath(propertyId)}/exits/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+export function processPropertyExit(propertyId: string, id: string) {
+  return apiFetch<PropertyLiquidity>(`${liquidityPath(propertyId)}/exits/${encodeURIComponent(id)}/process`, { method: 'POST', body: JSON.stringify({}) });
 }
 
 export type LendingTerms = {
@@ -456,9 +495,11 @@ export type LendingLoan = {
 };
 
 export type LendingDesk = {
+  rateModel: { model: string; utilization: number; targetUtilization: number; reserveFactor: number; borrowAprBps: number; supplyAprBps: number };
   asOf: string;
   pool: {
     name: string; supplierCount: number; borrowerCount: number; suppliedPrincipal: number;
+    reserveUsdc: number; grossCashUsdc: number; supplierInterestLiability: number; borrowerInterestReceived: number; supplierInterestWithdrawn: number;
     outstandingDebt: number; valuationMethod: string; settlement: string;
   };
   positions: Omit<LendingLoan, 'borrowerId'>[];
@@ -928,3 +969,43 @@ export function canInvest(user: AuthUser | null, connectedAddress?: string | nul
   }
   return true;
 }
+
+
+export type IncomeReport = {
+  id: string; propertyId: string; period: string; rentCollected: number; operatingExpenses: number; reserves: number; netIncome: number;
+  distributionBudget: number; sourceReference: string; verification: string; status: 'reported' | 'ledger_paid'; paidUsdc: number;
+  unallocatedUsdc?: number; paidAt?: string; createdAt: string; eligibleAccountCount: number;
+};
+export type IncomeDesk = {
+  propertyId: string; asOf: string; reports: IncomeReport[]; canManage: boolean; demoMode: boolean; fundingAccountConfigured: boolean;
+  totalReportedRent: number; totalLedgerPaid: number;
+  ownPayments: { id: string; amountUsdc: number; shares: number; at: string; period: string; reportId: string }[];
+  indexedClaims: { id: string; at: string | null; amountUsdc: number; transaction: string | null }[];
+  legacyPosted: { id: string; at: string; amount: number; status: string }[];
+};
+export function fetchPropertyIncome(id: string) { return apiFetch<IncomeDesk>(`/api/income/${encodeURIComponent(id)}`); }
+export function recordPropertyIncome(id: string, payload: { period: string; rentCollected: number; operatingExpenses: number; reserves: number; distributionBudget: number; sourceReference: string }) {
+  return apiFetch<IncomeDesk>(`/api/income/${encodeURIComponent(id)}`, { method: 'POST', body: JSON.stringify(payload) });
+}
+export function payPropertyIncome(propertyId: string, id: string) { return apiFetch<IncomeDesk>(`/api/income/${encodeURIComponent(propertyId)}/${encodeURIComponent(id)}/pay`, { method: 'POST', body: '{}' }); }
+export type InvestmentPlan = {
+  id: string; propertyId: string; propertyTitle: string; frequency: 'weekly' | 'monthly' | 'reinvest'; budgetUsdc: number; maxPrice: number;
+  status: 'active' | 'paused' | 'cancelled'; createdAt: string; nextRunAt: string; lastRunAt?: string; spentUsdc: number; sharesBought: number;
+  history: { id: string; at: string; shares: number; spentUsdc: number; status: string; note: string }[];
+};
+export type InvestmentPlanDesk = { plans: InvestmentPlan[]; eligible: boolean; schedulerConfigured: boolean; asOf: string; runnerCadence: string };
+export function fetchInvestmentPlans(propertyId: string) { return apiFetch<InvestmentPlanDesk>(`/api/investment-plans?property=${encodeURIComponent(propertyId)}`); }
+export function createInvestmentPlan(payload: { propertyId: string; frequency: string; budgetUsdc: number; maxPrice: number; startDate: string; authorized: boolean }) { return apiFetch<InvestmentPlanDesk>('/api/investment-plans', { method: 'POST', body: JSON.stringify(payload) }); }
+export function changeInvestmentPlan(id: string, status: string) { return apiFetch<InvestmentPlanDesk>(`/api/investment-plans/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ status }) }); }
+export function runInvestmentPlans(propertyId: string) { return apiFetch<InvestmentPlanDesk>('/api/investment-plans/run-due', { method: 'POST', body: JSON.stringify({ propertyId }) }); }
+export type InstitutionalQuote = {
+  id: string; userId: string; counterpartyId?: string; requester: string; counterparty: string | null; propertyId: string; propertyTitle: string;
+  side: 'buy' | 'sell'; shares: number; note: string; status: 'requested' | 'proposed' | 'quoted' | 'accepted' | 'settled' | 'expired' | 'cancelled';
+  price?: number; notionalUsdc?: number; quoteExpiresAt?: string; settlementDeadline?: string; settlementReference?: string;
+  isRequester: boolean; isCounterparty: boolean; createdAt: string;
+  history: { at: string; action: string; note: string }[];
+};
+export type InstitutionalQuoteDesk = { role: string; eligible: boolean; demoMode: boolean; requests: InstitutionalQuote[]; counterparties: { id: string; name: string }[] };
+export function fetchInstitutionalQuotes() { return apiFetch<InstitutionalQuoteDesk>('/api/institutional-quotes'); }
+export function requestInstitutionalQuote(payload: { propertyId: string; side: string; shares: number; note: string }) { return apiFetch<InstitutionalQuoteDesk>('/api/institutional-quotes', { method: 'POST', body: JSON.stringify(payload) }); }
+export function actOnInstitutionalQuote(id: string, action: string, payload: Record<string, unknown> = {}) { return apiFetch<InstitutionalQuoteDesk>(`/api/institutional-quotes/${encodeURIComponent(id)}/${action}`, { method: 'POST', body: JSON.stringify(payload) }); }

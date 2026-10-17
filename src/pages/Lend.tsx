@@ -13,7 +13,7 @@ import {
 } from '../utils/api';
 import { Button } from '../components/ui/Button';
 import { formatUsd } from '../utils/ops';
-import { LendingOverview, LoanRiskDetails, LendingBook } from '../components/lending/LendingDetails';
+import { LendingOverview, LoanRiskDetails, LendingBook, LendingRateModel } from '../components/lending/LendingDetails';
 
 const fieldClass = 'mt-1 w-full bg-void-700 border border-void-600 rounded-xl px-3 py-2.5 text-cream-100';
 
@@ -138,6 +138,7 @@ export default function Lend() {
 
         {desk && <p className="mt-3 text-xs text-cream-400">Snapshot {new Date(desk.asOf).toLocaleString()} · refresh to recalculate interest and read stored marks</p>}
         {desk && <LendingOverview desk={desk} account={user?.name || 'Your investor account'} />}
+        {desk && <LendingRateModel desk={desk} />}
         {desk && (
           <div className="mt-6 flex flex-wrap gap-2 text-sm">
             {[
@@ -256,7 +257,7 @@ export default function Lend() {
                   <p className="text-cream-300">Receive {formatUsd(preview.borrow)} USDC · total debt after borrowing {formatUsd(preview.debt)} USDC · total margin ${formatUsd(preview.collateral)}.</p>
                   <p className={preview.ltv > (desk?.terms.maxLtv || 0.5) ? 'text-red-300' : 'text-cream-300'}>Resulting LTV {pct(preview.ltv)} · maximum {desk ? pct(desk.terms.maxLtv) : '—'} · liquidation at {desk ? pct(desk.terms.liquidationLtv) : '—'}.</p>
                   {desk && preview.debt > 0 && <p className="text-cream-300">Estimated liquidation margin value: ${formatUsd(preview.debt / desk.terms.liquidationLtv)} · uniform mark decline to threshold: {pct(Math.max(0, 1 - preview.debt / desk.terms.liquidationLtv / preview.collateral))}, holding debt constant. Interest accrual reduces this buffer.</p>}
-                  <p className="text-cream-400">Additional interest: approximately {formatUsd(preview.borrow * (desk?.terms.borrowApr || 0) / 365)} USDC/day or {formatUsd(preview.borrow * (desk?.terms.borrowApr || 0))} USDC/year at {desk ? pct(desk.terms.borrowApr) : '—'} APR, before repayments. No origination fee is charged by this service.</p>
+                  <p className="text-cream-400">Additional interest: approximately {formatUsd(preview.borrow * (desk?.terms.borrowApr || 0) / 365)} USDC/day or {formatUsd(preview.borrow * (desk?.terms.borrowApr || 0))} USDC/year at {desk ? pct(desk.terms.borrowApr) : '—'} APR, if rates stay unchanged and before repayments. No origination fee is charged by this service.</p>
                   <p className="text-cream-400">Remaining capacity before this draw: {formatUsd(preview.room)} USDC, subject to {desk ? formatUsd(desk.poolUsdc) : '—'} USDC of pool liquidity.</p>
                   {!validBorrow && <p className="text-amber-200">Enter a positive amount within the borrowing limit and pool liquidity, and a whole number of available shares.</p>}
                 </div>
@@ -284,7 +285,7 @@ export default function Lend() {
                 <div className="flex justify-between mt-1"><span className="text-cream-400">Balance</span><span className="text-cream-100">{formatUsd(desk.supply.total)} USDC</span></div>
               </div>
             )}
-            {desk && positiveAmount(supplyAmount) && <p className="text-xs text-cream-400 mb-3">Supply preview: {formatUsd(Number(supplyAmount))} USDC to {desk.pool.name}; estimated interest {formatUsd(Number(supplyAmount) * desk.terms.supplyApr / 365)} USDC/day · {formatUsd(Number(supplyAmount) * desk.terms.supplyApr)} USDC/year before withdrawals.</p>}
+            {desk && positiveAmount(supplyAmount) && <p className="text-xs text-cream-400 mb-3">Supply preview: {formatUsd(Number(supplyAmount))} USDC to {desk.pool.name}; estimated interest {formatUsd(Number(supplyAmount) * desk.terms.supplyApr / 365)} USDC/day · {formatUsd(Number(supplyAmount) * desk.terms.supplyApr)} USDC/year if the current rate stays unchanged and before withdrawals.</p>}
             <form
               className="flex gap-2 mb-3"
               onSubmit={(event) => {

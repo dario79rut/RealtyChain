@@ -89,6 +89,9 @@ app.use('/api/searches', searchRoutes);
 app.use('/api/governance', governanceRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/lend', lendingRoutes);
+app.use('/api/income', require('./routes/income'));
+app.use('/api/investment-plans', require('./routes/investmentPlans'));
+app.use('/api/institutional-quotes', require('./routes/institutionalQuotes'));
 app.use('/api/bridge', bridgeRoutes);
 app.use('/api/admin', adminRoutes);
 
