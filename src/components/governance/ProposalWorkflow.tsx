@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GovernanceProposal, GovernanceResponse, respondToProposal } from '../../utils/api';
 import { Button } from '../ui/Button';
+import { TicketProgressPipeline } from './TicketProgressPipeline';
 
 const STAGES: Record<GovernanceProposal['execution']['status'], string> = {
   awaiting_vote: 'Awaiting vote outcome',
@@ -29,10 +30,6 @@ export function ProposalWorkflow({ proposal, onUpdate }: {
   const [error, setError] = useState('');
   const { execution } = proposal;
   const latestUpdate = proposal.updates[proposal.updates.length - 1];
-  const steps = ['Vote passed', 'Work assigned', 'In progress · acknowledged', 'Reported complete'];
-  const stepIndex = execution.status === 'completed' ? 3
-    : execution.status === 'in_progress' || (execution.status === 'blocked' && execution.acknowledgedBy) ? 2
-      : execution.status === 'awaiting_acknowledgment' || execution.status === 'blocked' ? 1 : 0;
   const overdue = execution.dueAt && ['awaiting_acknowledgment', 'in_progress', 'blocked'].includes(execution.status)
     && Date.parse(`${execution.dueAt}T23:59:59.999Z`) < Date.now();
   const options: GovernanceResponse['action'][] = ['respond'];
@@ -65,17 +62,7 @@ export function ProposalWorkflow({ proposal, onUpdate }: {
         <h3 className="font-semibold text-cream-100">Ticket progress</h3>
         <span className="text-xs text-cream-400">{proposal.id}</span>
       </div>
-      {proposal.status === 'passed' && (
-        <ol aria-label="Execution milestones" className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-          {steps.map((step, index) => (
-            <li key={step} aria-current={index === stepIndex ? 'step' : undefined}
-              className={`rounded-lg border px-3 py-2 text-xs ${index <= stepIndex ? 'border-accent/40 bg-accent/10 text-accent' : 'border-void-700 text-cream-400'}`}>
-              <span className="block font-semibold mb-1">{index < stepIndex || execution.status === 'completed' ? '✓' : index + 1}</span>
-              {step}
-            </li>
-          ))}
-        </ol>
-      )}
+      <TicketProgressPipeline proposal={proposal} />
       {latestUpdate && (
         <div className="rounded-xl bg-void-900/50 p-3 mb-4 text-sm">
           <p className="text-cream-100 font-medium">Latest update · {latestUpdate.author?.name || 'Former member'}</p>

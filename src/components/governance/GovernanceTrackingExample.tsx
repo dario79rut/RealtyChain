@@ -7,17 +7,17 @@ const DAY = 86400000;
 function trackingExample(): GovernanceProposal {
   const now = Date.now();
   const at = (days: number) => new Date(now + days * DAY).toISOString();
-  const investor = { id: 'example-investor', name: 'Sample investor' };
-  const spv = { id: 'example-spv', name: 'Sample SPV representative' };
-  const owner = { id: 'example-owner', name: 'Sample property owner' };
+  const investor = { id: 'example-investor', name: 'Daniel Morgan' };
+  const spv = { id: 'example-spv', name: 'Sofia Bennett' };
+  const owner = { id: 'example-owner', name: 'Michael Chen' };
   const reference = 'Example DAO agreement v1 · maintenance clause 4';
   return {
-    id: 'EXAMPLE-001', propertyId: 'example', propertyTitle: 'Sample property',
+    id: 'EXAMPLE-001', propertyId: 'example', propertyTitle: 'Property',
     title: 'Outdoor seating expansion', kind: 'budget',
     summary: 'Shareholders approved a $42,000 reserve budget. The property owner is carrying out the work, coordinated by the SPV.',
     createdAt: at(-20), endsAt: at(-10), createdBy: investor,
     responder: spv, propertyOwner: owner,
-    agreement: { spvName: 'Sample Property SPV', reference, representative: spv },
+    agreement: { spvName: 'Harborview Property Holdings LLC', reference, representative: spv },
     canRespond: false, canCoordinate: false, canAcknowledge: false, canManageExecution: false,
     execution: {
       status: 'in_progress', assignedTo: owner, acknowledgedBy: owner,
@@ -46,7 +46,7 @@ export function GovernanceTrackingExample() {
         <span className="rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-xs font-medium uppercase tracking-wide text-accent">In progress</span>
         <span className="text-xs text-cream-400">Example ticket · EXAMPLE-001</span>
       </div>
-      <p className="mt-2 text-xs text-cream-400">Illustrative ticket · sample people, dates, and evidence references · read only. This example is separate from your property tickets.</p>
+      <p className="mt-2 text-xs text-cream-400">Read-only example · all names, dates, and evidence references are fictional. This example is separate from your property tickets.</p>
       <h2 className="mt-4 font-display text-xl text-cream-100">{proposal.title}</h2>
       <p className="mt-2 text-sm text-cream-400">{proposal.summary}</p>
       <ProposalWorkflow proposal={proposal} />
