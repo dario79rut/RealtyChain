@@ -456,6 +456,13 @@ export type LendingLoan = {
 };
 
 export type LendingDesk = {
+  asOf: string;
+  pool: {
+    name: string; supplierCount: number; borrowerCount: number; suppliedPrincipal: number;
+    outstandingDebt: number; valuationMethod: string; settlement: string;
+  };
+  positions: Omit<LendingLoan, 'borrowerId'>[];
+  activity: { id: string; action: string; usdc: number; at: string; loanId?: string; propertyId?: string; shares?: number }[];
   terms: LendingTerms;
   poolUsdc: number;
   cashUsdc: number;
@@ -470,7 +477,7 @@ export type LendingDesk = {
     mark: number;
     value: number;
   }[];
-  liquidations: LendingLoan[];
+  liquidations: Omit<LendingLoan, 'borrowerId'>[];
 };
 
 export function fetchLending() {

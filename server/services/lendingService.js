@@ -132,6 +132,12 @@ function presentLoan(loan) {
   };
 }
 
+function presentPoolLoan(loan, viewerId) {
+  const { borrowerId: _borrowerId, ...position } = presentLoan(loan);
+  return { ...position,
+    borrower: String(loan.userId) === String(viewerId) ? 'You' : `Borrower ${loan.id.slice(-6)}` };
+}
+
 function collateralOptions(user) {
   return (persistence.data.properties || []).map((property) => {
     const propertyId = String(property.id);
@@ -154,6 +160,13 @@ function collateralOptions(user) {
   }).filter(Boolean);
 }
 
+function recordActivity(userId, action, cents, extra = {}) {
+  const book = store();
+  if (!Array.isArray(book.activity)) book.activity = [];
+  book.activity.push({ id: `lend-${crypto.randomBytes(6).toString('hex')}`, userId: String(userId),
+    action, usdc: market.dollars(cents), at: new Date().toISOString(), ...extra });
+}
+
 function snapshot(userId) {
   const previous = JSON.stringify(persistence.data.lending);
   touch();
@@ -172,6 +185,19 @@ function snapshot(userId) {
       supplyApr: SUPPLY_APR_BPS / 10000,
       penalty: PENALTY_BPS / 10000,
     },
+    asOf: new Date().toISOString(),
+    pool: {
+      name: 'DeFi Estate USDC pool',
+      supplierCount: new Set(book.supplies.map((row) => String(row.userId))).size,
+      borrowerCount: new Set(book.loans.filter((row) => debtCents(row) > 0).map((row) => String(row.userId))).size,
+      suppliedPrincipal: market.dollars(book.supplies.reduce((sum, row) => sum + (Number(row.principalCents) || 0), 0)),
+      outstandingDebt: market.dollars(book.loans.reduce((sum, row) => sum + debtCents(row), 0)),
+      valuationMethod: 'Latest stored market candle close; otherwise latest trade, opening mark, or property price per token.',
+      settlement: 'Application ledger',
+    },
+    positions: book.loans.filter((row) => debtCents(row) > 0).map((row) => presentPoolLoan(row, user.id)),
+    activity: (book.activity || []).filter((row) => String(row.userId) === String(user.id))
+      .slice(-50).reverse().map(({ userId: _userId, ...row }) => row),
     poolUsdc: market.dollars(book.poolCents),
     cashUsdc: market.dollars(market.availableCashCents(user)),
     supply: supply
@@ -185,7 +211,7 @@ function snapshot(userId) {
     collateral: collateralOptions(user),
     liquidations: book.loans
       .filter((loan) => String(loan.userId) !== String(user.id) && ltvBps(loan) >= LIQUIDATION_LTV_BPS)
-      .map(presentLoan),
+      .map((row) => presentPoolLoan(row, user.id)),
   };
 }
 
@@ -206,6 +232,7 @@ function supply(userId, input) {
     book.supplies.push(row);
   }
   row.principalCents += cents;
+  recordActivity(user.id, 'supply', cents);
   persistence.save();
   return snapshot(user.id);
 }
@@ -228,6 +255,7 @@ function withdraw(userId, input) {
   if ((row.principalCents || 0) + (row.accruedCents || 0) <= 0) {
     store().supplies = store().supplies.filter((item) => item !== row);
   }
+  recordActivity(user.id, 'withdraw', cents);
   persistence.save();
   return snapshot(user.id);
 }
@@ -272,6 +300,7 @@ function borrow(userId, input) {
     }
     fail('That borrow would put the loan over the 50% loan-to-value limit.', 400);
   }
+  recordActivity(user.id, 'borrow', cents, { loanId: loan.id, propertyId, shares });
   loan.principalCents += cents;
   store().poolCents -= cents;
   user.cashCents += cents;
@@ -291,6 +320,7 @@ function repay(userId, input) {
   loan.accruedCents -= fromInterest;
   left -= fromInterest;
   loan.principalCents -= left;
+  recordActivity(user.id, 'repay', cents, { loanId: loan.id });
   user.cashCents -= cents;
   store().poolCents += cents;
   if (debtCents(loan) <= 0) {
@@ -318,6 +348,7 @@ function release(userId, input) {
   if (!loan.collateral.length && debtCents(loan) <= 0) {
     store().loans = store().loans.filter((row) => row !== loan);
   }
+  recordActivity(user.id, 'release', 0, { loanId: loan.id, propertyId, shares });
   persistence.save();
   return snapshot(user.id);
 }
@@ -351,6 +382,8 @@ function liquidate(userId, loanId) {
     line.shares -= moved;
   }
   store().loans = store().loans.filter((row) => row !== loan);
+  recordActivity(liquidator.id, 'liquidate', debt, { loanId: loan.id });
+  recordActivity(borrower.id, 'liquidated', debt, { loanId: loan.id });
   persistence.save();
   return snapshot(liquidator.id);
 }
