@@ -2,7 +2,7 @@ import React from 'react';
 import type { GovernanceProposal } from '../../utils/api';
 import { ProposalWorkflow } from './ProposalWorkflow';
 
-// An isolated illustration: never submitted to the governance API or included in live filters.
+// A read-only example ticket displayed in the In progress view; never submitted to the API.
 const DAY = 86400000;
 function trackingExample(): GovernanceProposal {
   const now = Date.now();
@@ -41,12 +41,15 @@ function trackingExample(): GovernanceProposal {
 export function GovernanceTrackingExample() {
   const [proposal] = React.useState(trackingExample);
   return (
-    <details className="rounded-2xl border border-accent/30 bg-void-800/40 p-5 mb-6" open>
-      <summary className="cursor-pointer text-cream-100 font-semibold">Tracking example · In progress</summary>
+    <article className="rounded-2xl border border-void-700 bg-void-800/50 p-5">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-xs font-medium uppercase tracking-wide text-accent">In progress</span>
+        <span className="text-xs text-cream-400">Example ticket · EXAMPLE-001</span>
+      </div>
       <p className="mt-2 text-xs text-cream-400">Illustrative ticket · sample people, dates, and evidence references · read only. This example is separate from your property tickets.</p>
       <h2 className="mt-4 font-display text-xl text-cream-100">{proposal.title}</h2>
       <p className="mt-2 text-sm text-cream-400">{proposal.summary}</p>
       <ProposalWorkflow proposal={proposal} />
-    </details>
+    </article>
   );
 }

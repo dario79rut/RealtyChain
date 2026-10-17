@@ -366,8 +366,6 @@ export default function Governance() {
           </div>
         </div>
 
-        <GovernanceTrackingExample />
-
         <div className="flex flex-wrap gap-2 mb-5">
           {FILTERS.map((item) => (
             <button
@@ -390,7 +388,7 @@ export default function Governance() {
 
         {loading ? (
           <p className="text-cream-400">Loading votes…</p>
-        ) : visible.length === 0 ? (
+        ) : visible.length === 0 && filter !== 'in_progress' ? (
           <div className="rounded-2xl border border-void-700 bg-void-800/40 p-10 text-center text-cream-400">
             No proposals in this view.
           </div>
@@ -405,6 +403,7 @@ export default function Governance() {
                 onUpdate={(updated) => setProposals((rows) => rows.map((row) => row.id === updated.id ? updated : row))}
               />
             ))}
+            {filter === 'in_progress' && <GovernanceTrackingExample />}
           </div>
         )}
       </div>
