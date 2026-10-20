@@ -17,7 +17,7 @@ function nextDate(previous, frequency, anchorDay) {
 }
 function snapshot(userId, propertyId) {
   const user = userById(userId);
-  return { asOf: new Date().toISOString(), schedulerConfigured: (process.env.INVESTMENT_SCHEDULER_SECRET || '').length >= 32, eligible: Boolean(eligible(user)),
+  return { asOf: new Date().toISOString(), schedulerConfigured: (process.env.INVESTMENT_SCHEDULER_SECRET || '').length >= 32 && Boolean(process.env.NETLIFY || process.env.URL), eligible: Boolean(eligible(user)),
     plans: plans().filter((row) => row.userId === String(userId) && (!propertyId || row.propertyId === String(propertyId))).map(({ userId: _user, ...row }) => row),
     execution: 'application_ledger', runnerCadence: 'Daily at 14:00 UTC when configured; Run due now is available manually.' };
 }
@@ -35,7 +35,7 @@ function create(userId, input) {
   const now = new Date().toISOString();
   const row = { id: `plan-${crypto.randomBytes(8).toString('hex')}`, userId: String(userId), propertyId: String(property.id), propertyTitle: property.title,
     frequency: input.frequency, budgetUsdc: budgetCents / 100, maxPrice: maximumCents / 100, status: 'active', createdAt: now,
-    nextRunAt: `${day}T14:00:00.000Z`, anchorDay: Number(day.slice(8)), authorization: 'ledger-account-asks-v1', authorizedAt: now,
+    nextRunAt: input.frequency === 'reinvest' && day === now.slice(0, 10) ? now : `${day}T14:00:00.000Z`, anchorDay: Number(day.slice(8)), authorization: 'ledger-account-asks-v1', authorizedAt: now,
     spentUsdc: 0, sharesBought: 0, processedIncomeIds: [], history: [] };
   if (!Array.isArray(persistence.data.investmentPlans)) persistence.data.investmentPlans = [];
   persistence.data.investmentPlans.push(row); persistence.save(); return snapshot(userId, property.id);
@@ -67,7 +67,7 @@ function processPlan(plan, now) {
   if (plan.frequency === 'reinvest') {
     const processed = new Set(plans().filter((row) => row.userId === plan.userId).flatMap((row) => row.processedIncomeIds || []));
     payment = (persistence.data.incomeReports || []).filter((row) => row.propertyId === plan.propertyId && row.status === 'ledger_paid')
-      .flatMap((row) => row.payments || []).filter((row) => String(row.userId) === plan.userId && row.at >= plan.createdAt && !processed.has(row.id))
+      .flatMap((row) => row.payments || []).filter((row) => String(row.userId) === plan.userId && row.at >= (plan.createdAt > plan.nextRunAt ? plan.createdAt : plan.nextRunAt) && !processed.has(row.id))
       .sort((a, b) => a.at.localeCompare(b.at))[0];
     if (!payment || Date.parse(plan.nextRunAt) > now) { plan.lastCheckedAt = new Date(now).toISOString(); return { id: plan.id, status: 'not_due' }; }
   } else if (Date.parse(plan.nextRunAt) > now) return { id: plan.id, status: 'not_due' };

@@ -22,7 +22,15 @@ import Lend from './pages/Lend';
 import AdminUserAdmin from './pages/AdminUserAdmin';
 import Institution from './pages/Institution';
 
-const client = new QueryClient();
+const client = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchInterval: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+  },
+});
 
 function WalletLoading() {
   return (

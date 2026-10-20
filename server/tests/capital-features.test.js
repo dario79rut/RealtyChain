@@ -179,3 +179,31 @@ test('capital APIs enforce roles, scheduler authentication and owner-only plan c
     await new Promise(resolve => server.close(resolve));
   }
 });
+
+test('scheduled runner skips missing configuration and sends only one authenticated API request', async () => {
+  const { default: handler } = await import('../../netlify/functions/investment-plans.mjs');
+  const previous = { secret: process.env.INVESTMENT_SCHEDULER_SECRET, url: process.env.URL, deploy: process.env.DEPLOY_PRIME_URL, fetch: global.fetch };
+  try {
+    delete process.env.INVESTMENT_SCHEDULER_SECRET;
+    assert.equal((await (await handler()).json()).skipped, true);
+    process.env.INVESTMENT_SCHEDULER_SECRET = 'test-only-scheduler-secret-at-least-32';
+    process.env.URL = 'https://example.test';
+    let calls = 0;
+    global.fetch = async (url, options) => {
+      calls += 1;
+      assert.equal(String(url), 'https://example.test/api/investment-plans/process-due');
+      assert.equal(options.headers['X-Scheduler-Secret'], process.env.INVESTMENT_SCHEDULER_SECRET);
+      return new Response(JSON.stringify({ executed: 1 }), { status: 200 });
+    };
+    assert.equal((await (await handler()).json()).executed, 1);
+    assert.equal(calls, 1);
+    global.fetch = async () => { calls += 1; return new Response('{}', { status: 409 }); };
+    await assert.rejects(handler(), /no automatic retry/);
+    assert.equal(calls, 2);
+  } finally {
+    for (const [name, value] of [['INVESTMENT_SCHEDULER_SECRET', previous.secret], ['URL', previous.url], ['DEPLOY_PRIME_URL', previous.deploy]]) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+    global.fetch = previous.fetch;
+  }
+});

@@ -88,7 +88,6 @@ export default function Market() {
 
   useEffect(() => {
     let cancelled = false;
-    let timer: ReturnType<typeof window.setTimeout>;
     const load = async () => {
       try {
         const next = await fetchMarket();
@@ -105,18 +104,12 @@ export default function Market() {
       } catch (err) {
         if (!cancelled) setLoadError(err instanceof Error ? err.message : 'Could not load the market.');
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-          // Wait for this request before polling again, including while the
-          // server is resolving an initial storage conflict.
-          timer = window.setTimeout(load, 4000);
-        }
+        if (!cancelled) setLoading(false);
       }
     };
     load();
     return () => {
       cancelled = true;
-      window.clearTimeout(timer);
     };
   }, []);
 

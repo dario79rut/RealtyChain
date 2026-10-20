@@ -56,7 +56,7 @@ export default function Kyc() {
   useEffect(() => {
     if (!sumsubConfigured || status !== 'pending') return undefined;
     let stopped = false;
-    const tick = async () => {
+    const syncStatus = async () => {
       try {
         const res = await syncSumsub();
         if (!stopped && res.user.kycStatus !== 'pending') await refreshUser();
@@ -64,11 +64,9 @@ export default function Kyc() {
         // The applicant may not exist until the WebSDK submits.
       }
     };
-    tick();
-    const id = window.setInterval(tick, 5000);
+    syncStatus();
     return () => {
       stopped = true;
-      window.clearInterval(id);
     };
   }, [sumsubConfigured, status, refreshUser]);
 

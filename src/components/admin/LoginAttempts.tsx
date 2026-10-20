@@ -38,10 +38,8 @@ export function LoginAttempts({ onSettingsChange }: { onSettingsChange?: (settin
       }
     };
     load();
-    const timer = window.setInterval(load, 3000);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
     };
   }, [onSettingsChange]);
 
